@@ -173,6 +173,97 @@ export function earthTexture({ size = 512, seed = 5 } = {}) {
   return t;
 }
 
+/** Lightly weathered cream stucco, 2m × 2m. */
+export function stuccoTexture({ size = 512, seed = 9, base = [236, 222, 186] } = {}) {
+  const c = makeCanvas(size);
+  const g = c.getContext('2d');
+  const r = rand(seed);
+  g.fillStyle = `rgb(${base[0]},${base[1]},${base[2]})`;
+  g.fillRect(0, 0, size, size);
+  for (let i = 0; i < 2500; i++) {
+    const v = r();
+    g.fillStyle = v > 0.5 ? `rgba(255,250,235,${r() * 0.18})` : `rgba(120,90,60,${r() * 0.1})`;
+    g.beginPath();
+    g.arc(r() * size, r() * size, 1 + r() * 9, 0, Math.PI * 2);
+    g.fill();
+  }
+  // faint water streaks
+  for (let i = 0; i < 40; i++) {
+    g.fillStyle = `rgba(110,80,60,${r() * 0.06})`;
+    const x = r() * size;
+    g.fillRect(x, 0, 2 + r() * 6, size * (0.3 + r() * 0.7));
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
+/** Horizontal cream / rose stripes for the ribbed spires (v runs up the spire). */
+export function stripeTexture({ size = 256, stripes = 14, cream = [238, 222, 184], rose = [178, 96, 84] } = {}) {
+  const c = makeCanvas(size);
+  const g = c.getContext('2d');
+  const h = size / stripes;
+  for (let i = 0; i < stripes; i++) {
+    const cr = i % 2 === 0 ? cream : rose;
+    g.fillStyle = `rgb(${cr[0]},${cr[1]},${cr[2]})`;
+    g.fillRect(0, size - (i + 1) * h, size, h);
+    // dotted dentil line on each cream band
+    if (i % 2 === 0) {
+      g.fillStyle = `rgba(150,80,70,0.55)`;
+      for (let x = 0; x < size; x += 8) g.fillRect(x, size - (i + 1) * h + h * 0.4, 4, 3);
+    }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/** Ornament band: rows of tiny arches/dentils (the "dotted" bands on the main temple). 1m × 0.5m. */
+export function dentilTexture({ size = 256 } = {}) {
+  const c = makeCanvas(size);
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgb(236, 222, 186)';
+  g.fillRect(0, 0, size, size);
+  g.fillStyle = 'rgb(178, 96, 84)';
+  g.fillRect(0, 0, size, size * 0.12);
+  g.fillRect(0, size * 0.88, size, size * 0.12);
+  for (let x = 0; x < size; x += 16) {
+    g.fillRect(x + 3, size * 0.25, 10, size * 0.18);
+    g.beginPath();
+    g.arc(x + 8, size * 0.62, 5, 0, Math.PI * 2);
+    g.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/** Grey-pink flagstone paving, 2m × 2m. */
+export function flagstoneTexture({ size = 512, seed = 31 } = {}) {
+  const c = makeCanvas(size);
+  const g = c.getContext('2d');
+  const r = rand(seed);
+  g.fillStyle = 'rgb(140, 118, 112)';
+  g.fillRect(0, 0, size, size);
+  const n = 4, cell = size / n, gap = 3;
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const v = (r() - 0.5) * 26;
+    g.fillStyle = `rgb(${Math.round(176 + v)},${Math.round(150 + v)},${Math.round(142 + v * 0.8)})`;
+    g.fillRect(x * cell + gap, y * cell + gap, cell - gap * 2, cell - gap * 2);
+    g.fillStyle = `rgba(60,40,40,${0.05 + r() * 0.08})`;
+    for (let i = 0; i < 12; i++) { g.beginPath(); g.arc(x * cell + r() * cell, y * cell + r() * cell, 2 + r() * 8, 0, Math.PI * 2); g.fill(); }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
 /** Soft radial sprite for fireflies / lamp glows. */
 export function glowTexture(size = 64) {
   const c = makeCanvas(size);
@@ -201,7 +292,34 @@ export function createMaterials() {
   brickColumn.repeat.set(2.5, 3.5);
   brickColumn.needsUpdate = true;
 
+  const stucco = stuccoTexture();
+  stucco.repeat.set(0.5, 0.5);
+  const stripes = stripeTexture();
+  const dentil = dentilTexture();
+  dentil.repeat.set(1, 2);
+  const flag = flagstoneTexture();
+  flag.repeat.set(0.5, 0.5);
+
   const mats = {
+    // ── Dakshineswar palette ──
+    cream: new THREE.MeshStandardMaterial({ map: stucco, roughness: 0.9 }),
+    creamPlain: new THREE.MeshStandardMaterial({ color: 0xefe1bf, roughness: 0.9 }),
+    rose: new THREE.MeshStandardMaterial({ color: 0xb2605a, roughness: 0.85 }),
+    roseDeep: new THREE.MeshStandardMaterial({ color: 0x9a4a3c, roughness: 0.85 }),
+    // cornice trim — glows like the festival light strips at night
+    roseBand: new THREE.MeshStandardMaterial({ color: 0xb2605a, emissive: 0xffb060, emissiveIntensity: 0, roughness: 0.85 }),
+    salmon: new THREE.MeshStandardMaterial({ color: 0xc9776a, roughness: 0.9 }),
+    stripe: new THREE.MeshStandardMaterial({ map: stripes, roughness: 0.85 }),
+    dentil: new THREE.MeshStandardMaterial({ map: dentil, roughness: 0.85 }),
+    flagstone: new THREE.MeshStandardMaterial({ map: flag, roughness: 0.95 }),
+    silver: new THREE.MeshStandardMaterial({ color: 0xe6eaf0, roughness: 0.28, metalness: 0.75 }),
+    cloth: new THREE.MeshStandardMaterial({ color: 0xa8231f, roughness: 0.95, side: THREE.DoubleSide }),
+    clothGold: new THREE.MeshStandardMaterial({ color: 0xd9a63a, roughness: 0.8, side: THREE.DoubleSide }),
+    railing: new THREE.MeshStandardMaterial({ color: 0xf4ecd8, roughness: 0.7 }),
+    ironDark: new THREE.MeshStandardMaterial({ color: 0x2c2a2a, roughness: 0.6, metalness: 0.5 }),
+    foliageDark: new THREE.MeshStandardMaterial({ color: 0x2f5a2a, roughness: 1 }),
+    foliage: new THREE.MeshStandardMaterial({ color: 0x4a7a34, roughness: 1 }),
+    lampGlass: new THREE.MeshStandardMaterial({ color: 0xfff1d0, emissive: 0xffc98a, emissiveIntensity: 0, roughness: 0.4 }),
     brick: new THREE.MeshStandardMaterial({ map: brick, roughness: 0.92, metalness: 0 }),
     brickColumn: new THREE.MeshStandardMaterial({ map: brickColumn, roughness: 0.92, metalness: 0 }),
     brickDark: new THREE.MeshStandardMaterial({ map: brickColumn, color: 0xc9a996, roughness: 0.95 }),
@@ -221,7 +339,7 @@ export function createMaterials() {
     leafLight: new THREE.MeshStandardMaterial({ color: 0x5b8a34, emissive: 0x1d3a12, emissiveIntensity: 0.7, roughness: 0.9, side: THREE.DoubleSide }),
     trunk: new THREE.MeshStandardMaterial({ color: 0x5b4632, roughness: 0.95 }),
     water: new THREE.MeshStandardMaterial({ color: 0x3f6b66, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.92 }),
-    flame: new THREE.MeshBasicMaterial({ color: 0xffd27a }),
+    flame: new THREE.MeshBasicMaterial({ color: 0xffbf55 }),
     clay: new THREE.MeshStandardMaterial({ color: 0xa5582f, roughness: 0.95 }),
     red: new THREE.MeshStandardMaterial({ color: 0x7a1e1c, roughness: 0.85 }),
     white: new THREE.MeshStandardMaterial({ color: 0xf1e6d2, roughness: 0.9 }),

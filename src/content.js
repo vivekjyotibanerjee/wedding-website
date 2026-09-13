@@ -25,29 +25,22 @@ export const content = {
     mapUrl: 'https://maps.google.com/?q=Kolkata',
   },
 
-  // Text that appears at each stage of the temple walk.
-  // Keep these short — a line or two reads best over the scene.
+  // Short lines shown on the cards pinned to places in the temple complex.
   walk: {
     intro: 'Scroll to walk in',
     gate: {
       kicker: 'You are invited',
-      title: 'Ananya & Arjun',
-      body: 'Together with their families, request the honour of your presence as they are joined in marriage.',
+      body: 'Together with their families, {names} request the honour of your presence as they are joined in marriage at Dakshineswar.',
     },
-    courtyard: {
-      kicker: 'The nat-mandir',
-      title: 'Where the music begins',
-      body: 'Dhaak, shehnai and the sound of conch shells — walk on through the pillared hall.',
-    },
-    shrine: {
-      kicker: 'The wedding',
-      title: 'Saturday, 13 February 2027',
-      body: 'Rajbari Heritage Grounds · Kolkata',
+    ceremony: {
+      kicker: 'The mandap',
+      title: 'The wedding ceremony',
+      body: 'Bor jatri arrives at 6. Shubho drishti — the first look — around 8, then the saat paak, the seven rounds around the fire.',
+      dress: 'Traditional — saris, panjabis, lots of colour',
     },
     sanctum: {
       kicker: 'শুভ দৃষ্টি',
-      title: 'Two souls, one flame',
-      body: 'Scroll on for the story, the schedule and to let us know you are coming.',
+      title: 'Will you join us?',
     },
   },
 
@@ -64,7 +57,7 @@ export const content = {
 
   events: {
     heading: 'Events',
-    intro: 'Three days of celebration. Come to all, or to whichever you can.',
+    intro: 'Three days of celebration in the courtyard and by the river. Come to all, or to whichever you can.',
     list: [
       { name: 'Aiburo Bhaat', date: 'Thu, 11 Feb 2027', time: '12:00 PM', place: 'Family home, Ballygunge', dress: 'Comfortable, colourful', note: 'A last unmarried feast — lots of food, lots of teasing.' },
       { name: 'Gaye Holud', date: 'Fri, 12 Feb 2027', time: '10:00 AM', place: 'Rajbari Heritage Grounds', dress: 'Yellows and whites', note: 'Turmeric, laughter and a fair amount of getting messy.' },

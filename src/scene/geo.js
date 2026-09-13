@@ -175,3 +175,107 @@ export function garlandPoints(a, b, sag, count) {
   }
   return pts;
 }
+
+/** Semicircular (Roman) arch outline as a closed path, opening centred at (cx, 0). */
+export function roundArchPath(cx, w, h) {
+  const r = w / 2;
+  const spring = Math.max(0.01, h - r);
+  const p = new THREE.Path();
+  p.moveTo(cx - r, 0);
+  p.lineTo(cx - r, spring);
+  p.absarc(cx, spring, r, Math.PI, 0, true);
+  p.lineTo(cx + r, 0);
+  p.closePath();
+  return p;
+}
+
+/** Wall in the XY plane, extruded along -Z, with round-arch openings. */
+export function roundArchWall(width, height, depth, arches) {
+  const shape = new THREE.Shape();
+  shape.moveTo(-width / 2, 0);
+  shape.lineTo(width / 2, 0);
+  shape.lineTo(width / 2, height);
+  shape.lineTo(-width / 2, height);
+  shape.closePath();
+  for (const a of arches) shape.holes.push(roundArchPath(a.x, a.w, a.h));
+  const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 12 });
+  g.translate(0, 0, -depth);
+  return g;
+}
+
+/**
+ * Bengali "bow" parapet: a wall slab whose top edge arcs from h0 at the corners to h1 in the middle
+ * (the curved cornice seen on every storey at Dakshineswar). XY plane, extruded along -Z.
+ */
+export function bowParapet(width, h0, h1, depth, band = 0) {
+  const hw = width / 2;
+  const shape = new THREE.Shape();
+  shape.moveTo(-hw, 0);
+  shape.lineTo(hw, 0);
+  shape.lineTo(hw, h0);
+  shape.quadraticCurveTo(0, h1 + (h1 - h0) * 0.9, -hw, h0);
+  shape.closePath();
+  if (band > 0) {
+    // return only the band strip along the curve (for the coloured trim)
+    const s2 = new THREE.Shape();
+    s2.moveTo(hw, h0 - band);
+    s2.quadraticCurveTo(0, h1 + (h1 - h0) * 0.9 - band, -hw, h0 - band);
+    s2.lineTo(-hw, h0);
+    s2.quadraticCurveTo(0, h1 + (h1 - h0) * 0.9, hw, h0);
+    s2.closePath();
+    const g = new THREE.ExtrudeGeometry(s2, { depth, bevelEnabled: false, curveSegments: 24 });
+    g.translate(0, 0, -depth);
+    return g;
+  }
+  const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 24 });
+  g.translate(0, 0, -depth);
+  return g;
+}
+
+/**
+ * Bulging four-sided dome (the char-chala roof of the Shiva temples): convex faces, four ridges.
+ * Base at y=0 spanning [-w/2,w/2]², peak at `peak`.
+ */
+export function bulgeRoof(w, d, peak, overhang = 0.25, segs = 28) {
+  const hw = w / 2 + overhang, hd = d / 2 + overhang;
+  const fn = (u, v, target) => {
+    const a = u * 2 - 1, b = v * 2 - 1;
+    const m = Math.max(Math.abs(a), Math.abs(b));
+    const y = peak * Math.sqrt(Math.max(0, 1 - m * m * m * m)) ;
+    target.set(a * hw, y, b * hd);
+  };
+  const g = new ParametricGeometry(fn, segs, segs);
+  g.computeVertexNormals();
+  return g;
+}
+
+/**
+ * Dakshineswar-style ratna: ribbed bulbous spire that tapers to a point.
+ * Lathe profile from radius r at y=0 to a point at y=h, with `ribs` horizontal ridges.
+ */
+export function ribbedSpire(r, h, ribs = 14, segs = 24) {
+  const pts = [];
+  const n = ribs * 6;
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    // bulge slightly then taper: a squashed ogee
+    const base = r * (1 + 0.08 * Math.sin(t * Math.PI)) * Math.pow(1 - t, 0.55);
+    const rib = 1 + 0.07 * Math.sin(t * Math.PI * 2 * ribs);
+    pts.push(new THREE.Vector2(Math.max(0.001, base * rib), t * h));
+  }
+  pts.push(new THREE.Vector2(0, h));
+  return new THREE.LatheGeometry(pts, segs);
+}
+
+/** Smooth bulbous dome (for the Shiva temple upper tier). */
+export function onionDome(r, h, segs = 24) {
+  const pts = [];
+  const n = 24;
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const rr = r * (1 + 0.1 * Math.sin(t * Math.PI)) * Math.pow(1 - t, 0.5);
+    pts.push(new THREE.Vector2(Math.max(0.001, rr), t * h));
+  }
+  pts.push(new THREE.Vector2(0, h));
+  return new THREE.LatheGeometry(pts, segs);
+}

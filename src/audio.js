@@ -206,3 +206,41 @@ export function createAmbience() {
     async resume() { if (ctx && enabled) await ctx.resume(); },
   };
 }
+
+// ── Playlist from the /music folder ──────────────────────────────────────────
+// Vite resolves every audio file in ../music at build time and gives us its URL.
+const TRACKS = Object.entries(import.meta.glob('../music/*.{mp3,m4a,ogg,wav,MP3,M4A}', { eager: true, query: '?url', import: 'default' }))
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, url]) => url);
+
+export function hasPlaylist() { return TRACKS.length > 0; }
+
+export function createPlaylist() {
+  let audio = null;
+  let index = 0;
+  let enabled = false;
+  function ensure() {
+    if (audio) return;
+    audio = new Audio();
+    audio.preload = 'auto';
+    audio.volume = 0.8;
+    audio.addEventListener('ended', () => { index = (index + 1) % TRACKS.length; audio.src = TRACKS[index]; audio.play().catch(() => {}); });
+    audio.src = TRACKS[index];
+  }
+  return {
+    get enabled() { return enabled; },
+    async toggle() {
+      ensure();
+      if (!enabled) {
+        try { await audio.play(); enabled = true; } catch (e) { enabled = false; }
+      } else {
+        audio.pause();
+        enabled = false;
+      }
+      return enabled;
+    },
+    setDepth() { /* playlist doesn't react to depth */ },
+    async suspend() { if (audio && enabled) audio.pause(); },
+    async resume() { if (audio && enabled) audio.play().catch(() => {}); },
+  };
+}

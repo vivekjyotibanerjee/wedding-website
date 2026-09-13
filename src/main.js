@@ -1,7 +1,7 @@
 import { content } from './content.js';
 import { createScene } from './scene/scene.js';
-import { createAmbience } from './audio.js';
-import { mountStages } from './stages.js';
+import { createAmbience, createPlaylist, hasPlaylist } from './audio.js';
+import { mountCards } from './cards.js';
 import { renderSections } from './sections.js';
 
 document.title = `${content.couple.partner1} & ${content.couple.partner2} — Wedding`;
@@ -9,11 +9,11 @@ document.title = `${content.couple.partner1} & ${content.couple.partner2} — We
 const canvas = document.getElementById('scene');
 const veil = document.getElementById('veil');
 const walk = document.getElementById('walk');
-const stagesEl = document.getElementById('stages');
+const cardsEl = document.getElementById('cards');
 const hint = document.getElementById('scroll-hint');
 const audioBtn = document.getElementById('audio-toggle');
-
-renderSections(document.getElementById('details'));
+const nightBtn = document.getElementById('night-toggle');
+const details = document.getElementById('details');
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -30,16 +30,18 @@ const veilFailsafe = setTimeout(() => veil.classList.add('is-done'), 6000);
 
 function fallbackToDetails() {
   document.body.classList.add('no-webgl');
+  details.hidden = false;
+  renderSections(details);
   veil.classList.add('is-done');
   clearTimeout(veilFailsafe);
 }
 
 if (!sceneApi) {
-  // No WebGL — drop straight to the details; the wedding info is what matters.
+  // No WebGL — the wedding info is what matters; show it as a plain page.
   fallbackToDetails();
 } else try {
-  const stages = mountStages(stagesEl);
-  const ambience = createAmbience();
+  const cards = mountCards(cardsEl, sceneApi);
+  const sound = hasPlaylist() ? createPlaylist() : createAmbience();
 
   // ── Scroll → progress ────────────────────────────────────
   let progressTarget = 0;
@@ -53,7 +55,6 @@ if (!sceneApi) {
     progressTarget = Math.min(1, Math.max(0, y / len));
     over = Math.max(0, (y - len) / window.innerHeight);
     sceneApi.setProgress(progressTarget);
-    // Fade the scene as the details section slides up over it; stop rendering once it is covered.
     const fade = 1 - Math.min(1, over);
     canvas.style.opacity = fade.toFixed(3);
     const nowPast = fade <= 0;
@@ -62,7 +63,7 @@ if (!sceneApi) {
       if (pastWalk) sceneApi.stop(); else sceneApi.start();
     }
     hint.classList.toggle('is-hidden', y > 40);
-    ambience.setDepth(Math.min(1, Math.max(0, (progressTarget - 0.55) / 0.35)));
+    sound.setDepth(Math.min(1, Math.max(0, (progressTarget - 0.7) / 0.25)));
   }
   window.addEventListener('scroll', onScroll, { passive: true });
 
@@ -77,21 +78,36 @@ if (!sceneApi) {
     }, { passive: true });
   }
 
-  // ── Overlay sync ─────────────────────────────────────────
-  function syncOverlays() {
-    stages.update(sceneApi.progress, over);
-    requestAnimationFrame(syncOverlays);
+  // ── Card sync ────────────────────────────────────────────
+  function syncCards() {
+    cards.update(sceneApi.progress, over);
+    requestAnimationFrame(syncCards);
   }
 
-  // ── Audio ────────────────────────────────────────────────
+  // ── Day / night ──────────────────────────────────────────
+  let night = false;
+  try { night = localStorage.getItem('temple-night') === '1'; } catch (_) { /* ignore */ }
+  function applyNight(on, persist = true) {
+    night = on;
+    sceneApi.setNight(on);
+    document.body.classList.toggle('is-night', on);
+    nightBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    nightBtn.setAttribute('aria-label', on ? 'Switch to day' : 'Switch to night');
+    nightBtn.querySelector('.label').textContent = on ? 'Day' : 'Night';
+    if (persist) { try { localStorage.setItem('temple-night', on ? '1' : '0'); } catch (_) { /* ignore */ } }
+  }
+  applyNight(night, false);
+  nightBtn.addEventListener('click', () => applyNight(!night));
+
+  // ── Sound ────────────────────────────────────────────────
   audioBtn.addEventListener('click', async () => {
-    const on = await ambience.toggle();
+    const on = await sound.toggle();
     audioBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    audioBtn.setAttribute('aria-label', on ? 'Turn ambient sound off' : 'Turn ambient sound on');
+    audioBtn.setAttribute('aria-label', on ? 'Turn sound off' : 'Turn sound on');
   });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { ambience.suspend(); sceneApi.stop(); }
-    else { ambience.resume(); if (!pastWalk) sceneApi.start(); }
+    if (document.hidden) { sound.suspend(); sceneApi.stop(); }
+    else { sound.resume(); if (!pastWalk) sceneApi.start(); }
   });
 
   // ── Boot ─────────────────────────────────────────────────
@@ -100,7 +116,7 @@ if (!sceneApi) {
   sceneApi.renderOnce(); // compile shaders before lifting the veil
   requestAnimationFrame(() => {
     sceneApi.start();
-    syncOverlays();
+    syncCards();
     veil.classList.add('is-done');
     clearTimeout(veilFailsafe);
   });
