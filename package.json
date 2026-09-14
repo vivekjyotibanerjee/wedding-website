@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "model": "bash recon/blender/render.sh web",
-    "shoot": "node scripts/shoot.mjs"
+    "shoot": "node scripts/shoot.mjs",
+    "profile": "node scripts/profile.mjs"
   },
   "dependencies": {
     "three": "^0.170.0"

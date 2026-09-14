@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import L from './landmarks.json';
 import { PATH } from './walk.js';
 import { alponaCanvas } from '../ornament.js';
-import { GROUP, attachReveal, revealAttributes, revealUniforms, setReveal, swag, walkOrder } from './util.js';
+import { GROUP, attachReveal, revealAttributes, revealUniforms, setReveal, swag, walkOrder, chunkBy, boundChunk, cullChunks, roomOf } from './util.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Everything that moves or glows, layered over the baked model at runtime so the glb stays a
@@ -187,6 +187,8 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
   const reveal = revealUniforms(uniforms.time);
   const lights = [];          // PointLights on at night: { light, intensity }
   const disposables = [];
+  const diyaChunks = [];      // util.chunkBy chunks of the diyas: { mesh: bowls, flames, minLit, alwaysLit }
+  const bulbChunks = [];      // and of the string lights' bulbs
 
   // ── diyas ──────────────────────────────────────────────────────────────────
   // Every spot is tagged: `always` for the shrine (a living temple, lit before the wedding), else
@@ -251,37 +253,52 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
     for (let z = gz - gw / 2 + 0.8; z <= gz + gw / 2 - 0.8; z += 1.0) if (Math.abs(z - gz) > 2.6) diyaSpots.push([L.ghat.top[0] + 0.25, g, z]);
   }
   {
-    const n = diyaSpots.length;
     const bowlGeo = new THREE.LatheGeometry(
       [new THREE.Vector2(0, 0), new THREE.Vector2(0.07, 0), new THREE.Vector2(0.1, 0.045), new THREE.Vector2(0.075, 0.05), new THREE.Vector2(0.06, 0.03), new THREE.Vector2(0, 0.03)], 10);
     const bowlMat = attachReveal(new THREE.MeshStandardMaterial({ color: 0x7a3d24, roughness: 0.9 }), reveal, { sway: 0 });
-    const bowls = new THREE.InstancedMesh(bowlGeo, bowlMat, n);
-    bowls.castShadow = false;
     const flameGeo = new THREE.PlaneGeometry(0.08, 0.15);
     flameGeo.translate(0, 0.075 + 0.03, 0);
-    const phases = new Float32Array(n), litOrder = new Float32Array(n);
-    const rdN = rz - rd / 2;
-    diyaSpots.forEach((p, i) => {
-      phases[i] = Math.random();
-      const inR = p[0] > rx && Math.abs(p[2] - rz) < rd / 2;                                  // inside the Radhakanta: first, as the walk goes through
-      const d = Math.hypot(p[0] - mx, p[2] - mz);
-      litOrder[i] = p[3] ? -1 : inR ? 0.02 + 0.1 * (p[2] - rdN) / rd : 0.22 + 0.68 * Math.pow(Math.min(1, d / 62), 0.8);
-    });
-    flameGeo.setAttribute('phase', new THREE.InstancedBufferAttribute(phases, 1));
-    flameGeo.setAttribute('aOrder', new THREE.InstancedBufferAttribute(litOrder, 1));
-    revealAttributes(bowlGeo, diyaSpots.map((p) => ({ order: p[3] ? -1 : 0.86 * walkOrder(_p.set(p[0], p[1], p[2])), group: GROUP.prep })));
     const flameMat = new THREE.ShaderMaterial({
       vertexShader: FLAME_VERT, fragmentShader: FLAME_FRAG, transparent: true, depthWrite: false,
       blending: THREE.AdditiveBlending, uniforms: { time: uniforms.time, lit: uniforms.lit, bright: { value: 1.6 } },
     });
-    const flames = new THREE.InstancedMesh(flameGeo, flameMat, n);
-    flames.frustumCulled = false;
-    diyaSpots.forEach((p, i) => {
-      _m.compose(_p.set(p[0], p[1], p[2]), _q.identity(), _s.set(1, 1, 1));
-      bowls.setMatrixAt(i, _m);
-      flames.setMatrixAt(i, _m);
+    const rdN = rz - rd / 2;
+    const items = diyaSpots.map((p) => {
+      const inR = p[0] > rx && Math.abs(p[2] - rz) < rd / 2;                                  // inside the Radhakanta: first, as the walk goes through
+      const d = Math.hypot(p[0] - mx, p[2] - mz);
+      return {
+        p, phase: Math.random(),
+        order: p[3] ? -1 : 0.86 * walkOrder(_p.set(p[0], p[1], p[2])), group: GROUP.prep,   // the bowl is set out in walk order
+        lit: p[3] ? -1 : inR ? 0.02 + 0.1 * (p[2] - rdN) / rd : 0.22 + 0.68 * Math.pow(Math.min(1, d / 62), 0.8),   // and lit in the wave
+      };
     });
-    root.add(bowls, flames);
+    // in spatial chunks (util.chunkBy), so a chunk behind the guest, or not yet set out, or not yet lit, costs nothing
+    for (const c of chunkBy(items, 14)) {
+      const n = c.items.length;
+      const bGeo = bowlGeo.clone(), fGeo = flameGeo.clone();
+      revealAttributes(bGeo, c.items);
+      const phases = new Float32Array(n), litOrder = new Float32Array(n);
+      c.items.forEach((it, i) => { phases[i] = it.phase; litOrder[i] = it.lit; });
+      fGeo.setAttribute('phase', new THREE.InstancedBufferAttribute(phases, 1));
+      fGeo.setAttribute('aOrder', new THREE.InstancedBufferAttribute(litOrder, 1));
+      const bowls = new THREE.InstancedMesh(bGeo, bowlMat, n);
+      const flames = new THREE.InstancedMesh(fGeo, flameMat, n);
+      bowls.castShadow = false;
+      c.items.forEach((it, i) => {
+        _m.compose(_p.set(it.p[0], it.p[1], it.p[2]), _q.identity(), _s.set(1, 1, 1));
+        bowls.setMatrixAt(i, _m);
+        flames.setMatrixAt(i, _m);
+      });
+      boundChunk(bowls);
+      boundChunk(flames);
+      c.mesh = bowls;
+      c.flames = flames;
+      c.minLit = Math.min(...c.items.map((it) => (it.lit < 0 ? Infinity : it.lit)));
+      c.alwaysLit = c.items.some((it) => it.lit < 0);
+      diyaChunks.push(c);
+      root.add(bowls, flames);
+      disposables.push(bGeo, fGeo);
+    }
     disposables.push(bowlGeo, bowlMat, flameGeo, flameMat);
     uniforms.flameBright = flameMat.uniforms.bright;
     // a little warm light where the diyas crowd (one per cluster, not one per flame): the temple
@@ -354,25 +371,33 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
     }
   }
   {
-    const n = bulbPts.length;
     const geo = new THREE.SphereGeometry(0.04, 6, 5);
-    // switched on in the same wave as the diyas: the Radhakanta's interior first, then outward from the mandap
-    const order = new Float32Array(n), phase = new Float32Array(n);
-    bulbPts.forEach((p, i) => {
-      const inR = p.x > rx && Math.abs(p.z - rz) < rd / 2;
-      order[i] = inR ? 0.02 + 0.1 * (p.z - (rz - rd / 2)) / rd : 0.22 + 0.68 * Math.pow(Math.min(1, Math.hypot(p.x - mx, p.z - mz) / 62), 0.8);
-      phase[i] = Math.random();
-    });
-    geo.setAttribute('aOrder', new THREE.InstancedBufferAttribute(order, 1));
-    geo.setAttribute('phase', new THREE.InstancedBufferAttribute(phase, 1));
     const mat = new THREE.ShaderMaterial({ vertexShader: BULB_VERT, fragmentShader: BULB_FRAG, uniforms: { night: uniforms.night, lit: uniforms.lit, time: uniforms.time } });
-    const bulbs = new THREE.InstancedMesh(geo, mat, n);
-    bulbPts.forEach((p, i) => { _m.compose(p, _q.identity(), _s.set(1, 1, 1)); bulbs.setMatrixAt(i, _m); });
-    bulbs.frustumCulled = false;
+    // switched on in the same wave as the diyas: the Radhakanta's interior first, then outward from the mandap
+    const items = bulbPts.map((p) => {
+      const inR = p.x > rx && Math.abs(p.z - rz) < rd / 2;
+      return { p, order: inR ? 0.02 + 0.1 * (p.z - (rz - rd / 2)) / rd : 0.22 + 0.68 * Math.pow(Math.min(1, Math.hypot(p.x - mx, p.z - mz) / 62), 0.8), phase: Math.random() };
+    });
+    // in spatial chunks so the strings behind the guest are not drawn (they are glass by day, so never skipped)
+    for (const c of chunkBy(items, 14)) {
+      const n = c.items.length;
+      const cGeo = geo.clone();
+      const order = new Float32Array(n), phase = new Float32Array(n);
+      c.items.forEach((it, i) => { order[i] = it.order; phase[i] = it.phase; });
+      cGeo.setAttribute('aOrder', new THREE.InstancedBufferAttribute(order, 1));
+      cGeo.setAttribute('phase', new THREE.InstancedBufferAttribute(phase, 1));
+      const bulbs = new THREE.InstancedMesh(cGeo, mat, n);
+      c.items.forEach((it, i) => { _m.compose(it.p, _q.identity(), _s.set(1, 1, 1)); bulbs.setMatrixAt(i, _m); });
+      boundChunk(bulbs, 0.1);
+      c.mesh = bulbs;
+      bulbChunks.push(c);
+      root.add(bulbs);
+      disposables.push(cGeo);
+    }
     const wireGeo = new THREE.BufferGeometry().setFromPoints(wirePts);
     const wire = new THREE.LineSegments(wireGeo, new THREE.LineBasicMaterial({ color: 0x1a1410 }));
     wire.frustumCulled = false;
-    root.add(bulbs, wire);
+    root.add(wire);
     disposables.push(geo, mat, wireGeo, wire.material);
   }
 
@@ -583,10 +608,9 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
       alponas.push({ u, group, o0, o1 });
       disposables.push(m.geometry, mat);
     };
-    // in front of the mandap's west stair, where the guests approach
-    place(mx - L.mandap.width / 2 - 1.0 - 2.6, g, mz, 2.3, 0, 'prep', 0.0, 0.5);
-    // on the nat-mandir's threshold ledge, before the central door
-    place(nx - L.natmandir.plinth_out / 2 - 0.05, nPlinth, nz, 0.68, 0, 'full', 0.0, 0.3);
+    // in front of the mandap's west steps, where the guests approach: the carpet from the Radhakanta
+    // ends at it and the next begins beyond it (decor.js), between the steps and the Shiva plinth's
+    place(mx - L.mandap.width / 2 - 1.0 - 1.9, g, mz, 1.6, 0, 'prep', 0.0, 0.5);
     // the middle of each hall's floor
     place(ncx, nPlinth, nz, 2.6, 0, 'full', 0.3, 0.7);
     place(rcx, rPlinth, rz, 2.6, Math.PI / 8, 'flowers', 0.5, 0.85);
@@ -601,7 +625,7 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
   // view (the Radhakanta's front sliding by; the foot of the nat-mandir's stair); `onBell` lets the
   // ambience ring with it.
   const bells = [];   // { pivot, theta, omega, node, rung }
-  if (model) for (const [name, node] of [['bell_vishnu', 7], ['bell_nat', 22.3]]) {
+  if (model) for (const [name, node] of [['bell_vishnu', 6.1], ['bell_nat', 22.3]]) {
     const grp = model.getObjectByName(name);
     if (!grp) continue;
     const box = new THREE.Box3().setFromObject(grp);
@@ -706,6 +730,10 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
     uniforms.flameBright.value = 1.2 + 1.6 * night;
     setReveal(reveal, stage);
     reveal.reveal.value[GROUP.prep] = Math.max(stage.prep, night);
+    const camRoom = eye ? roomOf(eye.x, eye.z) : null;
+    cullChunks(diyaChunks, reveal.reveal.value, camRoom);
+    for (const c of diyaChunks) c.flames.visible = c.mesh.visible && (c.alwaysLit || lit > c.minLit);
+    for (const c of bulbChunks) c.mesh.visible = !(camRoom && c.room && c.room !== camRoom);
     for (const a of alponas) if (a.group) a.u.reveal.value = THREE.MathUtils.smoothstep(stage[a.group], a.o0, a.o1);
     for (const m of spills) {
       const d = eye ? eye.distanceTo(m.position) : 99;

@@ -446,7 +446,8 @@ def landmarks() -> dict:
         "radhakanta": {"center": T(vx, vy, ch), "size": [vw, vd], "height": vh, "west_face_x": round(vx - vw / 2, 3),
                        "plinth_top": round(ch + 1.2, 3), "plinth_out": 1.5, "bays_west": 8, "bay_pitch": 3.0,
                        "arch": list(vis_arch), "arch_spring": spring(*vis_arch), "storey_h": round(vh / 2, 3),
-                       "stair_width": round(3 * 3.0 - 0.4, 3), "stair_steps": 6, "stair_tread": 0.36},
+                       "stair_width": round(3 * 3.0 - 0.4, 3), "stair_steps": 6, "stair_tread": 0.36,
+                       "door_stairs": [0, 7], "door_stair_width": round(3.0 - 0.4, 3)},   # single-bay flights up to the end doors
         # the shrine chamber in the navaratna's core, behind the central south arch (build_dakshineswar.SANCTUM)
         "sanctum": {"door": T(cx, cy - (S / 2 - 3.0), ch + ph), "arch": list(sanc["door"]),
                     "width": sanc["width"], "depth": sanc["depth"], "height": sanc["height"],

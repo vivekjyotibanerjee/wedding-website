@@ -373,7 +373,6 @@ export function buildFx(scene, { reducedMotion = false, quality = 'high', sunDir
     const flick = noise1(t * 6.0) * 0.6 + noise1(t * 17.0) * 0.4;
     fireLight.intensity = fire * (11 + 6 * flick);
     fireU.sparks.value = fire * motion;
-    fireLight.visible = fire > 0.01;
     // smoke: the agni's with the fire, the mandap incense with the mandap, the shrine's always
     const on = smokeU.on.value;
     on[0] = fire * motion * (nSmoke ? 1 : 0);

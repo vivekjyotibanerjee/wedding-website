@@ -34,6 +34,10 @@ export function loadModel(url, renderer, onProgress) {
           if (base === 'river') { m.envMapIntensity = 1.6; o.receiveShadow = false; }
         });
         for (const t of textures) t.anisotropy = aniso;  // the tiled paving is seen at grazing angles all walk long
+        // ~460 static objects: compute their matrices once rather than every frame (the bells'
+        // pivots, added later by life.js, keep their own auto-update and push it down to the bell)
+        root.updateMatrixWorld(true);
+        root.traverse((o) => { o.matrixAutoUpdate = false; });
         resolve(root);
       },
       (ev) => { if (onProgress) onProgress(ev.total ? Math.min(1, ev.loaded / ev.total) : -1); },

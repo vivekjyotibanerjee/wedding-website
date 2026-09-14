@@ -117,7 +117,9 @@ VW=390 VH=844 npm run shoot -- http://localhost:5173/ shots 0 0.34         # pho
 
 `scripts/shoot.mjs` drives the site in a software-rendered headless Chromium (Playwright's
 cached Chromium, or `CHROME=/path/to/chrome`) and screenshots the walk at those scroll
-fractions. It is slow, so give the camera time (`WAIT=8000`) when the CPU is busy. Add `#debug`
+fractions. `npm run profile -- http://localhost:5173/` walks every PATH node the same way and
+prints what a frame costs there (draw calls, triangles, compiled shader programs — the last
+must not change mid-walk). It is slow, so give the camera time (`WAIT=8000`) when the CPU is busy. Add `#debug`
 to the URL to get `window.templeScene` in the console and a panel with the stage, its
 transitions, draw calls and a button per stage that scrolls the walk there.
 
@@ -156,7 +158,8 @@ src/
     model.js         ← glTF loader (meshopt), shadow flags, per-material tweaks
   ornament.js        ← generated alpona (canvas) and vine (SVG) shared by the scene and the cards
 recon/               ← the model itself (Blender script, textures) and the 3DGS pipeline
-scripts/shoot.mjs    ← headless screenshots of the walk (see below)
+scripts/shoot.mjs    ← headless screenshots of the walk (see above)
+scripts/profile.mjs  ← draw calls / triangles / shader programs at every node of the walk
 CLAUDE.md            ← working notes: commands, how the pieces fit, decisions, gotchas
 ```
 
@@ -172,5 +175,11 @@ Notes:
   follows the scroll).
 - The decoration follows the scroll with a little hysteresis: a small scroll back does not
   undo it; a long one does.
+- The red carpets are the walk itself: each is a stretch of the camera's path laid on the
+  walking surface (`walk.js`: courtyard, flights tread by tread, plinth ledges), so the guest is
+  always on the carpet. The camera's height comes from the same surface.
+- A device tier (`quality`) sets the effects budget; the heavy things — the shadow map, the
+  sky's environment maps — are rendered once or on demand rather than every frame, and the
+  instanced decoration is in spatial chunks so what is behind the guest is not drawn.
 - If WebGL is unavailable, or the model download stalls, the walk is skipped and the
   details render as a normal page.

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import L from './landmarks.json';
-import { GROUP, attachReveal, revealAttributes, revealMesh, revealUniforms, setReveal, swag, smooth } from './util.js';
+import { GROUP, attachReveal, revealAttributes, revealMesh, revealUniforms, setReveal, swag, smooth, chunkBy, boundChunk, cullChunks, roomOf } from './util.js';
+import { posCurve, at, floorY, onStair, onLedge, stairSnap } from './walk.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // The wedding decoration — everything that is hung, wrapped or rolled out as the guest walks
@@ -9,8 +10,11 @@ import { GROUP, attachReveal, revealAttributes, revealMesh, revealUniforms, setR
 // the halls' faces and inside them and the navaratna's arcades; mango-leaf torans over the doors
 // the walk uses; a toran gate at the top of the ghat; the mandap's columns wrapped in jasmine and
 // marigold with strands hanging from its canopy; and red carpets that roll out along the route.
-// All the blooms are one InstancedMesh (one draw call), the leaves another; the reveal is in the
-// vertex shader (util.attachReveal), keyed to the stage transitions.
+// The blooms are InstancedMeshes in spatial chunks (util.chunkBy: culled when behind the camera
+// or not yet begun), the leaves likewise; the reveal is in the vertex shader (util.attachReveal),
+// keyed to the stage transitions. The carpets are sampled from the camera's own curve (walk.js)
+// on the walking surface, so they lie exactly where the guest walks, up the flights and through
+// the doors, and stop at the alpona before the mandap.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const g = L.ground;
@@ -40,13 +44,15 @@ const PALETTES = {
   mixed: (i) => (i % 4 === 0 ? JASMINE : i % 4 === 2 ? ROSE : TURMERIC),
 };
 
-export function buildDecor(scene, { reducedMotion = false } = {}) {
+export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = {}) {
   const root = new THREE.Group();
   root.name = 'decor';
   const time = { value: 0 };
   const uniforms = revealUniforms(time);
   const disposables = [];
-  const carpets = [];   // { mat, group, o0, o1 }
+  const carpets = [];   // { u, group, o0, o1 }
+  const chunks = [];    // util.chunkBy chunks, each with its mesh (and `lod`, the near version, on the fast tier)
+  const CELL = 14, LOD_NEAR = 5;
 
   // ── blooms ─────────────────────────────────────────────────────────────────
   const blooms = [];    // { p, c, s, order, group, hang, phase }
@@ -61,7 +67,7 @@ export function buildDecor(scene, { reducedMotion = false } = {}) {
     const n = pts.length;
     for (let i = 0; i < n; i++) {
       const t = n > 1 ? i / (n - 1) : 0;
-      blooms.push({ p: pts[i], c: pick(count++), s: s * (0.9 + 0.2 * Math.random()), order: o0 < 0 ? -1 : o0 + (o1 - o0) * t, group, hang: hang(t), phase });
+      blooms.push({ p: pts[i], c: pick(count++), s: s * (0.9 + 0.2 * Math.random()), rx: Math.random() * 3, ry: Math.random() * 3, order: o0 < 0 ? -1 : o0 + (o1 - o0) * t, group, hang: hang(t), phase });
     }
   }
   /** Points along a swag between anchors a → b, spaced `step`. */
@@ -119,7 +125,7 @@ export function buildDecor(scene, { reducedMotion = false } = {}) {
     for (const s of [-1, 1]) {
       const pole = new THREE.Mesh(poleGeo, poleMat);
       pole.position.set(gx, g, gz + s * half);
-      pole.castShadow = true;
+      pole.castShadow = false;     // the shadow map is rendered on demand: a pole's shadow before the pole would show
       root.add(pole);
     }
     disposables.push(poleGeo, poleMat);
@@ -226,51 +232,93 @@ export function buildDecor(scene, { reducedMotion = false } = {}) {
     swags([[mx - se, ys, mz - se], [mx + se, ys, mz - se], [mx + se, ys, mz + se], [mx - se, ys, mz + se], [mx - se, ys, mz - se]], { sag: 0.0, group: GROUP.mandap, o0: 0.0, o1: 0.4 });
   }
 
-  // ── build the instanced meshes ─────────────────────────────────────────────
+  // ── build the instanced meshes, a chunk at a time ──────────────────────────
   const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
   {
-    const geo = new THREE.IcosahedronGeometry(1, 1);
-    revealAttributes(geo, blooms);
+    // A bloom is a faceted bead (an icosahedron, 20 faces); near the guest, on the fast tier, a
+    // knobbly marigold head (80 faces) stands in for it — each chunk carries both and update()
+    // shows one by distance. Beyond LOD_NEAR a 4 cm bloom is a couple of pixels anyway.
+    const lo = new THREE.IcosahedronGeometry(1, 0), hi = quality === 'high' ? new THREE.IcosahedronGeometry(1, 1) : null;
     const mat = attachReveal(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, flatShading: true }), uniforms);
-    const mesh = new THREE.InstancedMesh(geo, mat, blooms.length);
-    blooms.forEach((b, i) => {
-      _q.setFromEuler(new THREE.Euler(Math.random() * 3, Math.random() * 3, 0));
-      _m.compose(_p.copy(b.p), _q, _s.set(b.s, b.s * 0.85, b.s));
-      mesh.setMatrixAt(i, _m);
-      mesh.setColorAt(i, b.c);
-    });
-    mesh.receiveShadow = true;
-    mesh.frustumCulled = false;
-    root.add(mesh);
-    disposables.push(geo, mat);
+    for (const c of chunkBy(blooms, CELL)) {
+      const build = (base) => {
+        const geo = base.clone();
+        revealAttributes(geo, c.items);
+        const mesh = new THREE.InstancedMesh(geo, mat, c.items.length);
+        c.items.forEach((b, i) => {
+          _q.setFromEuler(new THREE.Euler(b.rx, b.ry, 0));
+          _m.compose(_p.copy(b.p), _q, _s.set(b.s, b.s * 0.85, b.s));
+          mesh.setMatrixAt(i, _m);
+          mesh.setColorAt(i, b.c);
+        });
+        mesh.receiveShadow = true;
+        boundChunk(mesh);
+        root.add(mesh);
+        disposables.push(geo);
+        return mesh;
+      };
+      c.mesh = build(lo);
+      if (hi) c.lod = build(hi);
+      chunks.push(c);
+    }
+    disposables.push(lo, mat);
+    if (hi) disposables.push(hi);
   }
   {
-    const geo = new THREE.PlaneGeometry(0.085, 0.2);
-    geo.translate(0, -0.1, 0);         // hangs from its top edge
-    revealAttributes(geo, leaves);
+    const base = new THREE.PlaneGeometry(0.085, 0.2);
+    base.translate(0, -0.1, 0);         // hangs from its top edge
     const mat = attachReveal(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, side: THREE.DoubleSide }), uniforms, { sway: 0.02, leaf: true });
-    const mesh = new THREE.InstancedMesh(geo, mat, leaves.length);
-    leaves.forEach((l, i) => {
-      _q.setFromEuler(new THREE.Euler(0, Math.PI / 2 + l.rot, 0.1 * (Math.random() - 0.5)));
-      _m.compose(_p.copy(l.p), _q, _s.set(1, 1, 1));
-      mesh.setMatrixAt(i, _m);
-      mesh.setColorAt(i, i % 3 ? LEAF : LEAF2);
-    });
-    mesh.frustumCulled = false;
-    root.add(mesh);
-    disposables.push(geo, mat);
+    for (const c of chunkBy(leaves, CELL)) {
+      const geo = base.clone();
+      revealAttributes(geo, c.items);
+      const mesh = new THREE.InstancedMesh(geo, mat, c.items.length);
+      c.items.forEach((l, i) => {
+        _q.setFromEuler(new THREE.Euler(0, Math.PI / 2 + l.rot, 0.1 * (Math.random() - 0.5)));
+        _m.compose(_p.copy(l.p), _q, _s.set(1, 1, 1));
+        mesh.setMatrixAt(i, _m);
+        mesh.setColorAt(i, i % 3 ? LEAF : LEAF2);
+      });
+      boundChunk(mesh);
+      c.mesh = mesh;
+      chunks.push(c);
+      root.add(mesh);
+      disposables.push(geo);
+    }
+    disposables.push(base, mat);
   }
 
   // ── carpets ────────────────────────────────────────────────────────────────
-  // Red runners along the route, rolled out along their length as the stage advances: from the
-  // ghat top up the strip to the Radhakanta's north door, and through both halls.
+  // Red runners rolled out along their length as the stage advances, each a stretch of the walk
+  // itself (the camera's curve between two PATH nodes, on the floor: up the flights tread by tread
+  // and through the doors): from the toran gate up the strip and the flight to the Radhakanta's
+  // north door; through the hall, down the flight at its south door and to the mandap's alpona;
+  // from beyond the alpona to the nat-mandir's stair; and up that stair, through the hall, along
+  // the plinth ledges and up the temple stair to the central arch.
   {
     const tex = carpetTexture();
     disposables.push(tex);
-    const runner = (pts, width, group, o0, o1, y) => {
-      const curve = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(p[0], y, p[2])), false, 'catmullrom', 0.3);
-      const len = curve.getLength();
-      const geo = ribbon(curve, width, Math.max(8, Math.round(len / 0.5)));
+    const runner = ({ from, to, start = null, stop = null, group, o0, o1 }) => {
+      // sample the walk between node fractions, every 40 cm and every 5 cm on a stair, on the floor;
+      // 1.4 m wide, 1 m along a plinth ledge (which is 1.5 m wide)
+      const pts = [], widths = [];
+      const p = new THREE.Vector3(), last = new THREE.Vector3(), snap = [0, 0];
+      const n = Math.ceil((to - from) * 34 * 200);
+      let begun = !start;
+      for (let i = 0; i <= n; i++) {
+        posCurve.getPoint(from + (to - from) * (i / n), p);
+        if (!begun) { if (!start(p)) continue; begun = true; }
+        if (stop && stop(p)) break;
+        stairSnap(p.x, p.z, snap);        // straight up a flight, whichever way the walk comes at it
+        p.x = snap[0]; p.z = snap[1];
+        const stair = onStair(p.x, p.z) || (pts.length && onStair(last.x, last.z));
+        if (pts.length && i < n && p.distanceTo(last) < (stair ? 0.05 : 0.4)) continue;
+        const y = floorY(p.x, p.z);
+        pts.push(new THREE.Vector3(p.x, (y === null ? g : y) + 0.045, p.z));
+        widths.push(onLedge(p.x, p.z) ? 1.0 : 1.4);
+        last.copy(p);
+      }
+      const geo = ribbon(pts, widths);
+      const len = geo.userData.length;
       const map = tex.clone();
       map.repeat.set(len / 2.2, 1);
       map.needsUpdate = true;
@@ -287,43 +335,56 @@ export function buildDecor(scene, { reducedMotion = false } = {}) {
       };
       const m = new THREE.Mesh(geo, mat);
       m.receiveShadow = true;
-      m.frustumCulled = false;
       root.add(m);
       carpets.push({ u, group, o0, o1 });
       disposables.push(geo, mat, map);
     };
-    runner([[L.ghat.top[0] + 1.6, 0, gz], [-29, 0, gz - 0.4], [-22.8, 0, gz - 11.5], [-21, 0, -22.5], [-16, 0, -30], [-12.6, 0, rDoor(0) + 1.2], [rx - R.plinth_out - 0.2, 0, rDoor(0)]], 1.7, 'prep', 0.05, 1.0, g + 0.045);   // west of the lamp post at z = −22
-    runner([[rx + 0.9, 0, rDoor(0)], [rx + 3.6, 0, rDoor(0) + 2.6], [rx + 3.6, 0, rDoor(7) - 2.6], [rx + 0.9, 0, rDoor(7)]], 1.8, 'flowers', 0.42, 0.85, rP + 0.03);
-    runner([[nx + 0.4, 0, nz], [nx + 4.2, 0, nz - 0.8], [nx + 6, 0, nDoor(1)], [nx + 4.2, 0, nDoor(0) + 1.2], [nx + 0.4, 0, nDoor(0)]], 1.8, 'full', 0.25, 0.7, nP + 0.03);
+    const ax = mx - L.mandap.width / 2 - 1.0 - 1.9, ar = 1.6;   // the alpona before the mandap's west steps (life.js)
+    runner({ from: at(4), to: at(9), group: 'prep', o0: 0.05, o1: 1.0 });
+    runner({ from: at(9), to: at(20), stop: (p) => p.z > mz - ar - 1.6 && Math.abs(p.x - ax) < ar + 1.5, group: 'flowers', o0: 0.42, o1: 1.0 });
+    runner({ from: at(19), to: at(22), start: (p) => p.z > mz + ar + 0.9, group: 'ceremony', o0: 0.5, o1: 1.0 });
+    runner({ from: at(22), to: at(34), stop: (p) => p.z < wall + 0.4, group: 'full', o0: 0.0, o1: 0.6 });
   }
 
   scene.add(root);
 
-  function update(dt, stage) {
+  function update(dt, stage, eye = null) {
     if (!reducedMotion) time.value += dt;
     setReveal(uniforms, stage);
+    cullChunks(chunks, uniforms.reveal.value, eye ? roomOf(eye.x, eye.z) : null);
+    if (eye) for (const c of chunks) {
+      if (!c.lod) continue;
+      const on = c.mesh.visible, sph = c.mesh.boundingSphere;
+      const near = sph.center.distanceTo(eye) < sph.radius + LOD_NEAR;
+      c.mesh.visible = on && !near;
+      c.lod.visible = on && near;
+    }
     for (const c of carpets) c.u.reveal.value = smooth(c.o0, c.o1, stage[c.group]);
   }
 
   return {
     update,
-    counts: { blooms: blooms.length, leaves: leaves.length },
+    counts: { blooms: blooms.length, leaves: leaves.length, chunks: chunks.length },
     dispose() { scene.remove(root); for (const d of disposables) d.dispose(); },
   };
 }
 
-/** A flat ribbon along a curve: uv.x runs 0 → 1 along it, uv.y across. */
-function ribbon(curve, width, segments) {
+/** A flat ribbon through a run of points, `widths[i]` wide at each: uv.x runs 0 → 1 along it (by length), uv.y across. */
+function ribbon(pts, widths) {
   const pos = [], nrm = [], uv = [], idx = [];
-  const up = new THREE.Vector3(0, 1, 0), side = new THREE.Vector3(), p = new THREE.Vector3(), t = new THREE.Vector3();
-  for (let i = 0; i <= segments; i++) {
-    const u = i / segments;
-    curve.getPointAt(u, p);
-    curve.getTangentAt(u, t);
-    side.crossVectors(up, t).normalize().multiplyScalar(width / 2);
+  const up = new THREE.Vector3(0, 1, 0), side = new THREE.Vector3(), t = new THREE.Vector3();
+  const along = [0];
+  for (let i = 1; i < pts.length; i++) along.push(along[i - 1] + pts[i].distanceTo(pts[i - 1]));
+  const len = along[along.length - 1] || 1;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
+    t.subVectors(pts[Math.min(i + 1, pts.length - 1)], pts[Math.max(i - 1, 0)]).setY(0);
+    // the width eases over a couple of points either side of a change
+    const w = (widths[Math.max(i - 2, 0)] + widths[Math.max(i - 1, 0)] + widths[i] + widths[Math.min(i + 1, pts.length - 1)] + widths[Math.min(i + 2, pts.length - 1)]) / 5;
+    side.crossVectors(up, t).normalize().multiplyScalar(w / 2);
     pos.push(p.x - side.x, p.y, p.z - side.z, p.x + side.x, p.y, p.z + side.z);
     nrm.push(0, 1, 0, 0, 1, 0);
-    uv.push(u, 0, u, 1);
+    uv.push(along[i] / len, 0, along[i] / len, 1);
     if (i) { const b = i * 2; idx.push(b - 2, b, b - 1, b - 1, b, b + 1); }
   }
   const geo = new THREE.BufferGeometry();
@@ -331,6 +392,7 @@ function ribbon(curve, width, segments) {
   geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   geo.setIndex(idx);
+  geo.userData.length = len;
   return geo;
 }
 

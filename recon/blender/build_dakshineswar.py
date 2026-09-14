@@ -1265,7 +1265,8 @@ def build_navaratna(L):
 
 
 def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pediments=("W", "E"),
-               stair_faces=("W",), sills=None, plinth_h=1.2, plinth_out=1.5, arch=(2.0, 4.3), rosettes=True):
+               stair_faces=("W",), sills=None, plinth_h=1.2, plinth_out=1.5, arch=(2.0, 4.3), rosettes=True,
+               door_stairs=None):
     """Closed pilastered hall on a plinth — the nat-mandir (refs M36537551, M36512944, M27969301)
     and, with storeys=2, the Radhakanta block (M69552273). Every face is a pierced wall of 9-foil
     arches (real openings into one room) with striped bundled jambs, a rosette over each arch, red
@@ -1273,7 +1274,8 @@ def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pedi
     slab, stepped cornice, panelled parapet and a pediment with rosette and finial on the
     `pediments` faces. Plinth with framed dado panels and a stair on the `stair_faces`.
     bays_x = arches on the N/S faces, bays_y on the E/W faces; sills = {face: sill height} for
-    faces whose arches are windows rather than doorways."""
+    faces whose arches are windows rather than doorways; door_stairs = {face: (bay, …)} for
+    single-bay flights up to particular doorways (the walk enters the Radhakanta at its end doors)."""
     t = 0.5
     hs = h / storeys
     aw, ah = arch
@@ -1323,9 +1325,13 @@ def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pedi
             white.append(P(merge(box(4.4, 0.5, 0.3, 0, -0.5, zpar + 1.22), box(3.4, 0.5, 1.3, 0, -0.5, zpar + 1.52))))
             rose.append(P(place(disc(0.45, 0.12, 0, zpar + 2.15), (0, -0.75, 0))))
             rose.append(P(finial(0.22, 0.9, 0, -0.5, zpar + 2.82)))
+        ns = 6
         if face in stair_faces:
-            ns, width = 6, pitch * min(3, n) - 0.4
+            width = pitch * min(3, n) - 0.4
             stone.append(P(place(stairs(ns, width, 0.36, plinth_h / ns, "x"), (-width / 2, -plinth_out - ns * 0.36, -plinth_h))))
+        for i in (door_stairs or {}).get(face, ()):
+            dw = pitch - 0.4
+            stone.append(P(place(stairs(ns, dw, 0.36, plinth_h / ns, "x"), (xs[i] - dw / 2, -plinth_out - ns * 0.36, -plinth_h))))
     posts = merge(*[box(t, t, h, sx * (w - t) / 2, sy * (d - t) / 2, 0) for sx in (-1, 1) for sy in (-1, 1)])
     body = merge(*walls, posts, box(w + 0.4, d + 0.4, 0.35, 0, 0, h))
     for k in range(1, storeys):
@@ -1361,8 +1367,9 @@ def build_halls(L):
                sills={"N": 0.9, "S": 0.9})
     # Radhakanta (Vishnu) temple: two-storey block with the shrine's spire on the roof
     (vx, vy), (vw, vd), vh = L["vishnu_center"], L["vishnu_size"], L["vishnu_h"]
+    # the walk goes in at its northmost west door and out at the southmost: a flight up to each
     top = hall_block("vishnu", vw, vd, vh, 5, 8, 3.0, vx, vy, ch, storeys=2, pediments=("W",), stair_faces=("W",),
-                     sills={"N": 0.9, "S": 0.9, "E": 0.9}, arch=(1.9, 3.8), rosettes=False)
+                     sills={"N": 0.9, "S": 0.9, "E": 0.9}, arch=(1.9, 3.8), rosettes=False, door_stairs={"W": (0, 7)})
     sx, sy = vx, vy - vd / 2 + 6.0
     new_object("vishnu_spire_base", *box(5.0, 5.0, 0.6, 0, 0, 0), "stucco", bevel=0.04, loc=(sx, sy, top))
     ratna("vishnu_spire", 1.8, 6.5).location = (sx, sy, top + 0.6)
@@ -1638,14 +1645,16 @@ def build_trees(L):
         tree(f"far_{k}", rx - 15 - rnd.random() * 110, -700 + k * 23 + rnd.random() * 12, 1.2 + rnd.random() * 1.0)
     for k in range(16):
         palm(f"far_palm_{k}", rx - 8 - rnd.random() * 30, -600 + k * 75 + rnd.random() * 20, 0.9 + rnd.random() * 0.4)
-    # ── kola gach: pairs flanking the ghat top, the nat-mandir's west stair and the navaratna stair
+    # ── kola gach: pairs flanking the ghat top, the nat-mandir's west stair and the navaratna
+    # platform's south corners (the foot of the temple stair itself is inside the nat-mandir's
+    # plinth: the walk steps onto the stair from the plinth's north ledge)
     wx = cx - cw / 2
     (nx, ny), (nw, nd) = L["natmandir_center"], L["natmandir_size"]
     mcx, mcy = L["mandir_center"]
     P = L["mandir_platform"]
     pairs = [((wx + 1.3, cy + 5.0), (wx + 1.3, cy - 5.0)),
              ((nx - nw / 2 - 2.6, ny + 5.4), (nx - nw / 2 - 2.6, ny - 5.4)),
-             ((mcx + 5.9, mcy - P / 2 - 3.0), (mcx - 5.9, mcy - P / 2 - 3.0))]
+             ((mcx + P / 2 + 1.6, mcy - P / 2 - 1.4), (mcx - P / 2 - 1.6, mcy - P / 2 - 1.4))]
     for i, pair in enumerate(pairs):
         for j, (x, y) in enumerate(pair):
             kola(f"kola_{i}_{j}", x, y, ch, 1.0 + 0.1 * j)

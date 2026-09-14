@@ -142,7 +142,12 @@
     "storey_h": 5.2,
     "stair_width": 8.6,
     "stair_steps": 6,
-    "stair_tread": 0.36
+    "stair_tread": 0.36,
+    "door_stairs": [
+      0,
+      7
+    ],
+    "door_stair_width": 2.6
   },
   "sanctum": {
     "door": [

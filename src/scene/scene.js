@@ -8,7 +8,7 @@ import { buildLife } from './life.js';
 import { buildDecor } from './decor.js';
 import { buildFx } from './fx.js';
 import { createStage, STAGES } from './stage.js';
-import { PATH } from './walk.js';
+import { posCurve, lookCurve, eyeAt } from './walk.js';
 import L from './landmarks.json';
 
 // `?model=…` swaps the glb in for checking a test export without touching the committed one.
@@ -103,8 +103,13 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === 'low' ? 1.25 : 1.5));
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = quality === 'high' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+  // The shadow map is rendered on demand (the whole complex is a caster: it is the cost of a second
+  // scene pass every frame otherwise): once the model is in, when the night toggles, and as the sun
+  // sinks through golden hour — see applyLighting().
+  renderer.shadowMap.autoUpdate = false;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.info.autoReset = false;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
@@ -123,17 +128,32 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
   const sky = new THREE.Mesh(new THREE.SphereGeometry(800, 32, 16), skyMat);
   scene.add(sky);
   // Image-based lighting comes from that same sky, so the gold finials, the brass and the river
-  // pick up the right colours in both day and night; regenerated as the sky crossfades.
+  // pick up the right colours in both day and night. Filtering a sky into an environment map is a
+  // stall of a good fraction of a second on a phone, so the few the walk needs — afternoon, three
+  // steps of golden hour, night — are made once, behind the loading veil, and switched between.
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envScene = new THREE.Scene();
   envScene.add(new THREE.Mesh(sky.geometry, skyMat));
+  const ENV_KEYS = quality === 'low' ? [0, 0.5, 1] : [0, 0.17, 0.34, 0.5, 1];   // key = night + (1 − night) · dusk / 2
+  const envMaps = new Map();
+  function bakeEnvironments() {
+    const n0 = skyMat.uniforms.night.value, d0 = skyMat.uniforms.dusk.value;
+    for (const key of ENV_KEYS) {
+      skyMat.uniforms.night.value = key >= 1 ? 1 : 0;
+      skyMat.uniforms.dusk.value = key >= 1 ? 0 : key * 2;
+      envMaps.set(key, pmrem.fromScene(envScene, 0.04, 1, 2000).texture);
+    }
+    skyMat.uniforms.night.value = n0;
+    skyMat.uniforms.dusk.value = d0;
+  }
   let envKey = -1;
   function refreshEnvironment(key) {
-    if (envKey >= 0 && Math.abs(key - envKey) < 0.07 && !((key === 0 || key === 1) && key !== envKey)) return;
-    envKey = key;
-    const old = scene.environment;
-    scene.environment = pmrem.fromScene(envScene, 0.04, 1, 2000).texture;
-    if (old) old.dispose();
+    if (!envMaps.size) return;
+    let best = ENV_KEYS[0];
+    for (const k of ENV_KEYS) if (Math.abs(k - key) < Math.abs(best - key)) best = k;
+    if (best === envKey) return;
+    envKey = best;
+    scene.environment = envMaps.get(best);
   }
 
   // Lights
@@ -156,12 +176,16 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
   scene.add(sun, sun.target);
 
   // Night: floodlights on the temple, the halls and the Shiva row, a warm glow inside the mandap.
+  // They exist only at night: a light that is in the scene is evaluated by every lit fragment
+  // whatever its intensity, and six spots would be a real cost on a phone by day. Their visibility
+  // flips with the toggle (which recompiles the lit shaders once — the one moment that is fine).
   const floods = [];
   function flood(from, to, intensity, angle = 0.4, color = 0xffd8a8) {
     const s = new THREE.SpotLight(color, 0, 140, angle, 0.6, 1.2);
     s.position.set(...from);
     s.target.position.set(...to);
     s.userData.night = intensity;
+    s.visible = false;
     scene.add(s, s.target);
     floods.push(s);
     return s;
@@ -177,6 +201,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
   const glow = new THREE.PointLight(0xffb060, 0, 22, 1.6);
   glow.position.set(mx, L.mandap.canopy - 0.9, mz);
   glow.userData.night = 6;
+  glow.visible = false;
   scene.add(glow);
 
   // Bloom for the diyas and string lights, only at night: by day the scene renders straight to the
@@ -197,7 +222,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     model = root;
     scene.add(root);
     life = buildLife(scene, root, { reducedMotion, onBell, quality });
-    decor = buildDecor(scene, { reducedMotion });
+    decor = buildDecor(scene, { reducedMotion, quality });
     fx = buildFx(scene, { reducedMotion, quality, sunDir });
     const h = canvas.clientHeight || window.innerHeight;
     life.resize(h);
@@ -206,18 +231,18 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     life.update(0, st, state.night);
     decor.update(0, st);
     fx.update(0, st, state.night);
+    bakeEnvironments();
+    applyLighting(state.night, state.dusk);
+    renderer.shadowMap.needsUpdate = true;
     renderer.compile(scene, camera);
     return root;
   });
-
-  const posCurve = new THREE.CatmullRomCurve3(PATH.map((n) => new THREE.Vector3(...n.p)), false, 'catmullrom', 0.5);
-  const lookCurve = new THREE.CatmullRomCurve3(PATH.map((n) => new THREE.Vector3(...n.l)), false, 'catmullrom', 0.5);
 
   const state = {
     target: 0, progress: 0, velocity: 0, walkPhase: 0,
     pointer: new THREE.Vector2(), pointerSmooth: new THREE.Vector2(),
     running: false, time: 0, last: performance.now(),
-    nightTarget: 0, night: 0, dusk: 0,
+    nightTarget: 0, night: 0, dusk: 0, shadowSun: -1,
   };
 
   const DAY = { sunColor: new THREE.Color(0xfff1dc), sunI: 3.2, hemiSky: new THREE.Color(0xcfe3ff), hemiGround: new THREE.Color(0x8a7a5a), hemiI: 0.45, fog: new THREE.Color(0xd8dfe6), fogD: 0.0026, env: 0.55 };
@@ -241,11 +266,15 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     scene.fog.color.copy(lerpC('fog', n, d));
     scene.fog.density = lerp3('fogD', n, d);
     scene.environmentIntensity = lerp3('env', n, d);
-    for (const s of floods) s.intensity = s.userData.night * n;
+    for (const s of floods) { s.intensity = s.userData.night * n; s.visible = n > 0.01; }
     glow.intensity = glow.userData.night * n;
+    glow.visible = n > 0.01;
     bloom.strength = 0.55 * n;
     bloom.enabled = n > 0.02;
     refreshEnvironment(n + (1 - n) * d * 0.5);
+    // the shadows follow the sun in steps of about half a degree; at night it is the moon, once
+    const sunKey = n >= 0.5 ? 2 : d;
+    if (Math.abs(sunKey - state.shadowSun) > 0.018) { state.shadowSun = sunKey; renderer.shadowMap.needsUpdate = true; }
   }
   applyLighting(0, 0);
 
@@ -287,7 +316,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     if (relight) applyLighting(state.night, state.dusk);
 
     const t = THREE.MathUtils.clamp(state.progress, 0, 1);
-    posCurve.getPoint(t, tmpPos);
+    eyeAt(t, tmpPos);
     lookCurve.getPoint(t, tmpLook);
     if (!reducedMotion) {
       const bobAmt = THREE.MathUtils.clamp(Math.abs(state.velocity) * 14, 0, 1);
@@ -302,7 +331,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     sky.position.copy(camera.position);
     skyMat.uniforms.time.value = state.time;
     if (life) life.update(dt, stage, state.night, camera.position);
-    if (decor) decor.update(dt, stage);
+    if (decor) decor.update(dt, stage, camera.position);
     if (fx) fx.update(dt, stage, state.night);
   }
 
@@ -311,6 +340,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     const wallDt = (now - state.last) / 1000;
     state.last = now;
     step(Math.min(0.05, wallDt), wallDt);
+    renderer.info.reset();   // counted over the whole frame (the night goes through several passes)
     if (bloom.enabled) composer.render(); else renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }
@@ -347,9 +377,11 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
       renderer, scene, camera, sun, hemi, floods, sky, bloom, stages: STAGES,
       get life() { return life; }, get decor() { return decor; }, get fx() { return fx; },
       get calls() { return renderer.info.render.calls; },
+      get triangles() { return renderer.info.render.triangles; },
       get programs() { return renderer.info.programs.length; },
+      relightShadows() { renderer.shadowMap.needsUpdate = true; },
     },
     renderOnce() { resize(); step(0); if (bloom.enabled) composer.render(); else renderer.render(scene, camera); },
-    dispose() { state.running = false; for (const l of [life, decor, fx]) if (l) l.dispose(); composer.dispose(); pmrem.dispose(); renderer.dispose(); },
+    dispose() { state.running = false; for (const l of [life, decor, fx]) if (l) l.dispose(); for (const t of envMaps.values()) t.dispose(); composer.dispose(); pmrem.dispose(); renderer.dispose(); },
   };
 }

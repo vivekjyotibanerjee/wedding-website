@@ -29,7 +29,7 @@ export function mountDebug(sceneApi) {
     $('stage').textContent = st.name;
     $('progress').textContent = `${st.progress.toFixed(3)} (mark ${st.effective.toFixed(3)})`;
     for (const k of keys) $(k).style.width = `${(st[k] * 100).toFixed(0)}%`;
-    $('perf').textContent = `${fps.toFixed(0)} fps · ${sceneApi.debug.calls} calls · ${sceneApi.debug.programs} programs · ${sceneApi.debug.decor ? sceneApi.debug.decor.counts.blooms + ' blooms · ' : ''}${sceneApi.quality}${sceneApi.night ? ' · night' : ''}`;
+    $('perf').textContent = `${fps.toFixed(0)} fps · ${sceneApi.debug.calls} calls · ${(sceneApi.debug.triangles / 1000).toFixed(0)}k tris · ${sceneApi.debug.programs} programs · ${sceneApi.debug.decor ? sceneApi.debug.decor.counts.blooms + ' blooms · ' : ''}${sceneApi.quality}${sceneApi.night ? ' · night' : ''}`;
     const c = sceneApi.camera.position;
     $('cam').textContent = `cam ${c.x.toFixed(1)}, ${c.y.toFixed(1)}, ${c.z.toFixed(1)}`;
     requestAnimationFrame(tick);
