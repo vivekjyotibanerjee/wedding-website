@@ -13,7 +13,7 @@ the RSVP form before Ma Kali in the sanctum.
 The complex is the Blender model from `recon/` (built parametrically from reference
 photographs of the real temple — cream stucco with rose bands, ribbed spires, the 9-foil
 arcades, the red-plastered aat-chala Shiva temples, the mandap), baked and exported to
-`public/models/dakshineswar.glb` (≈ 95 k faces, meshopt-compressed, WebP textures, ≈ 8.4 MB).
+`public/models/dakshineswar.glb` (≈ 95 k faces, meshopt-compressed, WebP textures, ≈ 12 MB).
 Daytime by default; a **Night** toggle floodlights the temple.
 
 ## Run it
@@ -28,7 +28,7 @@ npm run preview    # serve dist/ locally
 ## Put your details in
 
 Everything guests read is in **`content.json`** at the repo root — names, date, venue, the
-card texts, story, events, travel, RSVP, the page title and link-preview description. Edit
+card texts, story, RSVP, the page title and link-preview description. Edit
 it freely; the dev server reloads on save, and `npm run build` bakes it into `dist/` for
 deploying. The placeholders in it are deliberately fictional. JSON has no comments, so the
 fields are explained here:
@@ -81,7 +81,7 @@ ambient-occlusion maps, exports a glTF, compresses it with `gltf-transform` (mes
 `public/models/` and rewrites `src/scene/landmarks.json` (the positions the camera path, the
 cards and the runtime props are pinned to — see `src/scene/walk.js` and `life.js`). It needs
 the official Blender 4.0 build: the Ubuntu `blender` package bakes black. ~17 min on a
-22-core laptop CPU; the result is ≈ 11.7 MB. Useful while iterating:
+22-core laptop CPU; the result is ≈ 12 MB. Useful while iterating:
 
 ```bash
 # positions only (no bake), e.g. after moving a lamp post
@@ -100,8 +100,8 @@ and lamp) in the sanctum. Their positions come from `landmarks.json` too.
 ## Check it without a browser
 
 ```bash
-npm run shoot -- http://localhost:5173/ shots 0 0,0.16,0.47,0.78,1   # day; 1 instead of 0 for night
-VW=390 VH=844 npm run shoot -- http://localhost:5173/ shots 0 0.47     # phone portrait
+npm run shoot -- http://localhost:5173/ shots 0 0,0.12,0.34,0.56,0.72,1   # day; 1 instead of 0 for night
+VW=390 VH=844 npm run shoot -- http://localhost:5173/ shots 0 0.34         # phone portrait
 ```
 
 `scripts/shoot.mjs` drives the site in a software-rendered headless Chromium (Playwright's
@@ -119,6 +119,7 @@ Re-run the build after adding music.
 
 ```
 public/models/dakshineswar.glb   ← the complex, exported from recon/ (see above)
+public/images/bhavatarini.png    ← Ma Kali, shown in the sanctum (see above)
 content.json         ← all guest-facing text (see "Put your details in")
 vite.config.js       ← also bakes the title/description from content.json into index.html
 src/
@@ -132,7 +133,7 @@ src/
     scene.js         ← renderer, sky shader (clouds) + image-based lighting from it, sun/moon,
                         day↔night lerp, night floodlights, bloom, camera along the path
     life.js          ← the runtime layer: diyas, string lights, lamps, fireflies, birds, flag,
-                        drape wind, river ripples, alpona decals
+                        drape wind, river ripples, alpona decals, the shrine picture and lamp
     walk.js          ← the camera path and the card anchors, in the model's frame
     landmarks.json   ← key positions written by recon/blender/export_web.py
     model.js         ← glTF loader (meshopt), shadow flags, per-material tweaks

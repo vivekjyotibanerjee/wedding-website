@@ -116,6 +116,11 @@ Ordered by maturity; each is gated behind the pilot so the plain exterior splat 
   human figures by decision. When splats replace the glb, the life layer stays as is — it only
   reads landmarks.
 
+- 2026-09-14 — **Walk re-routed, sanctum opened.** The walk now goes ghat → left along the
+  north Shiva group → through the Radhakanta (in at its northmost door) → mandap → through the
+  nat-mandir (up its west stair, out of its northmost door) → temple stair → central arch. The
+  navaratna core gains a shrine chamber behind that arch (`build_dakshineswar.SANCTUM`, exported
+  as `landmarks.sanctum`); Ma Kali is `public/images/bhavatarini.png` on a lit plane in `life.js`.
 - 2026-09-13 — Blender track: `blender/build_dakshineswar.py` builds the complex parametrically
   (Cycles CPU previews verified against the CG video's overview angle and the satellite plan view).
   Deliverable = `.blend` + stills + turntable in `data/blender/`. Not integrated with the site.

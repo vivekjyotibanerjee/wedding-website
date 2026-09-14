@@ -88,7 +88,9 @@ PyYAML is importable from Blender's python.
 
 Geometry rules (third pass): no booleans — every arch is a pierced wall (piers + spandrels +
 reveals, one closed solid via `sheet()`) so openings go through into real rooms and the navaratna
-verandahs are corridors you can see through at the corners; rings, stairs and mouldings are single
+verandahs are corridors you can see through at the corners, and the ground-storey core holds a
+shrine chamber behind the central south arch (`SANCTUM`: a pierced wall + touching boxes, the
+deity herself is a picture the site adds at runtime); rings, stairs and mouldings are single
 closed solids (the old overlapping boxes z-fought at every corner); the build prints a mesh audit
 (open edges must be "none"). The whole scene is ≈60 k faces. High-frequency detail lives in the
 shaders, not in vertices: `blender/textures.py` generates tileable albedo / tangent normal / 32-bit

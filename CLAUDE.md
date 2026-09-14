@@ -11,7 +11,7 @@ splat effort. Read those first; this file is the working checklist.
 npm run dev                         # http://localhost:5173 (add --host for the LAN)
 npm run build && npm run preview    # production build on :4173
 npm run model                       # rebuild + bake + export the model (official Blender, ~17 min, see below)
-npm run shoot -- http://localhost:5173/ shots 0 0,0.47,1     # headless screenshots (day; 1 = night)
+npm run shoot -- http://localhost:5173/ shots 0 0,0.34,1     # headless screenshots (day; 1 = night)
 ```
 
 The model export needs `BLENDER=~/opt/blender-4.0.2-linux-x64/blender` in the environment: the
