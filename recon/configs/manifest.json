@@ -1,0 +1,3252 @@
+{
+  "version": 1,
+  "generated": "2026-09-13T18:38:08+00:00",
+  "commons": {
+    "M100063115": {
+      "id": "M100063115",
+      "source": "commons",
+      "title": "File:Hooghly river around Dakshineshwar Kali temple, Dakshineswar, West Bengal, India (2016).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/93/Hooghly_river_around_Dakshineshwar_Kali_temple%2C_Dakshineswar%2C_West_Bengal%2C_India_%282016%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Hooghly_river_around_Dakshineshwar_Kali_temple,_Dakshineswar,_West_Bengal,_India_(2016).jpg",
+      "sha1": "487916f1bd6d8b89dc380501e5c84dcd392341f4",
+      "bytes": 3699968,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Hriday Vasudeva",
+      "date": "2016-10-13 16:17:31",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M10531887": {
+      "id": "M10531887",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Dakshineswar_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple.jpg",
+      "sha1": "c8f1bb5bc9ef6624edc2343c8e72817a6313e6d8",
+      "bytes": 293563,
+      "width": 1842,
+      "height": 1126,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "The original uploader was P.K.Niyogi at English Wikipedia.",
+      "date": "1 January 2007 (original upload date)",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M105408991": {
+      "id": "M105408991",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kolkatta (102073569).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/12/Dakshineshwar_Kolkatta_%28102073569%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kolkatta_(102073569).jpg",
+      "sha1": "1d6fa00f8482b5cb51225ee169ff14ab2ae4b46c",
+      "bytes": 419984,
+      "width": 1600,
+      "height": 1200,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 2.0",
+      "artist": "Kamala L",
+      "date": "10 April 2005, 16:16 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M109589971": {
+      "id": "M109589971",
+      "source": "commons",
+      "title": "File:Temple of Dakshineswara.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Temple_of_Dakshineswara.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Temple_of_Dakshineswara.jpg",
+      "sha1": "54af1d109caa4c85bd2d85b70c847d543d046175",
+      "bytes": 4086663,
+      "width": 2911,
+      "height": 1978,
+      "mime": "image/jpeg",
+      "license": "Public domain",
+      "artist": "Ramakrishna",
+      "date": "2021-09-02 09:11:21",
+      "categories": [
+        "Black and white photographs of Dakshineswar Kali Temple"
+      ]
+    },
+    "M109851751": {
+      "id": "M109851751",
+      "source": "commons",
+      "title": "File:DSCN0642 Dakshineswar temple Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d5/DSCN0642_Dakshineswar_temple_Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:DSCN0642_Dakshineswar_temple_Kolkata.jpg",
+      "sha1": "18d07a4df9ad190d69ab62b1f0e9f7dd9b7316b2",
+      "bytes": 3071868,
+      "width": 4000,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Rkmanna",
+      "date": "2011-09-02 10:55:02",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M110316761": {
+      "id": "M110316761",
+      "source": "commons",
+      "title": "File:The famous Dakshineswar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/The_famous_Dakshineswar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_famous_Dakshineswar_Kali_Temple.jpg",
+      "sha1": "c64845e71e5400e30b2492a2f31de7a28c0b5000",
+      "bytes": 7039354,
+      "width": 4500,
+      "height": 3012,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Thakurdalan-M..",
+      "date": "2010-12-28 10:28:34",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M117074008": {
+      "id": "M117074008",
+      "source": "commons",
+      "title": "File:Entry gate of Dakshineswar Kali Temple, Dakshineswar, North 24 Parganas district, West Bengal, India.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Entry_gate_of_Dakshineswar_Kali_Temple%2C_Dakshineswar%2C_North_24_Parganas_district%2C_West_Bengal%2C_India.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Entry_gate_of_Dakshineswar_Kali_Temple,_Dakshineswar,_North_24_Parganas_district,_West_Bengal,_India.jpg",
+      "sha1": "10acc225f911d5b453bb01083a21ebcc42926c76",
+      "bytes": 5837339,
+      "width": 4000,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Ravi Dwivedi",
+      "date": "2022-04-14",
+      "categories": [
+        "Dakshineswar Temple Complex — Entrance Gate"
+      ]
+    },
+    "M117074009": {
+      "id": "M117074009",
+      "source": "commons",
+      "title": "File:Inside the Dakshineswar temple complex, North 24 Parganas district, India.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/79/Inside_the_Dakshineswar_temple_complex%2C_North_24_Parganas_district%2C_India.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Inside_the_Dakshineswar_temple_complex,_North_24_Parganas_district,_India.jpg",
+      "sha1": "3d84d5552f7d9279fc0bba9ae8189b6aeef0ef94",
+      "bytes": 6040999,
+      "width": 4000,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Ravi Dwivedi",
+      "date": "2022-04-14",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M117074014": {
+      "id": "M117074014",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple, North 24 Parganas district, India.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Dakshineswar_Kali_Temple%2C_North_24_Parganas_district%2C_India.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple,_North_24_Parganas_district,_India.jpg",
+      "sha1": "0759009d065c89bf9ab9bb5b81c0f36d2f4a2a65",
+      "bytes": 839428,
+      "width": 2178,
+      "height": 1322,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Ravi Dwivedi",
+      "date": "2022-04-14",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M117074015": {
+      "id": "M117074015",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple, Dakshineswar, North 24 Parganas district, India.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Dakshineswar_Kali_Temple%2C_Dakshineswar%2C_North_24_Parganas_district%2C_India.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple,_Dakshineswar,_North_24_Parganas_district,_India.jpg",
+      "sha1": "2ef3b37783a375c488d1a522038abbc86c0a40a9",
+      "bytes": 7624021,
+      "width": 4000,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Ravi Dwivedi",
+      "date": "2022-04-14",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M117262773": {
+      "id": "M117262773",
+      "source": "commons",
+      "title": "File:Dakshineswar Mandir pagebanner.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7a/Dakshineswar_Mandir_pagebanner.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Mandir_pagebanner.JPG",
+      "sha1": "5ff0bf31d1f26147431b2f5459f4b7a20dd16cfb",
+      "bytes": 327594,
+      "width": 4278,
+      "height": 611,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sukanta Pal",
+      "date": "2014-02-18 13:04:50",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M121263878": {
+      "id": "M121263878",
+      "source": "commons",
+      "title": "File:A view of the Dakshineswar Kali Temple in Kolkata, WB.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/A_view_of_the_Dakshineswar_Kali_Temple_in_Kolkata%2C_WB.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:A_view_of_the_Dakshineswar_Kali_Temple_in_Kolkata,_WB.jpg",
+      "sha1": "5866de82e211c90f5400a17ae90c05231db2096a",
+      "bytes": 1051077,
+      "width": 1868,
+      "height": 2380,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Billjones94",
+      "date": "2022-05-27 07:09:01",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M122547996": {
+      "id": "M122547996",
+      "source": "commons",
+      "title": "File:Spiritual Kali Temple of kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/03/Spiritual_Kali_Temple_of_kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Spiritual_Kali_Temple_of_kolkata.jpg",
+      "sha1": "16b19732404a611487b5d14647ffe89f73e8467e",
+      "bytes": 79409,
+      "width": 1280,
+      "height": 720,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Piyali Riya Dey",
+      "date": "2022-09-01",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M122547997": {
+      "id": "M122547997",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Dakshineshwar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kali_Temple.jpg",
+      "sha1": "76a92f96fb9e2acf86ce7de3abbf3633ec836001",
+      "bytes": 108752,
+      "width": 848,
+      "height": 1280,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Piyali Riya Dey",
+      "date": "2022-09-01",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M122596611": {
+      "id": "M122596611",
+      "source": "commons",
+      "title": "File:Dhakhineswar kali temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/19/Dhakhineswar_kali_temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dhakhineswar_kali_temple.jpg",
+      "sha1": "6dfb49d22871bbca74b769f1d2000fc59989f2a8",
+      "bytes": 3641256,
+      "width": 4000,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sengkrak",
+      "date": "2022-03-16 18:29:57",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M123587452": {
+      "id": "M123587452",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple entrance.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/62/Dakshineswar_Kali_Temple_entrance.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_entrance.jpg",
+      "sha1": "ede035c15d6366e1def3bfa4645ed87cbb63bed4",
+      "bytes": 7307757,
+      "width": 4000,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "LangfordK",
+      "date": "2022-06-02",
+      "categories": [
+        "Dakshineswar Temple Complex — Entrance Gate"
+      ]
+    },
+    "M123587453": {
+      "id": "M123587453",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple view from behind.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Dakshineswar_Kali_Temple_view_from_behind.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_view_from_behind.jpg",
+      "sha1": "7be7de4d06d245c00fb865b8f497a5e416eed7a5",
+      "bytes": 6233964,
+      "width": 3000,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "LangfordK",
+      "date": "2022-06-02",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M123587487": {
+      "id": "M123587487",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple night view.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Dakshineswar_Kali_Temple_night_view.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_night_view.jpg",
+      "sha1": "673ef79cffec6d9c08753d8492d56af4987009fb",
+      "bytes": 16898888,
+      "width": 8000,
+      "height": 6000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "LangfordK",
+      "date": "2022-06-02",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M126359571": {
+      "id": "M126359571",
+      "source": "commons",
+      "title": "File:Main entrance (\"Singha Dwar\"; সিংহ দুয়ার) of the iconic Dakshineswar Temple in West Bengal, India.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d1/Main_entrance_%28%22Singha_Dwar%22%3B_%E0%A6%B8%E0%A6%BF%E0%A6%82%E0%A6%B9_%E0%A6%A6%E0%A7%81%E0%A6%AF%E0%A6%BC%E0%A6%BE%E0%A6%B0%29_of_the_iconic_Dakshineswar_Temple_in_West_Bengal%2C_India.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Main_entrance_(%22Singha_Dwar%22;_%E0%A6%B8%E0%A6%BF%E0%A6%82%E0%A6%B9_%E0%A6%A6%E0%A7%81%E0%A6%AF%E0%A6%BC%E0%A6%BE%E0%A6%B0)_of_the_iconic_Dakshineswar_Temple_in_West_Bengal,_India.jpg",
+      "sha1": "ac8c14763c47f40d97630ef8240635db09ec636c",
+      "bytes": 3524023,
+      "width": 4160,
+      "height": 3120,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Billjones94",
+      "date": "2022-11-05 11:48:26",
+      "categories": [
+        "Dakshineswar Temple Complex — Entrance Gate"
+      ]
+    },
+    "M127851606": {
+      "id": "M127851606",
+      "source": "commons",
+      "title": "File:মা ভবতারিণী (cropped).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/%E0%A6%AE%E0%A6%BE_%E0%A6%AD%E0%A6%AC%E0%A6%A4%E0%A6%BE%E0%A6%B0%E0%A6%BF%E0%A6%A3%E0%A7%80_%28cropped%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:%E0%A6%AE%E0%A6%BE_%E0%A6%AD%E0%A6%AC%E0%A6%A4%E0%A6%BE%E0%A6%B0%E0%A6%BF%E0%A6%A3%E0%A7%80_(cropped).jpg",
+      "sha1": "88be355fc0ddeba35c773f37659cee77b09a3fa8",
+      "bytes": 611047,
+      "width": 657,
+      "height": 1297,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Prianxi",
+      "date": "2017-11-20 00:27:26",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple",
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M130390836": {
+      "id": "M130390836",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple - 7354721618.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Dakshineswar_Kali_Temple_-_7354721618.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_-_7354721618.jpg",
+      "sha1": "c35401fb743016da27c938ee017ee340d755ac81",
+      "bytes": 3724479,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s.",
+      "date": "2009-05-06 09:46:15",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M130391230": {
+      "id": "M130391230",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple- built in classic Bengali hut style 1847.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Dakshineswar_Kali_Temple-_built_in_classic_Bengali_hut_style_1847.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple-_built_in_classic_Bengali_hut_style_1847.jpg",
+      "sha1": "19fb7dd31dd85b4f015ce848e2da70a51057da7d",
+      "bytes": 1699738,
+      "width": 1920,
+      "height": 2560,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "thotfulspot",
+      "date": "2007-03-01 10:00:55",
+      "categories": [
+        "Dakshineswar Temple Complex — 12 Shiva Temples"
+      ]
+    },
+    "M130645833": {
+      "id": "M130645833",
+      "source": "commons",
+      "title": "File:Boating on the Hooghly (= Ganges) River in Northern Calcutta, from Ramakrishna's Kali Temple to their head quarters at Belur Math 2.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/21/Boating_on_the_Hooghly_%28%3D_Ganges%29_River_in_Northern_Calcutta%2C_from_Ramakrishna%27s_Kali_Temple_to_their_head_quarters_at_Belur_Math_2.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Boating_on_the_Hooghly_(%3D_Ganges)_River_in_Northern_Calcutta,_from_Ramakrishna%27s_Kali_Temple_to_their_head_quarters_at_Belur_Math_2.jpg",
+      "sha1": "865c66052d5c804cdf19d02a74fc1ff27365fbf1",
+      "bytes": 2671540,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 2.0",
+      "artist": "Martin Ehrensvärd",
+      "date": "2014-12-16 12:14:52",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M130645887": {
+      "id": "M130645887",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kali temple by the Hooghly river, Calcutta January 1983.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/82/Dakshineshwar_Kali_temple_by_the_Hooghly_river%2C_Calcutta_January_1983.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kali_temple_by_the_Hooghly_river,_Calcutta_January_1983.jpg",
+      "sha1": "219db8c7211fb99840de3a8516f529844102089c",
+      "bytes": 775256,
+      "width": 1544,
+      "height": 1024,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "Dialogcentret billedarkiv",
+      "date": "2014-05-19",
+      "categories": [
+        "Black and white photographs of Dakshineswar Kali Temple"
+      ]
+    },
+    "M130645955": {
+      "id": "M130645955",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kali temple by the Hooghly river, Calcutta January 1983 - 14200596066.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Dakshineshwar_Kali_temple_by_the_Hooghly_river%2C_Calcutta_January_1983_-_14200596066.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kali_temple_by_the_Hooghly_river,_Calcutta_January_1983_-_14200596066.jpg",
+      "sha1": "b0b4cc1f97a6a8250188bd4b67abb287d5e421c6",
+      "bytes": 799006,
+      "width": 1544,
+      "height": 1024,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "Dialogcentret billedarkiv",
+      "date": "2014-05-19",
+      "categories": [
+        "Black and white photographs of Dakshineswar Kali Temple"
+      ]
+    },
+    "M131179923": {
+      "id": "M131179923",
+      "source": "commons",
+      "title": "File:The twelve Shiva temples at the Dakshineswar Kali temple complex, in West Bengal, India, photographed by Yogabrata Chakraborty, on November 5, 2022.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e1/The_twelve_Shiva_temples_at_the_Dakshineswar_Kali_temple_complex%2C_in_West_Bengal%2C_India%2C_photographed_by_Yogabrata_Chakraborty%2C_on_November_5%2C_2022.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_twelve_Shiva_temples_at_the_Dakshineswar_Kali_temple_complex,_in_West_Bengal,_India,_photographed_by_Yogabrata_Chakraborty,_on_November_5,_2022.jpg",
+      "sha1": "72a6a5e47bdf9e4c8462dd23c9216cebf7a08df3",
+      "bytes": 3338736,
+      "width": 4160,
+      "height": 3120,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Billjones94",
+      "date": "2022-11-05 13:11:29",
+      "categories": [
+        "Dakshineswar Temple Complex — 12 Shiva Temples"
+      ]
+    },
+    "M13178378": {
+      "id": "M13178378",
+      "source": "commons",
+      "title": "File:Dinanta Ashar Kali Mandir - Howrah 2011-02-05 0571.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Dinanta_Ashar_Kali_Mandir_-_Howrah_2011-02-05_0571.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dinanta_Ashar_Kali_Mandir_-_Howrah_2011-02-05_0571.JPG",
+      "sha1": "2303dd0064b72dae0abeb0d8cdc6bd74a1f7c813",
+      "bytes": 7111401,
+      "width": 2848,
+      "height": 4288,
+      "mime": "image/jpeg",
+      "license": "CC BY 3.0",
+      "artist": "Biswarup Ganguly",
+      "date": "2011-02-05 07:11:35",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M131868275": {
+      "id": "M131868275",
+      "source": "commons",
+      "title": "File:95152-Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0b/95152-Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:95152-Kolkata.jpg",
+      "sha1": "87c1b2942cea7b2f2aa5adca2434430de08b5794",
+      "bytes": 1259292,
+      "width": 3000,
+      "height": 1871,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:12:04",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M131868339": {
+      "id": "M131868339",
+      "source": "commons",
+      "title": "File:95160-Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/95160-Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:95160-Kolkata.jpg",
+      "sha1": "5eb3a907c4055953f444dd0947e661a7c54b7a5c",
+      "bytes": 1915986,
+      "width": 1996,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:14:15",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M131868946": {
+      "id": "M131868946",
+      "source": "commons",
+      "title": "File:Swami Vivekananda statue, Dakshineswar Kali Temple, Dakshineswar, West Bengal, India (2020).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Swami_Vivekananda_statue%2C_Dakshineswar_Kali_Temple%2C_Dakshineswar%2C_West_Bengal%2C_India_%282020%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Swami_Vivekananda_statue,_Dakshineswar_Kali_Temple,_Dakshineswar,_West_Bengal,_India_(2020).jpg",
+      "sha1": "5d8e5633b2e80773ae2f9537ea231d0d457469d1",
+      "bytes": 1728778,
+      "width": 1763,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:20:54",
+      "categories": [
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M131868947": {
+      "id": "M131868947",
+      "source": "commons",
+      "title": "File:95172-Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/57/95172-Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:95172-Kolkata.jpg",
+      "sha1": "36147ecbc3f8ff47b85052c2662a23d441cf0341",
+      "bytes": 1822046,
+      "width": 3000,
+      "height": 1996,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:28:06",
+      "categories": [
+        "Dakshineswar Temple Complex — 12 Shiva Temples"
+      ]
+    },
+    "M131868948": {
+      "id": "M131868948",
+      "source": "commons",
+      "title": "File:95175-Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/68/95175-Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:95175-Kolkata.jpg",
+      "sha1": "eb7d6c6535122411bd0e28df6687b12a35799031",
+      "bytes": 2139296,
+      "width": 3000,
+      "height": 2336,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:44:02",
+      "categories": [
+        "Dakshineswar Temple Complex — Entrance Gate"
+      ]
+    },
+    "M131868964": {
+      "id": "M131868964",
+      "source": "commons",
+      "title": "File:95161-Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/95161-Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:95161-Kolkata.jpg",
+      "sha1": "7dfddf13b3808a9997bfd2160e5a30235b493f6a",
+      "bytes": 1500169,
+      "width": 3000,
+      "height": 1996,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:15:21",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M131870111": {
+      "id": "M131870111",
+      "source": "commons",
+      "title": "File:95153-Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/80/95153-Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:95153-Kolkata.jpg",
+      "sha1": "df407ef9cc09aa318e66824c65740eae977520df",
+      "bytes": 1279635,
+      "width": 3000,
+      "height": 1996,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:12:17",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M131870345": {
+      "id": "M131870345",
+      "source": "commons",
+      "title": "File:95156-Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/23/95156-Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:95156-Kolkata.jpg",
+      "sha1": "e15515affa163376d2cd46e9d535e4d722ce6adc",
+      "bytes": 1454738,
+      "width": 1996,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:13:22",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M131870809": {
+      "id": "M131870809",
+      "source": "commons",
+      "title": "File:95159-Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/95159-Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:95159-Kolkata.jpg",
+      "sha1": "76c22cef1758c8ee09214dc335ce462bb9a492de",
+      "bytes": 2089087,
+      "width": 3000,
+      "height": 2170,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:14:08",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M131870810": {
+      "id": "M131870810",
+      "source": "commons",
+      "title": "File:95151-Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d8/95151-Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:95151-Kolkata.jpg",
+      "sha1": "75cec8c9e3ba4e7568e3393af5d834b0e75001c2",
+      "bytes": 1210628,
+      "width": 1996,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:11:23",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M131870815": {
+      "id": "M131870815",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple, Dakshineswar, Kolkata, West Bengal, India (2020).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Dakshineswar_Kali_Temple%2C_Dakshineswar%2C_Kolkata%2C_West_Bengal%2C_India_%282020%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple,_Dakshineswar,_Kolkata,_West_Bengal,_India_(2020).jpg",
+      "sha1": "c2136fb5a91104f2fc78a25e7c756d419c86e424",
+      "bytes": 3000077,
+      "width": 3000,
+      "height": 2168,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "xiquinhosilva",
+      "date": "2020-01-25 12:23:54",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M138266114": {
+      "id": "M138266114",
+      "source": "commons",
+      "title": "File:Side View of Dakshineswar Kali Mandir.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/45/Side_View_of_Dakshineswar_Kali_Mandir.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Side_View_of_Dakshineswar_Kali_Mandir.jpg",
+      "sha1": "cfe06914a241a80e3fe91f8523ffd921b545bb10",
+      "bytes": 2690542,
+      "width": 4624,
+      "height": 3468,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Anik Sarker",
+      "date": "2022-12-01 14:52:37",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M138285577": {
+      "id": "M138285577",
+      "source": "commons",
+      "title": "File:Dakhineswar temple Kali.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/27/Dakhineswar_temple_Kali.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakhineswar_temple_Kali.jpg",
+      "sha1": "c28ffed3dae47f1a23256119c35e9400010e7eff",
+      "bytes": 1412665,
+      "width": 2160,
+      "height": 3240,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Prithwiraj Dhang",
+      "date": "2023-09-23 18:37:12",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M146391566": {
+      "id": "M146391566",
+      "source": "commons",
+      "title": "File:Dakshineswar as seen in Narendra Modi's video.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Dakshineswar_as_seen_in_Narendra_Modi%27s_video.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_as_seen_in_Narendra_Modi%27s_video.jpg",
+      "sha1": "7a728f040e7c2a6ae4c8d53d6c8569826886c289",
+      "bytes": 773012,
+      "width": 2000,
+      "height": 1200,
+      "mime": "image/jpeg",
+      "license": "CC BY 3.0",
+      "artist": "Narendra Modi",
+      "date": "2024-03-14 21:35:58",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M146391608": {
+      "id": "M146391608",
+      "source": "commons",
+      "title": "File:Dakshineswar as seen in Narendra Modi's video a.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Dakshineswar_as_seen_in_Narendra_Modi%27s_video_a.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_as_seen_in_Narendra_Modi%27s_video_a.jpg",
+      "sha1": "860f78971913e05b768eeb86e2da822c7d2fb5fc",
+      "bytes": 924614,
+      "width": 2000,
+      "height": 1200,
+      "mime": "image/jpeg",
+      "license": "CC BY 3.0",
+      "artist": "Narendra Modi",
+      "date": "2024-03-14 21:21:01",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M148324574": {
+      "id": "M148324574",
+      "source": "commons",
+      "title": "File:Lokmata Ranirashmani Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/03/Lokmata_Ranirashmani_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Lokmata_Ranirashmani_Temple.jpg",
+      "sha1": "5654c1a70fc3383726450654b3cfabdb16591596",
+      "bytes": 2777279,
+      "width": 5184,
+      "height": 3456,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Debkanta99",
+      "date": "2024-05-06",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M153642655": {
+      "id": "M153642655",
+      "source": "commons",
+      "title": "File:Statue of Mahendranath Gupta (Sri M).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/62/Statue_of_Mahendranath_Gupta_%28Sri_M%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Mahendranath_Gupta_(Sri_M).jpg",
+      "sha1": "1a488434f3f3253d4b8d29ad8c3656453f8a22c1",
+      "bytes": 5312594,
+      "width": 5842,
+      "height": 5397,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Salil Kumar Mukherjee",
+      "date": "2024-09-30 09:25:35",
+      "categories": [
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M153663316": {
+      "id": "M153663316",
+      "source": "commons",
+      "title": "File:Statue of Balaram Bose.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/33/Statue_of_Balaram_Bose.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Balaram_Bose.jpg",
+      "sha1": "f67f5a3896dbfcf3323265ff4cb242fcf62b6d04",
+      "bytes": 1872203,
+      "width": 3072,
+      "height": 3228,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Salil Kumar Mukherjee",
+      "date": "2024-09-30 09:23:52",
+      "categories": [
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M153695869": {
+      "id": "M153695869",
+      "source": "commons",
+      "title": "File:Statue of Mathur Mohan Biswas.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/de/Statue_of_Mathur_Mohan_Biswas.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Mathur_Mohan_Biswas.jpg",
+      "sha1": "cb10f6ee2302b6443261872a83686f22c0936677",
+      "bytes": 4376312,
+      "width": 4831,
+      "height": 5429,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Salil Kumar Mukherjee",
+      "date": "2024-09-30 09:25:46",
+      "categories": [
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M153703691": {
+      "id": "M153703691",
+      "source": "commons",
+      "title": "File:Statue of Ram Chandra Datta.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1e/Statue_of_Ram_Chandra_Datta.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Ram_Chandra_Datta.jpg",
+      "sha1": "6c15a47fdafa35386db583120ba02f85178eb21b",
+      "bytes": 3652706,
+      "width": 3190,
+      "height": 3072,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Salil Kumar Mukherjee",
+      "date": "2024-09-30 09:27:31",
+      "categories": [
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M153792462": {
+      "id": "M153792462",
+      "source": "commons",
+      "title": "File:Statue of Durga Charan Nag (Nag Mahasay).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Statue_of_Durga_Charan_Nag_%28Nag_Mahasay%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Durga_Charan_Nag_(Nag_Mahasay).jpg",
+      "sha1": "c1ce9d02d4056100440aa197c7148672a6bc0e6b",
+      "bytes": 1966344,
+      "width": 3072,
+      "height": 2903,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Salil Kumar Mukherjee",
+      "date": "2024-09-30 09:23:30",
+      "categories": [
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M154063685": {
+      "id": "M154063685",
+      "source": "commons",
+      "title": "File:Statue of Swami Vijnanananda.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/53/Statue_of_Swami_Vijnanananda.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Swami_Vijnanananda.jpg",
+      "sha1": "718e2389b9d5c70ede216c0ec791429f2b7ec6ff",
+      "bytes": 1179098,
+      "width": 3006,
+      "height": 3072,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Salil Kumar Mukherjee",
+      "date": "2024-09-30 09:41:40",
+      "categories": [
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M168103401": {
+      "id": "M168103401",
+      "source": "commons",
+      "title": "File:Rani Rashmoni Dakhineshwar Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/28/Rani_Rashmoni_Dakhineshwar_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Rani_Rashmoni_Dakhineshwar_Temple.jpg",
+      "sha1": "7e237afbced39e7c39ca0432958879a2e2bcddcc",
+      "bytes": 4319550,
+      "width": 3000,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC BY 4.0",
+      "artist": "Tunir66",
+      "date": "2025-04-19 15:52:05",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M169063865": {
+      "id": "M169063865",
+      "source": "commons",
+      "title": "File:Kolkata@.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/de/Kolkata%40.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Kolkata@.jpg",
+      "sha1": "db903de0ed561a899c4eadb452a4cb72557a8e46",
+      "bytes": 3081557,
+      "width": 4032,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Purushottam Priyadarshi",
+      "date": "2024-12-30 16:52:57",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M169344694": {
+      "id": "M169344694",
+      "source": "commons",
+      "title": "File:Dakshineswar 🙏.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/98/Dakshineswar_%F0%9F%99%8F.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_%F0%9F%99%8F.jpg",
+      "sha1": "3eef3a4356aca436554de90de7d3716ff7672976",
+      "bytes": 3765429,
+      "width": 3000,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC0",
+      "artist": "Pratyakshaa Seth",
+      "date": "2025-04-25 08:55:54",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M18161400": {
+      "id": "M18161400",
+      "source": "commons",
+      "title": "File:தட்சணேஸ்வரம் காளி கோயில்.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f8/%E0%AE%A4%E0%AE%9F%E0%AF%8D%E0%AE%9A%E0%AE%A3%E0%AF%87%E0%AE%B8%E0%AF%8D%E0%AE%B5%E0%AE%B0%E0%AE%AE%E0%AF%8D_%E0%AE%95%E0%AE%BE%E0%AE%B3%E0%AE%BF_%E0%AE%95%E0%AF%8B%E0%AE%AF%E0%AE%BF%E0%AE%B2%E0%AF%8D.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:%E0%AE%A4%E0%AE%9F%E0%AF%8D%E0%AE%9A%E0%AE%A3%E0%AF%87%E0%AE%B8%E0%AF%8D%E0%AE%B5%E0%AE%B0%E0%AE%AE%E0%AF%8D_%E0%AE%95%E0%AE%BE%E0%AE%B3%E0%AE%BF_%E0%AE%95%E0%AF%8B%E0%AE%AF%E0%AE%BF%E0%AE%B2%E0%AF%8D.JPG",
+      "sha1": "f26750926a47ceade1bd3c65b02d79754036e7ab",
+      "bytes": 709840,
+      "width": 2016,
+      "height": 1134,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Arunankapilan",
+      "date": "2011-08-14",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M18265996": {
+      "id": "M18265996",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple view from outside the temple gates.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Dakshineswar_Temple_view_from_outside_the_temple_gates.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple_view_from_outside_the_temple_gates.JPG",
+      "sha1": "0a8addf057c1565da998575e45f834581c9c3221",
+      "bytes": 967837,
+      "width": 2592,
+      "height": 1944,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Dhruba08",
+      "date": "2012-02-03",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M1848279": {
+      "id": "M1848279",
+      "source": "commons",
+      "title": "File:Dakshineswar Spires.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Dakshineswar_Spires.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Spires.jpg",
+      "sha1": "d91b47311e3d7d9deff64facd52d6c8b3f15c5af",
+      "bytes": 1374637,
+      "width": 2304,
+      "height": 1728,
+      "mime": "image/jpeg",
+      "license": "Public domain",
+      "artist": "A photograph was taken by en:User:WoodElf",
+      "date": "5 June 2006 (original upload date)",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M191646581": {
+      "id": "M191646581",
+      "source": "commons",
+      "title": "File:The Minister of Home Affairs and Cooperation, Shri Amit Shah offers a garland of lotus at Dakshineswar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6c/The_Minister_of_Home_Affairs_and_Cooperation%2C_Shri_Amit_Shah_offers_a_garland_of_lotus_at_Dakshineswar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Minister_of_Home_Affairs_and_Cooperation,_Shri_Amit_Shah_offers_a_garland_of_lotus_at_Dakshineswar_Kali_Temple.jpg",
+      "sha1": "a13d208d591dfcb7899a0ac13885c3886ba24857",
+      "bytes": 844360,
+      "width": 2200,
+      "height": 1553,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Ministry of Home Affairs",
+      "date": "2026-05-08",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple"
+      ]
+    },
+    "M191646582": {
+      "id": "M191646582",
+      "source": "commons",
+      "title": "File:The Minister of Home Affairs and Cooperation, Shri Amit Shah visits Dakshineswar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/The_Minister_of_Home_Affairs_and_Cooperation%2C_Shri_Amit_Shah_visits_Dakshineswar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Minister_of_Home_Affairs_and_Cooperation,_Shri_Amit_Shah_visits_Dakshineswar_Kali_Temple.jpg",
+      "sha1": "8d813f25a6288f42944b77626d9231b89af8a076",
+      "bytes": 917319,
+      "width": 2200,
+      "height": 1071,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Ministry of Home Affairs",
+      "date": "2026-05-08",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M191646584": {
+      "id": "M191646584",
+      "source": "commons",
+      "title": "File:The Minister of Home Affairs and Cooperation, Shri Amit Shah performs aarti at Dakshineswar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0c/The_Minister_of_Home_Affairs_and_Cooperation%2C_Shri_Amit_Shah_performs_aarti_at_Dakshineswar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Minister_of_Home_Affairs_and_Cooperation,_Shri_Amit_Shah_performs_aarti_at_Dakshineswar_Kali_Temple.jpg",
+      "sha1": "89569baee4324e7c6d536abb982ef46c4295eb35",
+      "bytes": 1561767,
+      "width": 2200,
+      "height": 2297,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Ministry of Home Affairs",
+      "date": "2026-05-08",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple"
+      ]
+    },
+    "M191646586": {
+      "id": "M191646586",
+      "source": "commons",
+      "title": "File:The Minister of Home Affairs and Cooperation, Shri Amit Shah bows down in reverence and faith at Dakshineswar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/The_Minister_of_Home_Affairs_and_Cooperation%2C_Shri_Amit_Shah_bows_down_in_reverence_and_faith_at_Dakshineswar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Minister_of_Home_Affairs_and_Cooperation,_Shri_Amit_Shah_bows_down_in_reverence_and_faith_at_Dakshineswar_Kali_Temple.jpg",
+      "sha1": "24c02e86bcc1038c7926dcc502c0126ec1a6c26a",
+      "bytes": 398125,
+      "width": 1600,
+      "height": 1066,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Ministry of Home Affairs",
+      "date": "2026-05-08",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple"
+      ]
+    },
+    "M191646588": {
+      "id": "M191646588",
+      "source": "commons",
+      "title": "File:The Minister of Home Affairs and Cooperation, Shri Amit Shah offered prayers at Dakshineswar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d2/The_Minister_of_Home_Affairs_and_Cooperation%2C_Shri_Amit_Shah_offered_prayers_at_Dakshineswar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Minister_of_Home_Affairs_and_Cooperation,_Shri_Amit_Shah_offered_prayers_at_Dakshineswar_Kali_Temple.jpg",
+      "sha1": "e2b39b7f35210b6256c9efb61d98a7ee5a8a657f",
+      "bytes": 1022387,
+      "width": 2200,
+      "height": 1467,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Ministry of Home Affairs",
+      "date": "2026-05-08",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple"
+      ]
+    },
+    "M191646589": {
+      "id": "M191646589",
+      "source": "commons",
+      "title": "File:The Minister of Home Affairs and Cooperation, Shri Amit Shah performs darshan at Dakshineswar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d3/The_Minister_of_Home_Affairs_and_Cooperation%2C_Shri_Amit_Shah_performs_darshan_at_Dakshineswar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Minister_of_Home_Affairs_and_Cooperation,_Shri_Amit_Shah_performs_darshan_at_Dakshineswar_Kali_Temple.jpg",
+      "sha1": "935bfa01a23176c546f53ccf8f8fd9ef1141eee5",
+      "bytes": 1455224,
+      "width": 2200,
+      "height": 1923,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Ministry of Home Affairs",
+      "date": "2026-05-08",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple"
+      ]
+    },
+    "M19348092": {
+      "id": "M19348092",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple view from outside the temple gates (cropped).JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Dakshineswar_Temple_view_from_outside_the_temple_gates_%28cropped%29.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple_view_from_outside_the_temple_gates_(cropped).JPG",
+      "sha1": "4ad3fd7bfc1395cb5e3697708e8730353744f174",
+      "bytes": 397202,
+      "width": 1748,
+      "height": 1357,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Dakshineswar Temple view from outside the temple gates.JPG: Dhruba08\nderivative work: Vinkje83",
+      "date": "2012-02-03",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M21000008": {
+      "id": "M21000008",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Dakshineswar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple.jpg",
+      "sha1": "7b3b2cf90f2cf626084ae29398b4363fe9cd59e1",
+      "bytes": 536221,
+      "width": 1600,
+      "height": 1200,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Kunal Dalui",
+      "date": "2008-08-17",
+      "categories": [
+        "Dakshineswar Temple Complex — 12 Shiva Temples"
+      ]
+    },
+    "M21077975": {
+      "id": "M21077975",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali mata temple.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/89/Dakshineswar_Kali_mata_temple.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_mata_temple.JPG",
+      "sha1": "7ec5666feec4b88541d2b22775fa3d9d489ec801",
+      "bytes": 3819986,
+      "width": 3240,
+      "height": 3504,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "AritraDG",
+      "date": "2011-11-05 14:21:29",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M21178454": {
+      "id": "M21178454",
+      "source": "commons",
+      "title": "File:Place known as dakshin ghat.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/60/Place_known_as_dakshin_ghat.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Place_known_as_dakshin_ghat.JPG",
+      "sha1": "8f9eb0cf654a0fa824e22709800f563b6d506592",
+      "bytes": 3298996,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Htekas98",
+      "date": "Taken on 21 July 2012, 16:09:43",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M21178456": {
+      "id": "M21178456",
+      "source": "commons",
+      "title": "File:Same that dakshin ghat.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Same_that_dakshin_ghat.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Same_that_dakshin_ghat.JPG",
+      "sha1": "7965f492cf5690b11845950a50a09533d16f115b",
+      "bytes": 3559415,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Htekas98",
+      "date": "Taken on 21 July 2012, 16:52:21",
+      "categories": [
+        "Dakshineswar Temple Complex — 12 Shiva Temples",
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M21271361": {
+      "id": "M21271361",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kali Temple, Kolkata, West Bengal, India.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Dakshineshwar_Kali_Temple%2C_Kolkata%2C_West_Bengal%2C_India.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kali_Temple,_Kolkata,_West_Bengal,_India.JPG",
+      "sha1": "1cbef45d3833f0d395dcac332f46d84bb4b5ea65",
+      "bytes": 2282286,
+      "width": 3000,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Kundansonuj",
+      "date": "2011-10-21 16:55:22",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M21271362": {
+      "id": "M21271362",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali temple, Kolkata, West Bengal, India.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/47/Dakshineswar_Kali_temple%2C_Kolkata%2C_West_Bengal%2C_India.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_temple,_Kolkata,_West_Bengal,_India.JPG",
+      "sha1": "2381266b520d0aaffb6c65ece8a20d3fbedd0ef4",
+      "bytes": 2384246,
+      "width": 3000,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Kundansonuj",
+      "date": "2011-10-21 16:55:22",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M21543736": {
+      "id": "M21543736",
+      "source": "commons",
+      "title": "File:Kali Temple of Dakshineswar.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/50/Kali_Temple_of_Dakshineswar.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Kali_Temple_of_Dakshineswar.jpg",
+      "sha1": "db45b954551e160277f59711a5830f1f5568845e",
+      "bytes": 1267972,
+      "width": 2560,
+      "height": 1920,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Sukumar Sardar",
+      "date": "2010-10-31 08:57:13",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M21648801": {
+      "id": "M21648801",
+      "source": "commons",
+      "title": "File:Kali temple.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/21/Kali_temple.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Kali_temple.JPG",
+      "sha1": "45ab019097f2f88d4f1fd6178bdda27452e4812b",
+      "bytes": 3088067,
+      "width": 3008,
+      "height": 2000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Jonathen abhi",
+      "date": "Taken on 19 September 2012",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M27895354": {
+      "id": "M27895354",
+      "source": "commons",
+      "title": "File:Panchvati Tree.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Panchvati_Tree.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Panchvati_Tree.jpg",
+      "sha1": "ca6c2e8a5239ce7228aa412fa0f37df3c3b43c5e",
+      "bytes": 1686715,
+      "width": 2448,
+      "height": 3264,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "User:Sucheta Ghoshal",
+      "date": "25 August 2013 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M27895494": {
+      "id": "M27895494",
+      "source": "commons",
+      "title": "File:You wish some, you burn some.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/70/You_wish_some%2C_you_burn_some.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:You_wish_some,_you_burn_some.jpg",
+      "sha1": "c81b489e8d7bd549530410e3e14f756dd4170009",
+      "bytes": 929482,
+      "width": 2398,
+      "height": 2848,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "User:Sucheta Ghoshal",
+      "date": "25 August 2013 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+      "categories": [
+        "Black and white photographs of Dakshineswar Kali Temple"
+      ]
+    },
+    "M27895540": {
+      "id": "M27895540",
+      "source": "commons",
+      "title": "File:Temple of Dakshineswar.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Temple_of_Dakshineswar.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Temple_of_Dakshineswar.jpg",
+      "sha1": "a7fd0656910403b7263344ce695bd45ab80d5661",
+      "bytes": 2641013,
+      "width": 2448,
+      "height": 3264,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "User:Sucheta Ghoshal",
+      "date": "25 August 2013 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M27969300": {
+      "id": "M27969300",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali temple, 01.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/db/Dakshineswar_Kali_temple%2C_01.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_temple,_01.JPG",
+      "sha1": "879b48107fd255f1ea24f2ed035dd251e452b5c3",
+      "bytes": 248450,
+      "width": 1600,
+      "height": 1200,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Sunnybrajesh",
+      "date": "2009-03-22 12:18:14",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M27969301": {
+      "id": "M27969301",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali temple, 03.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Dakshineswar_Kali_temple%2C_03.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_temple,_03.JPG",
+      "sha1": "f9a83e396a1126f2dfde72f8b9640d695a56dd46",
+      "bytes": 328438,
+      "width": 1600,
+      "height": 1200,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Sunnybrajesh",
+      "date": "2009-03-22 12:23:31",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28062576": {
+      "id": "M28062576",
+      "source": "commons",
+      "title": "File:Dakshineswar Ma Kali Temple.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Dakshineswar_Ma_Kali_Temple.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Ma_Kali_Temple.JPG",
+      "sha1": "65f3c32d47db6fde2a5292bba684c21f9940e148",
+      "bytes": 2294168,
+      "width": 3000,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Sarkar 1234",
+      "date": "2013-08-02 12:06:20",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28232812": {
+      "id": "M28232812",
+      "source": "commons",
+      "title": "File:Kali Temple of Dakshineshwer.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/21/Kali_Temple_of_Dakshineshwer.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Kali_Temple_of_Dakshineshwer.jpg",
+      "sha1": "3b9129f1794596bbe2bce66ce22ae7cab283aa8d",
+      "bytes": 587558,
+      "width": 2112,
+      "height": 2816,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Shishir Desai",
+      "date": "2010-05-19 20:52:17",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28255757": {
+      "id": "M28255757",
+      "source": "commons",
+      "title": "File:Dakhineshwar Temple beside the Hoogly, West Bengal.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/32/Dakhineshwar_Temple_beside_the_Hoogly%2C_West_Bengal.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakhineshwar_Temple_beside_the_Hoogly,_West_Bengal.JPG",
+      "sha1": "6810e3c30d979af666757d59597fe1c31db4cd27",
+      "bytes": 3159313,
+      "width": 3072,
+      "height": 2304,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Knath",
+      "date": "2010-07-04 13:05:51",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28515764": {
+      "id": "M28515764",
+      "source": "commons",
+      "title": "File:Dakshineshwar Temple, Dakshineshwar, West Bengal, India 2013-09-24 08-43.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Dakshineshwar_Temple%2C_Dakshineshwar%2C_West_Bengal%2C_India_2013-09-24_08-43.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Temple,_Dakshineshwar,_West_Bengal,_India_2013-09-24_08-43.jpg",
+      "sha1": "dea4e4af28254c8c5a059b7db1c3a38928ab7cc2",
+      "bytes": 1102817,
+      "width": 1736,
+      "height": 2506,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "User:Satwik.basu021088",
+      "date": null,
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28707571": {
+      "id": "M28707571",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple, Side View.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Dakshineswar_Kali_Temple%2C_Side_View.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple,_Side_View.jpg",
+      "sha1": "5d824776894fc8df650f13fa63e8e474787dea91",
+      "bytes": 1311586,
+      "width": 3774,
+      "height": 5661,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Aniket.ganguly",
+      "date": "2013-02-07 12:22:01",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28784710": {
+      "id": "M28784710",
+      "source": "commons",
+      "title": "File:2013-Kolkata-Dakshineshwar-101.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cc/2013-Kolkata-Dakshineshwar-101.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:2013-Kolkata-Dakshineshwar-101.JPG",
+      "sha1": "318866860676f6d019dee04eeef5867fd38f4134",
+      "bytes": 1441397,
+      "width": 2016,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Wiki-uk",
+      "date": "2013-08-04 14:07:13",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28784711": {
+      "id": "M28784711",
+      "source": "commons",
+      "title": "File:2013-Kolkata-Dakshineshwar-102.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ae/2013-Kolkata-Dakshineshwar-102.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:2013-Kolkata-Dakshineshwar-102.JPG",
+      "sha1": "0ccd0574722409c7791bbd09e46bc6aae77754f3",
+      "bytes": 1503845,
+      "width": 2016,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Wiki-uk",
+      "date": "2013-08-04 15:23:47",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28784713": {
+      "id": "M28784713",
+      "source": "commons",
+      "title": "File:2013-Kolkata-Dakshineshwar-103.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/13/2013-Kolkata-Dakshineshwar-103.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:2013-Kolkata-Dakshineshwar-103.JPG",
+      "sha1": "be8f6caf6773b7d582bee053f66605080b3a4a36",
+      "bytes": 1398309,
+      "width": 2016,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Wiki-uk",
+      "date": "2013-08-04 13:48:04",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28784725": {
+      "id": "M28784725",
+      "source": "commons",
+      "title": "File:2013-Kolkata-Dakshineshwar-104.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5b/2013-Kolkata-Dakshineshwar-104.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:2013-Kolkata-Dakshineshwar-104.JPG",
+      "sha1": "5dad797d2eb75b8926bed4e4dd08b37351658658",
+      "bytes": 1471596,
+      "width": 3024,
+      "height": 2016,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Wiki-uk",
+      "date": "2013-08-04 14:05:49",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28784726": {
+      "id": "M28784726",
+      "source": "commons",
+      "title": "File:2013-Kolkata-Dakshineshwar-106.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7a/2013-Kolkata-Dakshineshwar-106.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:2013-Kolkata-Dakshineshwar-106.JPG",
+      "sha1": "acf9504e93d4bf68c0e68a5a8bba1928997acb67",
+      "bytes": 1513745,
+      "width": 3024,
+      "height": 2016,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Wiki-uk",
+      "date": "2013-08-04 14:07:04",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M28784727": {
+      "id": "M28784727",
+      "source": "commons",
+      "title": "File:2013-Kolkata-Dakshineshwar-105.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/be/2013-Kolkata-Dakshineshwar-105.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:2013-Kolkata-Dakshineshwar-105.JPG",
+      "sha1": "d71d979b5a60c8828b92c45a670eca3633a652e4",
+      "bytes": 1513577,
+      "width": 3024,
+      "height": 2016,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Wiki-uk",
+      "date": "2013-08-04 14:06:14",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M31806690": {
+      "id": "M31806690",
+      "source": "commons",
+      "title": "File:Night view Dakhineswar.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a9/Night_view_Dakhineswar.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Night_view_Dakhineswar.jpg",
+      "sha1": "f15b7198ceef18246ea71ba0a0c3a0bb4e7d65b5",
+      "bytes": 551130,
+      "width": 1536,
+      "height": 2048,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Jim Cartar",
+      "date": "2014-01-11 17:32:32",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M32623978": {
+      "id": "M32623978",
+      "source": "commons",
+      "title": "File:Dakhineswar Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Dakhineswar_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakhineswar_Temple.jpg",
+      "sha1": "f151d0e642a6c3138b93984fd7db0bacffb304db",
+      "bytes": 489966,
+      "width": 1536,
+      "height": 2048,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "No machine-readable author provided. Steinsplitter assumed (based on copyright claims).",
+      "date": "11 January 2014 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M34384886": {
+      "id": "M34384886",
+      "source": "commons",
+      "title": "File:Dakshineswari Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/bb/Dakshineswari_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswari_Kali_Temple.jpg",
+      "sha1": "3b75c8aa4d84618730c4f9d5e9e753cf6306e1d7",
+      "bytes": 829678,
+      "width": 2592,
+      "height": 1125,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "ସରୋଜ କୁମାର ବେହେରା",
+      "date": "2014-03-13 09:04:07",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M35357687": {
+      "id": "M35357687",
+      "source": "commons",
+      "title": "File:On the way of Dakshneshwar Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fc/On_the_way_of_Dakshneshwar_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:On_the_way_of_Dakshneshwar_Temple.jpg",
+      "sha1": "619b0c4dc2e503db099011bec88a0130fece331d",
+      "bytes": 1292724,
+      "width": 1536,
+      "height": 2048,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Bhupendra Pandit",
+      "date": "Taken on 31 July 2014, 16:40:14",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M36010660": {
+      "id": "M36010660",
+      "source": "commons",
+      "title": "File:Dakhineswar.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/87/Dakhineswar.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakhineswar.JPG",
+      "sha1": "2022d234cfa7098af8ef4f8c407928e56a94c8d5",
+      "bytes": 3104398,
+      "width": 3000,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Tiyas16",
+      "date": "2014-08-03 15:36:24",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M36512547": {
+      "id": "M36512547",
+      "source": "commons",
+      "title": "File:Dakshineswar Mandir Side View.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/42/Dakshineswar_Mandir_Side_View.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Mandir_Side_View.JPG",
+      "sha1": "8f2efa53ceb742bfba5e7d7fa44e1c9b42490a04",
+      "bytes": 1662733,
+      "width": 4320,
+      "height": 3240,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sukanta Pal",
+      "date": "2014-02-18 13:04:31",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M36512548": {
+      "id": "M36512548",
+      "source": "commons",
+      "title": "File:Dakshineswar Mandir Ghat.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Dakshineswar_Mandir_Ghat.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Mandir_Ghat.JPG",
+      "sha1": "b671cdf04a1c35ebc63592891f02137172fa87d2",
+      "bytes": 1781336,
+      "width": 4320,
+      "height": 3240,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sukanta Pal",
+      "date": "2014-02-18 13:04:42",
+      "categories": [
+        "Dakshineswar Temple Complex — 12 Shiva Temples"
+      ]
+    },
+    "M36512941": {
+      "id": "M36512941",
+      "source": "commons",
+      "title": "File:Dakshineswar Mandir.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Dakshineswar_Mandir.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Mandir.JPG",
+      "sha1": "9d338ea6768ed2b65417f7da23ae7e19799b56ea",
+      "bytes": 1148832,
+      "width": 4320,
+      "height": 3240,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sukanta Pal",
+      "date": "2014-02-18 13:04:50",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M36512942": {
+      "id": "M36512942",
+      "source": "commons",
+      "title": "File:Dakshineswar Mandir Side temple.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/54/Dakshineswar_Mandir_Side_temple.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Mandir_Side_temple.JPG",
+      "sha1": "73379b9b338847212ec69cbe0661c3661d135262",
+      "bytes": 1096201,
+      "width": 4320,
+      "height": 3240,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sukanta Pal",
+      "date": "2014-02-18 13:20:42",
+      "categories": [
+        "Dakshineswar Temple Complex — 12 Shiva Temples"
+      ]
+    },
+    "M36512943": {
+      "id": "M36512943",
+      "source": "commons",
+      "title": "File:Dakshineswar Mandir view.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d6/Dakshineswar_Mandir_view.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Mandir_view.JPG",
+      "sha1": "aa10c1c050a734c706b250f9533ad600a9f48a37",
+      "bytes": 1352585,
+      "width": 3240,
+      "height": 4320,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sukanta Pal",
+      "date": "2014-02-18 13:20:49",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M36512944": {
+      "id": "M36512944",
+      "source": "commons",
+      "title": "File:Dakshineswar Mandir Area.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Dakshineswar_Mandir_Area.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Mandir_Area.JPG",
+      "sha1": "f703d1378ec955435c57bf4b2186f93c03909910",
+      "bytes": 1227717,
+      "width": 4320,
+      "height": 3240,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sukanta Pal",
+      "date": "2014-02-18 13:21:00",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M36512963": {
+      "id": "M36512963",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Mandir View.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Dakshineswar_Kali_Mandir_View.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Mandir_View.JPG",
+      "sha1": "56b655cdb33bad72acd2993c5146a8c964df9cc8",
+      "bytes": 1536475,
+      "width": 3240,
+      "height": 4320,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sukanta Pal",
+      "date": "2014-02-18 13:20:34",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M36537550": {
+      "id": "M36537550",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kali temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Dakshineshwar_Kali_temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kali_temple.jpg",
+      "sha1": "29f8f09234cb6d2721c91b6d7edeb3814b9a94d4",
+      "bytes": 325146,
+      "width": 1200,
+      "height": 1600,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Arijit Gangulian Dey",
+      "date": "2010-12-19 14:34:58",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M36537551": {
+      "id": "M36537551",
+      "source": "commons",
+      "title": "File:Building at Dakshineshwar Temple Complex.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Building_at_Dakshineshwar_Temple_Complex.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Building_at_Dakshineshwar_Temple_Complex.jpg",
+      "sha1": "00e9868359e8912e2190a5c2cbbff924edadeaee",
+      "bytes": 256694,
+      "width": 1600,
+      "height": 1200,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Arijit Gangulian Dey",
+      "date": "2010-12-19 14:35:36",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M36537557": {
+      "id": "M36537557",
+      "source": "commons",
+      "title": "File:ÄRÍJÌT~PÎÇ9999980392.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/%C3%84R%C3%8DJ%C3%8CT~P%C3%8E%C3%879999980392.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:%C3%84R%C3%8DJ%C3%8CT~P%C3%8E%C3%879999980392.jpg",
+      "sha1": "263ecf15ce96da35ac49c22c7d4dbde536499a63",
+      "bytes": 251267,
+      "width": 1600,
+      "height": 1200,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Arijit Gangulian Dey",
+      "date": "2013-01-23 11:01:08",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M37217824": {
+      "id": "M37217824",
+      "source": "commons",
+      "title": "File:Dakhineswar Temple From The Ganges.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/bd/Dakhineswar_Temple_From_The_Ganges.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakhineswar_Temple_From_The_Ganges.JPG",
+      "sha1": "a2fb9f398ddb661f8cda69420d3d1903fb6bb9fb",
+      "bytes": 4270841,
+      "width": 4320,
+      "height": 3240,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Surajit.sodexokol",
+      "date": "2014-05-17 15:23:53",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M37564271": {
+      "id": "M37564271",
+      "source": "commons",
+      "title": "File:Dakhineswar temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Dakhineswar_temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakhineswar_temple.jpg",
+      "sha1": "897631dbc342f34c170155d0930bebecd1233eb7",
+      "bytes": 3157777,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Suvendra.nath",
+      "date": "2013-11-02 18:45:01",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M38095545": {
+      "id": "M38095545",
+      "source": "commons",
+      "title": "File:Dakhineswar temple in Bally (1).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Dakhineswar_temple_in_Bally_%281%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakhineswar_temple_in_Bally_(1).jpg",
+      "sha1": "9ae3d155bc4d7a154a36c204cbd2dc3accf209ef",
+      "bytes": 609575,
+      "width": 2048,
+      "height": 1536,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Jim Carter",
+      "date": "8 January 2015 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M38132625": {
+      "id": "M38132625",
+      "source": "commons",
+      "title": "File:Lake in Dakhineswar.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/82/Lake_in_Dakhineswar.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Lake_in_Dakhineswar.jpg",
+      "sha1": "061f03de0b6d417ede7481910d577d0db7031bb9",
+      "bytes": 560836,
+      "width": 2048,
+      "height": 1536,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Jim Carter",
+      "date": "5 January 2015 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M42126476": {
+      "id": "M42126476",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Dakshineswar_Kali_temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_temple.jpg",
+      "sha1": "2e0dd1fccfe1a9e700ccc06b227dd2e444a5e220",
+      "bytes": 11874364,
+      "width": 6531,
+      "height": 3674,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sumantorroy",
+      "date": "Taken on 29 November 2014, 11:14",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M47840108": {
+      "id": "M47840108",
+      "source": "commons",
+      "title": "File:Dakkhineshwar Kali Temple - panoramio.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Dakkhineshwar_Kali_Temple_-_panoramio.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakkhineshwar_Kali_Temple_-_panoramio.jpg",
+      "sha1": "2cf0630e2318e421f40edb6aa3ea73f066749e0d",
+      "bytes": 697191,
+      "width": 2048,
+      "height": 1536,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Srijan Kundu",
+      "date": "Taken on 3 February 2008",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M49335245": {
+      "id": "M49335245",
+      "source": "commons",
+      "title": "File:Dakshineswar 089.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Dakshineswar_089.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_089.jpg",
+      "sha1": "653295db58694bd54b6b627facd3d7e483daa629",
+      "bytes": 131672,
+      "width": 1600,
+      "height": 900,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "devleen.sen",
+      "date": "2015-09-05",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M49463997": {
+      "id": "M49463997",
+      "source": "commons",
+      "title": "File:Dakhineswar Bhabatarini Temple Kolkata West Bengal India.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Dakhineswar_Bhabatarini_Temple_Kolkata_West_Bengal_India.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakhineswar_Bhabatarini_Temple_Kolkata_West_Bengal_India.jpg",
+      "sha1": "d5e337a62b512fe15f0f158a572e5ee307751a78",
+      "bytes": 4388835,
+      "width": 2816,
+      "height": 2112,
+      "mime": "image/jpeg",
+      "license": "Public domain",
+      "artist": null,
+      "date": null,
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M49637573": {
+      "id": "M49637573",
+      "source": "commons",
+      "title": "File:Landscape view of Daksineswar Kali Temple and Vivekananda Bridge.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Landscape_view_of_Daksineswar_Kali_Temple_and_Vivekananda_Bridge.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Landscape_view_of_Daksineswar_Kali_Temple_and_Vivekananda_Bridge.jpg",
+      "sha1": "1bf4255b59083e2c463242f611dd94caf4ffea9f",
+      "bytes": 1162164,
+      "width": 2592,
+      "height": 1456,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Kunal Chatterjee",
+      "date": "2016-06-04 15:39:58",
+      "categories": [
+        "Views of Dakshineswar Kali Temple from Bally, Howrah district"
+      ]
+    },
+    "M49645983": {
+      "id": "M49645983",
+      "source": "commons",
+      "title": "File:Dakshineshwar Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Dakshineshwar_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Temple.jpg",
+      "sha1": "2bf70273b8e66c3fbf9c018875d546640117770f",
+      "bytes": 1138509,
+      "width": 2560,
+      "height": 1536,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Aakashkumar.s",
+      "date": "2015-04-12 15:35:40",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M49792012": {
+      "id": "M49792012",
+      "source": "commons",
+      "title": "File:Kalighat Kali Temple @kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/52/Kalighat_Kali_Temple_%40kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Kalighat_Kali_Temple_@kolkata.jpg",
+      "sha1": "b4655c6d6adb5cf8db8af4023424bfff4c436bc9",
+      "bytes": 4508112,
+      "width": 4744,
+      "height": 3163,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sivakeshreddy",
+      "date": "2015-10-21 09:52:46",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M49792180": {
+      "id": "M49792180",
+      "source": "commons",
+      "title": "File:Dakshineswar kali mandir or Kalighat temple @Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/75/Dakshineswar_kali_mandir_or_Kalighat_temple_%40Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_kali_mandir_or_Kalighat_temple_@Kolkata.jpg",
+      "sha1": "bb3be43f0ddce865106b3b1bf7b24f15f709e289",
+      "bytes": 4885456,
+      "width": 4744,
+      "height": 3163,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Sivakeshreddy",
+      "date": "2015-10-21 09:52:46",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M4992858": {
+      "id": "M4992858",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple, Dakshineswar, West Bengal, India (2007).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/95/Dakshineswar_Kali_Temple%2C_Dakshineswar%2C_West_Bengal%2C_India_%282007%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple,_Dakshineswar,_West_Bengal,_India_(2007).jpg",
+      "sha1": "1fede2d4004398fb1f23f087b3129d023e02004d",
+      "bytes": 789526,
+      "width": 1632,
+      "height": 1088,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 2.0",
+      "artist": "The original uploader was Nikkul at English Wikipedia.",
+      "date": "10 June 2007 (original upload date)",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M51489192": {
+      "id": "M51489192",
+      "source": "commons",
+      "title": "File:WORLD FAMOUS TEMPLE OF KAALI MAA.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c3/WORLD_FAMOUS_TEMPLE_OF_KAALI_MAA.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:WORLD_FAMOUS_TEMPLE_OF_KAALI_MAA.jpg",
+      "sha1": "77712f52791bbac18a7bf310ef950bfa40c24036",
+      "bytes": 3078752,
+      "width": 3000,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "AKSHAT TRIPATHI",
+      "date": "2013-09-06 21:31:35",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M51631233": {
+      "id": "M51631233",
+      "source": "commons",
+      "title": "File:Dakshineswar, The Temple of Sri Sri Ramakrishna.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/20/Dakshineswar%2C_The_Temple_of_Sri_Sri_Ramakrishna.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar,_The_Temple_of_Sri_Sri_Ramakrishna.jpg",
+      "sha1": "3434ff76e5cb4de6c7f3e064992f4fd77221c6df",
+      "bytes": 11867742,
+      "width": 5152,
+      "height": 3864,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Pariplabpal",
+      "date": "2014-10-23 22:13:26",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M53793548": {
+      "id": "M53793548",
+      "source": "commons",
+      "title": "File:KALIMONDIR - panoramio.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e4/KALIMONDIR_-_panoramio.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:KALIMONDIR_-_panoramio.jpg",
+      "sha1": "1f58810d66aba85a42b27a46a80e6caa2289c264",
+      "bytes": 2836529,
+      "width": 3072,
+      "height": 2304,
+      "mime": "image/jpeg",
+      "license": "CC BY 3.0",
+      "artist": "10thsept",
+      "date": "Taken on 16 October 2009",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple",
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M53942026": {
+      "id": "M53942026",
+      "source": "commons",
+      "title": "File:May Dibas Pally, Dakshineswar, Kolkata, West Bengal 700076, India - panoramio.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/27/May_Dibas_Pally%2C_Dakshineswar%2C_Kolkata%2C_West_Bengal_700076%2C_India_-_panoramio.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:May_Dibas_Pally,_Dakshineswar,_Kolkata,_West_Bengal_700076,_India_-_panoramio.jpg",
+      "sha1": "151b645e0de11db5a630d9d2bbed7c3abc2d6aee",
+      "bytes": 840707,
+      "width": 2048,
+      "height": 1536,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Mathankumar",
+      "date": "Taken on 5 June 2011",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M53942070": {
+      "id": "M53942070",
+      "source": "commons",
+      "title": "File:Belur Math - panoramio.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Belur_Math_-_panoramio.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Belur_Math_-_panoramio.jpg",
+      "sha1": "3d87c03e42433d3b4d744179238243382b3d91e4",
+      "bytes": 598434,
+      "width": 2048,
+      "height": 1536,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Mathankumar",
+      "date": "Taken on 5 June 2011",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M53942265": {
+      "id": "M53942265",
+      "source": "commons",
+      "title": "File:Belur, Howrah, West Bengal, India - panoramio.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/32/Belur%2C_Howrah%2C_West_Bengal%2C_India_-_panoramio.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Belur,_Howrah,_West_Bengal,_India_-_panoramio.jpg",
+      "sha1": "38faf041dde27f9c01f04827c01a64f248cde603",
+      "bytes": 469713,
+      "width": 2048,
+      "height": 1536,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Mathankumar",
+      "date": "Taken on 26 June 2011",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M53942290": {
+      "id": "M53942290",
+      "source": "commons",
+      "title": "File:Ramakrisna Mission - panoramio.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Ramakrisna_Mission_-_panoramio.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Ramakrisna_Mission_-_panoramio.jpg",
+      "sha1": "a7b41971d44df22e1a492532132a4c5bd3ac01ab",
+      "bytes": 2238582,
+      "width": 3072,
+      "height": 2304,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Mathankumar",
+      "date": "Taken on 26 June 2011",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M53964514": {
+      "id": "M53964514",
+      "source": "commons",
+      "title": "File:Dakshineshwar temple - panoramio.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Dakshineshwar_temple_-_panoramio.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_temple_-_panoramio.jpg",
+      "sha1": "9e4fa14c0419f71a1e797fbe2602fedc019df0af",
+      "bytes": 3289401,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Siva prasath",
+      "date": "Taken on 19 May 2009",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M54634068": {
+      "id": "M54634068",
+      "source": "commons",
+      "title": "File:Dakshineswar temple - panoramio.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8b/Dakshineswar_temple_-_panoramio.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_temple_-_panoramio.jpg",
+      "sha1": "aa1f2baaabf422235d6c5746bfe2c964e657ab98",
+      "bytes": 668654,
+      "width": 1280,
+      "height": 960,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Goapalkrishna",
+      "date": "22 March 2012 (original upload date)",
+      "categories": [
+        "Dakshineswar Temple Complex — 12 Shiva Temples"
+      ]
+    },
+    "M54636982": {
+      "id": "M54636982",
+      "source": "commons",
+      "title": "File:Dakshineswar temple - panoramio (1).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Dakshineswar_temple_-_panoramio_%281%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_temple_-_panoramio_(1).jpg",
+      "sha1": "b431bc2353b428b7830adc9509aefd3f42a1e6f0",
+      "bytes": 287458,
+      "width": 960,
+      "height": 1280,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Goapalkrishna",
+      "date": "23 March 2012 (original upload date)",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M54673033": {
+      "id": "M54673033",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple1.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Dakshineswar_Temple1.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple1.jpg",
+      "sha1": "dacee1e971368dc00c983ce81f6d83784ecb6990",
+      "bytes": 1097168,
+      "width": 2693,
+      "height": 1795,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Kinjal bose 78",
+      "date": "2015-07-05 16:40:17",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M59943749": {
+      "id": "M59943749",
+      "source": "commons",
+      "title": "File:Dakshineswar temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/99/Dakshineswar_temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_temple.jpg",
+      "sha1": "b7e84c3a517dfeb75a8c4183fcd721ce34382ab0",
+      "bytes": 2251656,
+      "width": 3920,
+      "height": 2204,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Abhiraj1720",
+      "date": "2015-03-25 09:37:56",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M59962082": {
+      "id": "M59962082",
+      "source": "commons",
+      "title": "File:Reflected temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Reflected_temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Reflected_temple.jpg",
+      "sha1": "b458f5d4ca9169713727f392f14061639fbbf1b2",
+      "bytes": 549252,
+      "width": 933,
+      "height": 1400,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Shibasishsaha",
+      "date": "2013-11-02 23:39:37",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M60160568": {
+      "id": "M60160568",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple, Dakshineswar, Kolkata, West Bengal, India (2017).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e9/Dakshineswar_Kali_Temple%2C_Dakshineswar%2C_Kolkata%2C_West_Bengal%2C_India_%282017%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple,_Dakshineswar,_Kolkata,_West_Bengal,_India_(2017).jpg",
+      "sha1": "0baae26e2351b409f4541ec6849cc21779146e45",
+      "bytes": 2606257,
+      "width": 4096,
+      "height": 2304,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Mam Pal",
+      "date": "2017-05-10 14:23:54",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M60338127": {
+      "id": "M60338127",
+      "source": "commons",
+      "title": "File:May Dibas Pally, Dakshineswar, Kolkata, West Bengal 700076, India - panoramio (1).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/90/May_Dibas_Pally%2C_Dakshineswar%2C_Kolkata%2C_West_Bengal_700076%2C_India_-_panoramio_%281%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:May_Dibas_Pally,_Dakshineswar,_Kolkata,_West_Bengal_700076,_India_-_panoramio_(1).jpg",
+      "sha1": "7b454a9a66373eff29e8a4cc1c9b948bd71c4fd7",
+      "bytes": 1649847,
+      "width": 3055,
+      "height": 2340,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Anil Kaushik",
+      "date": "Taken on 28 December 2015",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M60506787": {
+      "id": "M60506787",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (Mandir), Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Dakshineswar_Kali_Temple_%28Mandir%29%2C_Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(Mandir),_Kolkata.jpg",
+      "sha1": "e5216d1acb85e73595b80a69e6f83e049232e70d",
+      "bytes": 7331134,
+      "width": 3456,
+      "height": 5184,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Tirthankarghoshindia",
+      "date": "2017-06-17 18:43:08",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M60532389": {
+      "id": "M60532389",
+      "source": "commons",
+      "title": "File:Ganga River and Dakshineswar Kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/91/Ganga_River_and_Dakshineswar_Kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Ganga_River_and_Dakshineswar_Kali_Temple.jpg",
+      "sha1": "070128d113aa79757bb38f3c6fb630d006bb5873",
+      "bytes": 1342245,
+      "width": 2560,
+      "height": 1536,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Shibangkp",
+      "date": "2017-04-01 13:42:34",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M62269364": {
+      "id": "M62269364",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Dakshineshwar_Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kolkata.jpg",
+      "sha1": "3b2fa8f8fbf8d75b4515a5eeae4c8454e1604d38",
+      "bytes": 6161095,
+      "width": 2848,
+      "height": 3819,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Bibek Raj Pandeya",
+      "date": "2015-11-26 04:54:34",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M62277771": {
+      "id": "M62277771",
+      "source": "commons",
+      "title": "File:Kali Temple Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Kali_Temple_Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Kali_Temple_Kolkata.jpg",
+      "sha1": "3387a6fe32b9698e2d6b2c45f29225187323c66c",
+      "bytes": 4264587,
+      "width": 4208,
+      "height": 3120,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Priyoda",
+      "date": "2017-07-21 08:42:38",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M62890115": {
+      "id": "M62890115",
+      "source": "commons",
+      "title": "File:Dakshineshwar Temple,Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cf/Dakshineshwar_Temple%2CKolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Temple,Kolkata.jpg",
+      "sha1": "f81d2be965ddf9e682a2810062fdacacbc54af49",
+      "bytes": 3793051,
+      "width": 4608,
+      "height": 3456,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Aanya1mehta",
+      "date": "2015-10-31 08:59:16",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M62890116": {
+      "id": "M62890116",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kali Mandir, Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Dakshineshwar_Kali_Mandir%2C_Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kali_Mandir,_Kolkata.jpg",
+      "sha1": "da48ffcfd85a98ceaacc34e4722bafece7a88810",
+      "bytes": 3685261,
+      "width": 4608,
+      "height": 3456,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Aanya1mehta",
+      "date": "2015-10-31 09:00:42",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M65282889": {
+      "id": "M65282889",
+      "source": "commons",
+      "title": "File:মা ভবতারিণী.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/83/%E0%A6%AE%E0%A6%BE_%E0%A6%AD%E0%A6%AC%E0%A6%A4%E0%A6%BE%E0%A6%B0%E0%A6%BF%E0%A6%A3%E0%A7%80.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:%E0%A6%AE%E0%A6%BE_%E0%A6%AD%E0%A6%AC%E0%A6%A4%E0%A6%BE%E0%A6%B0%E0%A6%BF%E0%A6%A3%E0%A7%80.jpg",
+      "sha1": "a5bcb476e1d5aafcbacc8de74bf21031ea6e36b4",
+      "bytes": 3567822,
+      "width": 2448,
+      "height": 3264,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Prianxi",
+      "date": "2017-11-20 00:27:26",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple",
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M68195744": {
+      "id": "M68195744",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kali Temple by Satyabrata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Dakshineshwar_Kali_Temple_by_Satyabrata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kali_Temple_by_Satyabrata.jpg",
+      "sha1": "99cd83bbd9bfa69cf5a939b13137dc1f49b29b7e",
+      "bytes": 126298,
+      "width": 1216,
+      "height": 1280,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Innocentbunny",
+      "date": "10 April 2018 (according to <span lang=\"en\" dir=\"ltr\"><a href=\"https://en.wikipedia.org/wiki/Exif\" class=\"extiw\" title=\"en:Exif\">Exif</a></span> data)",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M69552264": {
+      "id": "M69552264",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7169501549).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Dakshineswar_Kali_Temple_%287169501549%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7169501549).jpg",
+      "sha1": "22e442866985179030a46ca6b87cc71f4dea2fc7",
+      "bytes": 4292482,
+      "width": 2448,
+      "height": 3264,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M69552267": {
+      "id": "M69552267",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7169406689).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Dakshineswar_Kali_Temple_%287169406689%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7169406689).jpg",
+      "sha1": "1a9413a976bf3e3902267c9b5150f6820581382f",
+      "bytes": 3992238,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple"
+      ]
+    },
+    "M69552269": {
+      "id": "M69552269",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7169251777).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Dakshineswar_Kali_Temple_%287169251777%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7169251777).jpg",
+      "sha1": "cfc1d89357548a0297bdf92442db99ab9e3a242e",
+      "bytes": 3962045,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple"
+      ]
+    },
+    "M69552272": {
+      "id": "M69552272",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7169250277).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Dakshineswar_Kali_Temple_%287169250277%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7169250277).jpg",
+      "sha1": "b2e46db0c3d980f23c68608be91a9284e3aae68c",
+      "bytes": 3734165,
+      "width": 2448,
+      "height": 3264,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M69552273": {
+      "id": "M69552273",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7169235229).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a1/Dakshineswar_Kali_Temple_%287169235229%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7169235229).jpg",
+      "sha1": "9c6dc866f3bf40a32569207b4f41a45ebed7a386",
+      "bytes": 3670178,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M69552274": {
+      "id": "M69552274",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7169498793).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Dakshineswar_Kali_Temple_%287169498793%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7169498793).jpg",
+      "sha1": "3895fbfddbf98f34e817e858a56bc883a90c4472",
+      "bytes": 3998939,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M69552277": {
+      "id": "M69552277",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7354706568).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Dakshineswar_Kali_Temple_%287354706568%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7354706568).jpg",
+      "sha1": "83a805373428567cf77c240821abfe07a42f8d52",
+      "bytes": 3543256,
+      "width": 2448,
+      "height": 3264,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M69552279": {
+      "id": "M69552279",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7169302531).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/06/Dakshineswar_Kali_Temple_%287169302531%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7169302531).jpg",
+      "sha1": "a67d3664f4dcb424e8de291f4effbf215e76f81c",
+      "bytes": 1348383,
+      "width": 1944,
+      "height": 2592,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M69552280": {
+      "id": "M69552280",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7169296605).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Dakshineswar_Kali_Temple_%287169296605%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7169296605).jpg",
+      "sha1": "703b1a55a0cf7a44406ed79a4c532664e61a85fe",
+      "bytes": 2028355,
+      "width": 2448,
+      "height": 3264,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M69552281": {
+      "id": "M69552281",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple (7169293893).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/65/Dakshineswar_Kali_Temple_%287169293893%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_(7169293893).jpg",
+      "sha1": "15633d10a800fd2aef9024d4a53da9b68d839bc3",
+      "bytes": 2067910,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY 2.0",
+      "artist": "shankar s. from Dubai, united arab emirates",
+      "date": "2009-05-01 00:00",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M72021654": {
+      "id": "M72021654",
+      "source": "commons",
+      "title": "File:The Prime Minister, Shri Narendra Modi visiting the Dakshineswar Kali Temple, in Kolkata on May 10, 2015.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/The_Prime_Minister%2C_Shri_Narendra_Modi_visiting_the_Dakshineswar_Kali_Temple%2C_in_Kolkata_on_May_10%2C_2015.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Prime_Minister,_Shri_Narendra_Modi_visiting_the_Dakshineswar_Kali_Temple,_in_Kolkata_on_May_10,_2015.jpg",
+      "sha1": "9cfedc1a9c8cf82d972f02c813b92da7705c1162",
+      "bytes": 374115,
+      "width": 1971,
+      "height": 1034,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Prime Minister's Office",
+      "date": "2015-05-10 07:58:14",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M72021667": {
+      "id": "M72021667",
+      "source": "commons",
+      "title": "File:The Prime Minister, Shri Narendra Modi visiting the Dakshineswar Kali Temple, in Kolkata on May 10, 2015 (1).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/The_Prime_Minister%2C_Shri_Narendra_Modi_visiting_the_Dakshineswar_Kali_Temple%2C_in_Kolkata_on_May_10%2C_2015_%281%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Prime_Minister,_Shri_Narendra_Modi_visiting_the_Dakshineswar_Kali_Temple,_in_Kolkata_on_May_10,_2015_(1).jpg",
+      "sha1": "2512ff1743173cb27a545197c145a6022a263caa",
+      "bytes": 693171,
+      "width": 2000,
+      "height": 2542,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Prime Minister's Office",
+      "date": "2015-05-10 08:07:09",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M72021680": {
+      "id": "M72021680",
+      "source": "commons",
+      "title": "File:The Prime Minister, Shri Narendra Modi visiting the Dakshineswar Kali Temple, in Kolkata on May 10, 2015 (2).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b2/The_Prime_Minister%2C_Shri_Narendra_Modi_visiting_the_Dakshineswar_Kali_Temple%2C_in_Kolkata_on_May_10%2C_2015_%282%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Prime_Minister,_Shri_Narendra_Modi_visiting_the_Dakshineswar_Kali_Temple,_in_Kolkata_on_May_10,_2015_(2).jpg",
+      "sha1": "e7ad47515535e9adbcc94704b157921004c9301f",
+      "bytes": 779791,
+      "width": 2200,
+      "height": 1678,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Prime Minister's Office",
+      "date": "2015-05-10 08:01:45",
+      "categories": [
+        "Interior of Dakshineswar Kali Temple"
+      ]
+    },
+    "M72021688": {
+      "id": "M72021688",
+      "source": "commons",
+      "title": "File:The Prime Minister, Shri Narendra Modi visiting the Dakshineswar Kali Temple, in Kolkata on May 10, 2015 (3).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/The_Prime_Minister%2C_Shri_Narendra_Modi_visiting_the_Dakshineswar_Kali_Temple%2C_in_Kolkata_on_May_10%2C_2015_%283%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:The_Prime_Minister,_Shri_Narendra_Modi_visiting_the_Dakshineswar_Kali_Temple,_in_Kolkata_on_May_10,_2015_(3).jpg",
+      "sha1": "5e427414be8b1684677c8e6d32fa6a816fc6c662",
+      "bytes": 282633,
+      "width": 1774,
+      "height": 1515,
+      "mime": "image/jpeg",
+      "license": "GODL-India",
+      "artist": "Prime Minister's Office",
+      "date": "2015-05-10 08:16:09",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M72216927": {
+      "id": "M72216927",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple Kolkata.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Dakshineswar_Kali_Temple_Kolkata.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_Kolkata.jpg",
+      "sha1": "136f35fbf156a49e53c97f8cf9374ffc83de5f6c",
+      "bytes": 3828543,
+      "width": 2368,
+      "height": 4208,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Dhrubajyoti",
+      "date": "2018-07-08 13:03:52",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M72216930": {
+      "id": "M72216930",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple view from Ganga.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Dakshineswar_Kali_Temple_view_from_Ganga.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_view_from_Ganga.jpg",
+      "sha1": "aadb5a0079f5d054901ce5253cc62c8ca0eab4bf",
+      "bytes": 3704048,
+      "width": 4208,
+      "height": 2368,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Dhrubajyoti",
+      "date": "2018-07-08 13:28:14",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M72216931": {
+      "id": "M72216931",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple inside.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Dakshineswar_Kali_Temple_inside.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple_inside.jpg",
+      "sha1": "ec747cf46deb4850ef1b974f387ce1be450d8665",
+      "bytes": 4495945,
+      "width": 2368,
+      "height": 4208,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Dhrubajyoti",
+      "date": "2018-07-08 12:56:52",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M72266291": {
+      "id": "M72266291",
+      "source": "commons",
+      "title": "File:Dakshineshwar temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/99/Dakshineshwar_temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_temple.jpg",
+      "sha1": "1f1d9db86abdafdd86434fe924c64c50a89bde84",
+      "bytes": 2547734,
+      "width": 2400,
+      "height": 3200,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "As1210",
+      "date": "2015-05-21 12:39:54",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M72301742": {
+      "id": "M72301742",
+      "source": "commons",
+      "title": "File:Dakhineswari kali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ac/Dakhineswari_kali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakhineswari_kali_Temple.jpg",
+      "sha1": "bdaba6ca8d10e0c2a503d289c28d14e4a9788a1d",
+      "bytes": 3864555,
+      "width": 4128,
+      "height": 2076,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Arpita Tripathy",
+      "date": "2017-05-27 10:33:37",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M72787214": {
+      "id": "M72787214",
+      "source": "commons",
+      "title": "File:Dakshineshwar kali temple - 20180402 111926kd.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Dakshineshwar_kali_temple_-_20180402_111926kd.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_kali_temple_-_20180402_111926kd.jpg",
+      "sha1": "560211d6e453c778fb82d38751eb4b8e965e4a5b",
+      "bytes": 3489950,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Kirancool89",
+      "date": "2018-04-02 11:19:26",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M72787215": {
+      "id": "M72787215",
+      "source": "commons",
+      "title": "File:9543126746kd.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cb/9543126746kd.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:9543126746kd.jpg",
+      "sha1": "111569e458f48d8df9dc66826a159683d37b2344",
+      "bytes": 3479405,
+      "width": 3264,
+      "height": 2448,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Kirancool89",
+      "date": "2018-04-02 11:19:27",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M73241052": {
+      "id": "M73241052",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple2.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Dakshineswar_Temple2.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple2.jpg",
+      "sha1": "13537f77d548d19c36699e88f65abd169a2c4073",
+      "bytes": 5876901,
+      "width": 4500,
+      "height": 3000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Kinjal bose 78",
+      "date": "2017-09-10 17:45:26",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M74985597": {
+      "id": "M74985597",
+      "source": "commons",
+      "title": "File:Dakshineshwar mani.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Dakshineshwar_mani.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_mani.jpg",
+      "sha1": "2963f8dc738fb3226f1cb32ec0eb9ee733d55e6a",
+      "bytes": 1297335,
+      "width": 1840,
+      "height": 3264,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Kaustubh Mani 9108",
+      "date": "2018-01-27",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M76263423": {
+      "id": "M76263423",
+      "source": "commons",
+      "title": "File:DakshineswarKali Temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1e/DakshineswarKali_Temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:DakshineswarKali_Temple.jpg",
+      "sha1": "879f7119d6a1cde3dd652b4dcb61baf032bbc46d",
+      "bytes": 2664552,
+      "width": 3456,
+      "height": 5184,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Abhishekmk786",
+      "date": "2018-11-14 19:15:11",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M81367446": {
+      "id": "M81367446",
+      "source": "commons",
+      "title": "File:India Dakshineswar Kali Temple (84900379).jpeg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8f/India_Dakshineswar_Kali_Temple_%2884900379%29.jpeg",
+      "page": "https://commons.wikimedia.org/wiki/File:India_Dakshineswar_Kali_Temple_(84900379).jpeg",
+      "sha1": "d16a8212c079bcc29aee5d13e6e1df24e343f909",
+      "bytes": 599159,
+      "width": 2048,
+      "height": 1367,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Jonathan Charpentier",
+      "date": "30 November 2013, 12:25:13",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M82302740": {
+      "id": "M82302740",
+      "source": "commons",
+      "title": "File:DakshineswarTemple-Kolkata-West Bengal-DSC 4194 00001.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e5/DakshineswarTemple-Kolkata-West_Bengal-DSC_4194_00001.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:DakshineswarTemple-Kolkata-West_Bengal-DSC_4194_00001.jpg",
+      "sha1": "48167b9c3ad4f06bf7117eb34b1161bb3858e384",
+      "bytes": 4440734,
+      "width": 3500,
+      "height": 2333,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Kinjal bose 78",
+      "date": "2019-02-11 16:06:53",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M82362466": {
+      "id": "M82362466",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple-Kolkata-West Bengal-18.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Dakshineswar_Temple-Kolkata-West_Bengal-18.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple-Kolkata-West_Bengal-18.jpg",
+      "sha1": "de5782e25dc5d668cfcc1f31378d5e3f00522711",
+      "bytes": 5625997,
+      "width": 2667,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Kinjal bose 78",
+      "date": "2017-09-10 17:44:59",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M83899171": {
+      "id": "M83899171",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/33/Dakshineswar_Kali.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali.jpg",
+      "sha1": "71c4ab3a2d97ae6079770f201ddfe4e4970f5d2f",
+      "bytes": 158322,
+      "width": 720,
+      "height": 1280,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Shivendujha",
+      "date": "2015-08-21",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M8668003": {
+      "id": "M8668003",
+      "source": "commons",
+      "title": "File:Dinanta Ashar Kali Mandir 0011.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Dinanta_Ashar_Kali_Mandir_0011.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Dinanta_Ashar_Kali_Mandir_0011.JPG",
+      "sha1": "26a7803f4bac3656189a6c0d6036c61cfc28fdde",
+      "bytes": 1363944,
+      "width": 2304,
+      "height": 3072,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Biswarup Ganguly",
+      "date": "2007-04-03",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M87152569": {
+      "id": "M87152569",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple-From Hooghly Bridge 01.jpeg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8b/Dakshineswar_Temple-From_Hooghly_Bridge_01.jpeg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple-From_Hooghly_Bridge_01.jpeg",
+      "sha1": "5d0cbe5f586c1980bd4b23ee0d5f1759357988a2",
+      "bytes": 2939187,
+      "width": 4032,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Indrajit Das",
+      "date": "2018-11-22 12:23:26",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M87152575": {
+      "id": "M87152575",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple-From Hooghly Bridge 01 09 33 08 666000.jpeg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a9/Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_08_666000.jpeg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_08_666000.jpeg",
+      "sha1": "371f2ff35b6c1baf7766b2535c42812977141252",
+      "bytes": 1610265,
+      "width": 4032,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Indrajit Das",
+      "date": "2018-11-22 12:23:16",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M87152580": {
+      "id": "M87152580",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple-From Hooghly Bridge 01 09 33 13 376000.jpeg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/33/Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_13_376000.jpeg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_13_376000.jpeg",
+      "sha1": "d35a3193c16c214162a589592bcf58d8cf3cdf9c",
+      "bytes": 1709332,
+      "width": 4032,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Indrajit Das",
+      "date": "2018-11-22 12:23:16",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M87152586": {
+      "id": "M87152586",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple-From Hooghly Bridge 01 09 33 18 700000.jpeg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_18_700000.jpeg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_18_700000.jpeg",
+      "sha1": "211133ee7b8ff0f29bde00cefc7f7c571e86840e",
+      "bytes": 2138641,
+      "width": 4032,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Indrajit Das",
+      "date": "2018-11-22 12:23:03",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M87152588": {
+      "id": "M87152588",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple-From Hooghly Bridge 01 09 33 23 924000.jpeg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/69/Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_23_924000.jpeg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_23_924000.jpeg",
+      "sha1": "b12ce6345b1cb8924e9ac8121b297f3b01b18fba",
+      "bytes": 1548084,
+      "width": 4032,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Indrajit Das",
+      "date": "2018-11-22 12:21:04",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M87152594": {
+      "id": "M87152594",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple-From Hooghly Bridge 01 09 33 28 531000.jpeg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_28_531000.jpeg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple-From_Hooghly_Bridge_01_09_33_28_531000.jpeg",
+      "sha1": "311ea976eea0fd10e844a6816d1a2ae76603f7e4",
+      "bytes": 1748772,
+      "width": 4032,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Indrajit Das",
+      "date": "2018-11-22 12:20:43",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M88049331": {
+      "id": "M88049331",
+      "source": "commons",
+      "title": "File:Dakshineswar Kali Temple, a navaratna temple located at Dakshineswar.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Dakshineswar_Kali_Temple%2C_a_navaratna_temple_located_at_Dakshineswar.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Kali_Temple,_a_navaratna_temple_located_at_Dakshineswar.jpg",
+      "sha1": "dda5381664763f38706eec0a0734417bee96785b",
+      "bytes": 2502566,
+      "width": 3110,
+      "height": 2592,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "eclicks_by_bunny",
+      "date": "2018-01-12 16:22:14",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M90093103": {
+      "id": "M90093103",
+      "source": "commons",
+      "title": "File:Dakshineshwar Kali Temple.png",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Dakshineshwar_Kali_Temple.png",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineshwar_Kali_Temple.png",
+      "sha1": "7a313736027894285cd30b7e710dd6c817b5bc73",
+      "bytes": 16040165,
+      "width": 3264,
+      "height": 3264,
+      "mime": "image/png",
+      "license": "CC BY-SA 4.0",
+      "artist": "HTTalk",
+      "date": "2020-05-11",
+      "categories": [
+        "Dakshineswar Temple Complex — Navaratna Temple"
+      ]
+    },
+    "M93770670": {
+      "id": "M93770670",
+      "source": "commons",
+      "title": "File:Beauty of Dakshineshwar Kali temple.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Beauty_of_Dakshineshwar_Kali_temple.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Beauty_of_Dakshineshwar_Kali_temple.jpg",
+      "sha1": "5f12ec2b4a62578ebfccf03c1eefec0062d15167",
+      "bytes": 1976451,
+      "width": 4618,
+      "height": 3463,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Krishnaprianair",
+      "date": "2018-12-20 12:56:04",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    },
+    "M9399291": {
+      "id": "M9399291",
+      "source": "commons",
+      "title": "File:Rashmoni Shrine Dakshineswar.JPG",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Rashmoni_Shrine_Dakshineswar.JPG",
+      "page": "https://commons.wikimedia.org/wiki/File:Rashmoni_Shrine_Dakshineswar.JPG",
+      "sha1": "b5cfbaf4bb391e5506e6de9cfa74adc369377855",
+      "bytes": 1893804,
+      "width": 2304,
+      "height": 1728,
+      "mime": "image/jpeg",
+      "license": "Public domain",
+      "artist": "WoodElf at English Wikipedia",
+      "date": "5 June 2006 (original upload date)",
+      "categories": [
+        "Dakshineswar Kali Temple",
+        "Statues at Dakshineswar Kali Temple"
+      ]
+    },
+    "M94239210": {
+      "id": "M94239210",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple at night.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/22/Dakshineswar_Temple_at_night.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple_at_night.jpg",
+      "sha1": "31ab78824678b45916ab773a807eb1354115350c",
+      "bytes": 14582639,
+      "width": 6000,
+      "height": 4000,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Prodoshdhar",
+      "date": "2020-01-18 19:36:01",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M94582035": {
+      "id": "M94582035",
+      "source": "commons",
+      "title": "File:DAKSHINESHWAR KALI TEMPLE KOLKATA WEST BENGAL 2.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c2/DAKSHINESHWAR_KALI_TEMPLE_KOLKATA_WEST_BENGAL_2.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:DAKSHINESHWAR_KALI_TEMPLE_KOLKATA_WEST_BENGAL_2.jpg",
+      "sha1": "90391f6310198a46d04b0c54fff01942771cd256",
+      "bytes": 722513,
+      "width": 3072,
+      "height": 4096,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Deejayrocks2",
+      "date": "2020-09-11",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M94582097": {
+      "id": "M94582097",
+      "source": "commons",
+      "title": "File:DAKHINESHWAR KALI TEMPLE KOLKATA WEST BENGAL.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/DAKHINESHWAR_KALI_TEMPLE_KOLKATA_WEST_BENGAL.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:DAKHINESHWAR_KALI_TEMPLE_KOLKATA_WEST_BENGAL.jpg",
+      "sha1": "37210ed9a56c9f29eb0658ec738b531713979fcc",
+      "bytes": 1151452,
+      "width": 4096,
+      "height": 3072,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Deejayrocks2",
+      "date": "2020-09-11",
+      "categories": [
+        "Dakshineswar Kali Temple illuminated"
+      ]
+    },
+    "M94619559": {
+      "id": "M94619559",
+      "source": "commons",
+      "title": "File:Dakshineswar Temple-Kolkata-West Bengal-DSC 0036.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Dakshineswar_Temple-Kolkata-West_Bengal-DSC_0036.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dakshineswar_Temple-Kolkata-West_Bengal-DSC_0036.jpg",
+      "sha1": "4727e59f363c810c97523306e1a6318aa5ad6b26",
+      "bytes": 4027329,
+      "width": 3500,
+      "height": 2221,
+      "mime": "image/jpeg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Kinjal bose 78",
+      "date": "2019-02-11 16:06:53",
+      "categories": [
+        "Dakshineswar Kali Temple"
+      ]
+    }
+  },
+  "youtube": {}
+}

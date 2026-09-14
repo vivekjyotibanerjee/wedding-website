@@ -1,0 +1,7 @@
+# everything under data/ is derived from configs/ and re-creatable
+data/
+.venv/
+__pycache__/
+*.pyc
+.env
+outputs/

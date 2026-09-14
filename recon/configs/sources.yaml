@@ -1,0 +1,24 @@
+# Discovery seeds. Edited by hand on the LAPTOP; discover.py turns this into configs/manifest.json.
+# Adding seeds and re-running discover.py only ever ADDS manifest entries — existing ones are kept
+# verbatim so the cluster and laptop always resolve the same media.
+
+commons:
+  # Wikimedia Commons categories to walk (recursively, up to `depth` levels of subcategories).
+  categories:
+    - "Dakshineswar Kali Temple"
+  depth: 2
+  # Drop anything smaller than this on the long edge (thumbnails, icons, maps).
+  min_long_edge: 1200
+  # Only these mime types are images we can use for SfM.
+  mime: ["image/jpeg", "image/png"]
+  # Skip files whose Commons title matches any of these (case-insensitive substrings).
+  title_exclude: ["map", "logo", "stamp", "painting", "drawing", "sketch", "plan", "poster", "ticket"]
+
+youtube:
+  # Hand-curated list of walkthrough vlogs. Find candidates with:
+  #   python scripts/laptop/discover.py --yt-search "dakshineswar temple walk" --yt-max 25
+  # and paste the IDs you like here. Search results are NOT locked; only IDs listed here are.
+  # Prefer: steady walking shots, daylight, 1080p, little talking-head.
+  ids: []
+  # Pinned yt-dlp format selector: best mp4 video-only stream up to 1080p (audio is not needed).
+  format: "bestvideo[ext=mp4][height<=1080]/best[ext=mp4][height<=1080]"
