@@ -59,10 +59,9 @@ fields are explained here:
 `src/content.js` loads the JSON and fills in the `labels` defaults; nothing else needs touching.
 Where each card pins and when it shows is `ANCHORS` in `src/scene/walk.js`, keyed by the same ids.
 
-- **`public/images/bhavatarini.jpg`** — the picture of Ma Kali in the sanctum, seen through the
+- **`public/images/bhavatarini.png`** (or `.jpg` / `.webp`) — the picture of Ma Kali in the sanctum, seen through the
   open door at the end of the walk (a photo or painting, portrait, any size; it is shown at its
-  own proportions on a lit plane over the dais). Not in the repo: drop your own in. Without it the
-  chamber is simply lit, the dais bare.
+  own proportions on a lit plane over the dais). Without it the chamber is simply lit, the dais bare.
 
 - **`music/`** — drop `.mp3` / `.m4a` / `.ogg` files here and the **Sound** button plays
   them in alphabetical order (see `music/README.md`). With no files it falls back to a

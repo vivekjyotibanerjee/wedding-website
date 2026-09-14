@@ -8,7 +8,7 @@ import { alponaCanvas } from '../ornament.js';
 // light in the halls' doorways and inside them, the lamp posts, fireflies, birds over the spires,
 // the flag on the central ratna, wind in the mandap drapes, ripples on the river, alpona painted
 // on the ground, and the shrine in the navaratna's sanctum — the deity as a lit picture (a photo
-// or painting the owner drops in as public/images/bhavatarini.jpg; without it the chamber is
+// or painting the owner drops in as public/images/bhavatarini.png|jpg; without it the chamber is
 // simply lit). Positions come from landmarks.json like the camera path does.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ const rPlinth = L.radhakanta.plinth_top;
 const pt = L.navaratna.platform_top;
 const wall = L.navaratna.wall_x;
 const P = L.navaratna.platform;
-const DEITY_URL = `${import.meta.env.BASE_URL}images/bhavatarini.jpg`;
+const DEITY_URLS = ['png', 'jpg', 'webp'].map((ext) => `${import.meta.env.BASE_URL}images/bhavatarini.${ext}`);   // whichever is there
 
 // ── shaders ──────────────────────────────────────────────────────────────────
 // Flames: camera-facing quads, each with its own flicker phase; drawn additive and bright so they
@@ -374,15 +374,15 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
 
   // ── the shrine ─────────────────────────────────────────────────────────────
   // Ma Kali in the sanctum: a picture on a plane over the dais, a soft halo behind it, and a
-  // lamp in the chamber that is lit day and night. The picture is the owner's (DEITY_URL); if it
-  // is not there the plane stays hidden and the chamber is just lit.
+  // lamp in the chamber that is lit day and night. The picture is the owner's (DEITY_URLS); if
+  // none is there the plane stays hidden and the chamber is just lit.
   const shrineLamp = new THREE.PointLight(0xffb070, 12, 9, 1.7);
   {
     const [dx, , dz] = L.sanctum.door;
     const back = dz - L.sanctum.depth;                              // the chamber's back wall
-    const h = L.sanctum.height - (L.sanctum.dais_top - pt) - 0.4, w = h * 0.7;   // portrait, dais to ceiling
+    const h = L.sanctum.height - (L.sanctum.dais_top - pt) - 0.25, w = h * 0.8;  // portrait, dais to ceiling
     const y = L.sanctum.dais_top + h / 2 + 0.05;
-    const zp = back + 0.1;
+    const zp = back + L.sanctum.dais_depth - 0.15;                      // standing at the front of the dais
     const haloCanvas = document.createElement('canvas');                // a soft radial glow
     haloCanvas.width = haloCanvas.height = 128;
     const hc = haloCanvas.getContext('2d');
@@ -407,15 +407,21 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
     pic.visible = false;
     root.add(pic);
     disposables.push(pic.geometry, picMat);
-    new THREE.TextureLoader().load(DEITY_URL, (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      const a = tex.image.width / tex.image.height;                  // keep the picture's own proportions
-      pic.scale.set(a > w / h ? 1 : (a * h) / w, a > w / h ? w / (a * h) : 1, 1);
-      picMat.map = tex;
-      picMat.needsUpdate = true;
-      pic.visible = halo.visible = true;
-      disposables.push(tex);
-    }, undefined, () => { /* no picture yet: the chamber is lit, the dais bare */ });
+    const loader = new THREE.TextureLoader();
+    const tryLoad = (i) => {
+      if (i >= DEITY_URLS.length) return;                           // no picture yet: the chamber is lit, the dais bare
+      loader.load(DEITY_URLS[i], (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 8;
+        const a = tex.image.width / tex.image.height;                // keep the picture's own proportions
+        pic.scale.set(a > w / h ? 1 : (a * h) / w, a > w / h ? w / (a * h) : 1, 1);
+        picMat.map = tex;
+        picMat.needsUpdate = true;
+        pic.visible = halo.visible = true;
+        disposables.push(tex);
+      }, undefined, () => tryLoad(i + 1));
+    };
+    tryLoad(0);
     shrineLamp.position.set(dx, pt + L.sanctum.height * 0.6, dz - 1.6);
     root.add(shrineLamp);
   }

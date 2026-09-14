@@ -44,7 +44,7 @@ bake) and `--only '<regex>'` with `--out` for a test glb the site loads via `?mo
 - The sanctum: `build_dakshineswar.SANCTUM` hollows a shrine chamber out of the navaratna's
   ground-storey core behind the central south arch (closed boxes + a pierced wall, no boolean);
   `landmarks.sanctum` locates it. The deity is a runtime picture plane in `life.js` reading
-  `public/images/bhavatarini.jpg` (owner-supplied, not in the repo) — never a modelled figure.
+  `public/images/bhavatarini.png|jpg|webp` (owner-supplied) — never a modelled figure.
 
 ## Judging changes
 
