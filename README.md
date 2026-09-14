@@ -16,6 +16,14 @@ arcades, the red-plastered aat-chala Shiva temples, the mandap), baked and expor
 `public/models/dakshineswar.glb` (≈ 95 k faces, meshopt-compressed, WebP textures, ≈ 12 MB).
 Daytime by default; a **Night** toggle floodlights the temple.
 
+The temple is dressed for the wedding as the guest walks: bare at the river, then a toran gate
+at the top of the ghat, a red carpet rolling out up the strip, torans over the doors and diya
+bowls set out, marigold garlands drawing in along the Shiva fronts and the halls, the diyas and
+string lights coming on in a wave from the mandap as the light turns golden, the mandap's
+columns wrapped and strands hung from its canopy, the agni lit and petals falling for the
+ceremony, and the nat-mandir and the navaratna fully dressed and glowing by the sanctum. The
+schedule is `src/scene/stage.js`.
+
 ## Run it
 
 ```bash
@@ -91,11 +99,14 @@ BLENDER=… blender -b -P recon/blender/export_web.py -- --only '^(paving_web|na
 npx gltf-transform meshopt /tmp/t/dakshineswar.glb public/models/preview.glb --level medium   # git-ignored
 ```
 
-Everything that moves or glows is not in the glb but layered over it at runtime
-(`src/scene/life.js`): the diyas, string lights, the light in the doorways and inside the
-halls and the lamp posts at night, fireflies, birds, the flag, wind in the mandap drapes,
-ripples on the river, the alpona painted on the ground, and the shrine (the picture, its halo
-and lamp) in the sanctum. Their positions come from `landmarks.json` too.
+Everything that moves, glows or is hung for the wedding is not in the glb but layered over it
+at runtime: `src/scene/life.js` (the diyas, string lights, the light in the doorways and inside
+the halls and the lamp posts at night, fireflies, birds, the flag, the bells, wind in the mandap
+drapes and the trees, ripples on the river, the alpona painted on the ground, and the shrine —
+the picture, its halo and lamp — in the sanctum), `src/scene/decor.js` (garlands, torans, the
+gate, the mandap's wraps and strands, the carpets) and `src/scene/fx.js` (petals, the agni with
+its sparks and smoke, incense). Their positions come from `landmarks.json` too, and when each
+appears is `src/scene/stage.js`.
 
 ## Check it without a browser
 
@@ -107,7 +118,8 @@ VW=390 VH=844 npm run shoot -- http://localhost:5173/ shots 0 0.34         # pho
 `scripts/shoot.mjs` drives the site in a software-rendered headless Chromium (Playwright's
 cached Chromium, or `CHROME=/path/to/chrome`) and screenshots the walk at those scroll
 fractions. It is slow, so give the camera time (`WAIT=8000`) when the CPU is busy. Add `#debug`
-to the URL to get `window.templeScene` in the console.
+to the URL to get `window.templeScene` in the console and a panel with the stage, its
+transitions, draw calls and a button per stage that scrolls the walk there.
 
 ## Deploy
 
@@ -126,14 +138,19 @@ src/
   content.js         ← loads content.json, fills in label defaults
   main.js            ← scroll → scene, cards, day/night, sound; loading veil; WebGL fallback
   cards.js           ← cards pinned to 3D anchors (projected each frame), one template for every card
-  audio.js           ← /music playlist + synthesized ambience fallback
+  audio.js           ← /music playlist + synthesized ambience fallback (the bells ring from the scene)
+  debug.js           ← the #debug panel: stage, transitions, draw calls, jump-to-stage buttons
   sections.js        ← plain-HTML details, shown only when WebGL is unavailable
   style.css
   scene/
     scene.js         ← renderer, sky shader (clouds) + image-based lighting from it, sun/moon,
                         day↔night lerp, night floodlights, bloom, camera along the path
-    life.js          ← the runtime layer: diyas, string lights, lamps, fireflies, birds, flag,
-                        drape wind, river ripples, alpona decals, the shrine picture and lamp
+    stage.js         ← the wedding's timeline along the walk: when each thing appears, lights or falls
+    life.js          ← the runtime layer: diyas, string lights, lamps, fireflies, birds, flag, bells,
+                        drape and tree wind, river ripples, alpona decals, the shrine picture and lamp
+    decor.js         ← the wedding decoration: garlands, torans, the gate, column wraps, carpets
+    fx.js            ← petals, the agni (flames, sparks, smoke, light), incense
+    util.js          ← shared: the swag curve, walk order, the scroll-reveal shader hook
     walk.js          ← the camera path and the card anchors, in the model's frame
     landmarks.json   ← key positions written by recon/blender/export_web.py
     model.js         ← glTF loader (meshopt), shadow flags, per-material tweaks
@@ -151,6 +168,9 @@ Notes:
   projected from world anchors on the same frame, so they never drift.
 - `Night` is remembered in `localStorage`; day is the default.
 - The render loop pauses when the tab is hidden; `prefers-reduced-motion` disables the
-  head-bob and easing.
+  head-bob and easing, the petals, the smoke and the bells' swing (the decoration still
+  follows the scroll).
+- The decoration follows the scroll with a little hysteresis: a small scroll back does not
+  undo it; a long one does.
 - If WebGL is unavailable, or the model download stalls, the walk is skipped and the
   details render as a normal page.

@@ -202,6 +202,8 @@ export function createAmbience() {
       depth = Math.max(0, Math.min(1, d));
       applyDepth();
     },
+    /** One strike of the temple bell — the scene calls this as the guest crosses a hall's threshold. */
+    ring() { if (enabled) bell(1.0); },
     async suspend() { if (ctx && enabled) await ctx.suspend(); },
     async resume() { if (ctx && enabled) await ctx.resume(); },
   };
@@ -240,6 +242,7 @@ export function createPlaylist() {
       return enabled;
     },
     setDepth() { /* playlist doesn't react to depth */ },
+    ring() { /* nor to the bells */ },
     async suspend() { if (audio && enabled) audio.pause(); },
     async resume() { if (audio && enabled) audio.play().catch(() => {}); },
   };

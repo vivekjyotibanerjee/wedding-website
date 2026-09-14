@@ -5,6 +5,9 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { loadModel } from './model.js';
 import { buildLife } from './life.js';
+import { buildDecor } from './decor.js';
+import { buildFx } from './fx.js';
+import { createStage, STAGES } from './stage.js';
 import { PATH } from './walk.js';
 import L from './landmarks.json';
 
@@ -21,6 +24,7 @@ const SKY_VERT = /* glsl */ `
 const SKY_FRAG = /* glsl */ `
   varying vec3 vDir;
   uniform float night;
+  uniform float dusk;
   uniform float time;
   uniform vec3 sunDir;
   uniform vec3 moonDir;
@@ -41,14 +45,21 @@ const SKY_FRAG = /* glsl */ `
     vec3 dTop = vec3(0.36, 0.56, 0.84), dMid = vec3(0.68, 0.79, 0.92), dHor = vec3(0.90, 0.88, 0.83);
     vec3 day = mix(dHor, dMid, smoothstep(0.0, 0.22, h));
     day = mix(day, dTop, smoothstep(0.18, 0.85, h));
+    // golden hour (dusk): the horizon warms toward the sun, the zenith deepens, the sun swells and reddens
+    vec3 warm = vec3(1.0, 0.64, 0.34);
+    float lowH = 1.0 - smoothstep(0.0, 0.42, h);
+    float toward = 0.5 + 0.5 * dot(normalize(vec3(vDir.x, 0.0, vDir.z) + 1e-4), normalize(vec3(sunDir.x, 0.0, sunDir.z)));
+    day = mix(day, warm, dusk * lowH * (0.3 + 0.5 * toward));
+    day = mix(day, vec3(0.22, 0.38, 0.7), dusk * smoothstep(0.3, 0.9, h) * 0.4);
     float sd = max(0.0, dot(vDir, sunDir));
-    day += vec3(1.0, 0.96, 0.86) * (pow(sd, 600.0) * 2.0 + pow(sd, 6.0) * 0.22);
+    vec3 sunCol = mix(vec3(1.0, 0.96, 0.86), vec3(1.0, 0.66, 0.36), dusk);
+    day += sunCol * (pow(sd, mix(600.0, 220.0, dusk)) * 2.0 + pow(sd, 6.0) * (0.22 + 0.55 * dusk));
     // ── clouds: a thin sheet of fair-weather cumulus projected onto a high plane, drifting east
     vec2 cp = vDir.xz / (vDir.y + 0.08) * 1.2 + vec2(time * 0.006, time * 0.0015);
     float cov = fbm(cp * 0.4) + 0.06 * fbm(cp * 2.5) - 0.03;
     float cloud = smoothstep(0.56, 0.72, cov) * smoothstep(0.03, 0.2, h);
     float lit = 0.72 + 0.28 * smoothstep(0.5, 0.85, cov);
-    vec3 cloudCol = mix(vec3(0.78, 0.8, 0.86), vec3(1.0, 0.99, 0.96), lit) * (1.0 + 0.5 * pow(sd, 3.0));
+    vec3 cloudCol = mix(vec3(0.78, 0.8, 0.86), vec3(1.0, 0.99, 0.96), lit) * (1.0 + 0.5 * pow(sd, 3.0)) * mix(vec3(1.0), vec3(1.0, 0.78, 0.6), dusk);
     day = mix(day, cloudCol, cloud * 0.85);
     // ── night: indigo with a warm haze low on the horizon, stars, moon
     vec3 nTop = vec3(0.04, 0.04, 0.13), nMid = vec3(0.14, 0.11, 0.28), nHor = vec3(0.36, 0.20, 0.30);
@@ -73,14 +84,24 @@ function sunFromBearing(bearingDeg, elevationDeg) {
   return new THREE.Vector3(Math.sin(b) * Math.cos(e), Math.sin(e), -Math.cos(b) * Math.cos(e)).normalize();
 }
 
-export function createScene(canvas, { reducedMotion = false, onProgress = null } = {}) {
+/** A rough device tier for the effects budget (petal counts, fire layers, shadow map). */
+export function detectQuality() {
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+  const cores = navigator.hardwareConcurrency || 4;
+  const mem = navigator.deviceMemory || 4;
+  if (coarse && (cores <= 4 || mem <= 3)) return 'low';
+  if (coarse || cores <= 4) return 'medium';
+  return 'high';
+}
+
+export function createScene(canvas, { reducedMotion = false, onProgress = null, onBell = null, quality = detectQuality() } = {}) {
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   } catch (e) {
     return null;
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === 'low' ? 1.25 : 1.5));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -90,12 +111,14 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
   scene.fog = new THREE.FogExp2(0xd8dfe6, 0.0026);
   const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 900);
 
-  // The same afternoon sun the Blender stills use (SSW, ~38° up); the moon is roughly opposite.
-  const sunDir = sunFromBearing(L.sun.bearing, 38);
+  // The same afternoon sun the Blender stills use (SSW, ~38° up) — it sinks toward golden hour as
+  // the wedding approaches (stage.dusk); the moon is roughly opposite.
+  const SUN_HIGH = 38, SUN_LOW = 11;
+  const sunDir = sunFromBearing(L.sun.bearing, SUN_HIGH);
   const moonDir = new THREE.Vector3(0.45, 0.5, -0.6).normalize();
   const skyMat = new THREE.ShaderMaterial({
     vertexShader: SKY_VERT, fragmentShader: SKY_FRAG, side: THREE.BackSide, depthWrite: false, fog: false,
-    uniforms: { night: { value: 0 }, time: { value: 0 }, sunDir: { value: sunDir }, moonDir: { value: moonDir } },
+    uniforms: { night: { value: 0 }, dusk: { value: 0 }, time: { value: 0 }, sunDir: { value: sunDir }, moonDir: { value: moonDir } },
   });
   const sky = new THREE.Mesh(new THREE.SphereGeometry(800, 32, 16), skyMat);
   scene.add(sky);
@@ -104,10 +127,10 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envScene = new THREE.Scene();
   envScene.add(new THREE.Mesh(sky.geometry, skyMat));
-  let envNight = -1;
-  function refreshEnvironment(n) {
-    if (envNight >= 0 && Math.abs(n - envNight) < 0.08 && !((n === 0 || n === 1) && n !== envNight)) return;
-    envNight = n;
+  let envKey = -1;
+  function refreshEnvironment(key) {
+    if (envKey >= 0 && Math.abs(key - envKey) < 0.07 && !((key === 0 || key === 1) && key !== envKey)) return;
+    envKey = key;
     const old = scene.environment;
     scene.environment = pmrem.fromScene(envScene, 0.04, 1, 2000).texture;
     if (old) old.dispose();
@@ -119,7 +142,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
   const sun = new THREE.DirectionalLight(0xfff1dc, 3.2);
   sun.position.copy(sunDir).multiplyScalar(160);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(quality === 'low' ? 1024 : 2048, quality === 'low' ? 1024 : 2048);
   sun.shadow.camera.near = 20;
   sun.shadow.camera.far = 400;
   // one shadow map over the walled complex (courtyard 58 × 107 m plus the ghat)
@@ -168,13 +191,21 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
   // The model (async). The sky renders while it downloads. The life layer (diyas, lights, wind…)
   // is built over it once it is in.
   let model = null;
-  let life = null;
+  let life = null, decor = null, fx = null;
+  const stageCtl = createStage();
   const ready = loadModel(MODEL_URL, renderer, onProgress).then((root) => {
     model = root;
     scene.add(root);
-    life = buildLife(scene, root, { reducedMotion });
-    life.resize(canvas.clientHeight || window.innerHeight);
-    life.update(0, state.night);
+    life = buildLife(scene, root, { reducedMotion, onBell, quality });
+    decor = buildDecor(scene, { reducedMotion });
+    fx = buildFx(scene, { reducedMotion, quality, sunDir });
+    const h = canvas.clientHeight || window.innerHeight;
+    life.resize(h);
+    fx.resize(h);
+    const st = stageCtl.update(state.progress);
+    life.update(0, st, state.night);
+    decor.update(0, st);
+    fx.update(0, st, state.night);
     renderer.compile(scene, camera);
     return root;
   });
@@ -186,31 +217,37 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
     target: 0, progress: 0, velocity: 0, walkPhase: 0,
     pointer: new THREE.Vector2(), pointerSmooth: new THREE.Vector2(),
     running: false, time: 0, last: performance.now(),
-    nightTarget: 0, night: 0,
+    nightTarget: 0, night: 0, dusk: 0,
   };
 
   const DAY = { sunColor: new THREE.Color(0xfff1dc), sunI: 3.2, hemiSky: new THREE.Color(0xcfe3ff), hemiGround: new THREE.Color(0x8a7a5a), hemiI: 0.45, fog: new THREE.Color(0xd8dfe6), fogD: 0.0026, env: 0.55 };
+  const DUSK = { sunColor: new THREE.Color(0xffb56a), sunI: 2.7, hemiSky: new THREE.Color(0xdcb89c), hemiGround: new THREE.Color(0x7a5236), hemiI: 0.42, fog: new THREE.Color(0xe6c9ad), fogD: 0.003, env: 0.6 };
   const NIGHT = { sunColor: new THREE.Color(0x7f8fc8), sunI: 0.3, hemiSky: new THREE.Color(0x303a6a), hemiGround: new THREE.Color(0x1b1210), hemiI: 0.22, fog: new THREE.Color(0x241a30), fogD: 0.0055, env: 0.9 };
-  const tmpC = new THREE.Color();
+  const tmpC = new THREE.Color(), tmpC2 = new THREE.Color();
+  const lerp3 = (k, n, d) => THREE.MathUtils.lerp(THREE.MathUtils.lerp(DAY[k], DUSK[k], d), NIGHT[k], n);
+  const lerpC = (k, n, d) => tmpC.copy(DAY[k]).lerp(tmpC2.copy(DUSK[k]), d).lerp(NIGHT[k], n);
 
-  function applyNight(n) {
+  /** Day → golden hour by `d` (the walk's dusk transition), then → night by `n` (the toggle). */
+  function applyLighting(n, d) {
     skyMat.uniforms.night.value = n;
-    sun.color.copy(tmpC.copy(DAY.sunColor).lerp(NIGHT.sunColor, n));
-    sun.intensity = THREE.MathUtils.lerp(DAY.sunI, NIGHT.sunI, n);
+    skyMat.uniforms.dusk.value = d;
+    sunDir.copy(sunFromBearing(L.sun.bearing, THREE.MathUtils.lerp(SUN_HIGH, SUN_LOW, d)));
+    sun.color.copy(lerpC('sunColor', n, d));
+    sun.intensity = lerp3('sunI', n, d);
     sun.position.copy(n < 0.5 ? sunDir : moonDir).multiplyScalar(160).add(sun.target.position);
-    hemi.color.copy(tmpC.copy(DAY.hemiSky).lerp(NIGHT.hemiSky, n));
-    hemi.groundColor.copy(tmpC.copy(DAY.hemiGround).lerp(NIGHT.hemiGround, n));
-    hemi.intensity = THREE.MathUtils.lerp(DAY.hemiI, NIGHT.hemiI, n);
-    scene.fog.color.copy(tmpC.copy(DAY.fog).lerp(NIGHT.fog, n));
-    scene.fog.density = THREE.MathUtils.lerp(DAY.fogD, NIGHT.fogD, n);
-    scene.environmentIntensity = THREE.MathUtils.lerp(DAY.env, NIGHT.env, n);
+    hemi.color.copy(lerpC('hemiSky', n, d));
+    hemi.groundColor.copy(lerpC('hemiGround', n, d));
+    hemi.intensity = lerp3('hemiI', n, d);
+    scene.fog.color.copy(lerpC('fog', n, d));
+    scene.fog.density = lerp3('fogD', n, d);
+    scene.environmentIntensity = lerp3('env', n, d);
     for (const s of floods) s.intensity = s.userData.night * n;
     glow.intensity = glow.userData.night * n;
     bloom.strength = 0.55 * n;
     bloom.enabled = n > 0.02;
-    refreshEnvironment(n);
+    refreshEnvironment(n + (1 - n) * d * 0.5);
   }
-  applyNight(0);
+  applyLighting(0, 0);
 
   const tmpPos = new THREE.Vector3();
   const tmpLook = new THREE.Vector3();
@@ -221,6 +258,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
     if (life) life.resize(h);
+    if (fx) fx.resize(h);
     camera.aspect = w / h;
     camera.fov = w < h ? 70 : 58;
     camera.updateProjectionMatrix();
@@ -238,11 +276,15 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
     state.velocity = (state.progress - prev) / Math.max(dt, 1e-3);
     state.walkPhase += Math.abs(state.velocity) * 110 * dt;
 
+    const stage = stageCtl.update(THREE.MathUtils.clamp(state.progress, 0, 1));
+    let relight = false;
     if (Math.abs(state.nightTarget - state.night) > 0.0005) {
       state.night += (state.nightTarget - state.night) * (reducedMotion ? 1 : Math.min(1, wallDt * 2.2));
       if (Math.abs(state.nightTarget - state.night) <= 0.0005) state.night = state.nightTarget;
-      applyNight(state.night);
+      relight = true;
     }
+    if (Math.abs(stage.dusk - state.dusk) > 0.002) { state.dusk = stage.dusk; relight = true; }
+    if (relight) applyLighting(state.night, state.dusk);
 
     const t = THREE.MathUtils.clamp(state.progress, 0, 1);
     posCurve.getPoint(t, tmpPos);
@@ -259,7 +301,9 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
     camera.lookAt(tmpLook);
     sky.position.copy(camera.position);
     skyMat.uniforms.time.value = state.time;
-    if (life) life.update(dt, state.night, camera.position);
+    if (life) life.update(dt, stage, state.night, camera.position);
+    if (decor) decor.update(dt, stage);
+    if (fx) fx.update(dt, stage, state.night);
   }
 
   function frame(now) {
@@ -280,6 +324,8 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
     setProgress(v) { state.target = THREE.MathUtils.clamp(v, 0, 1); },
     get progress() { return state.progress; },
     get night() { return state.night; },
+    get stage() { return stageCtl.value; },
+    get quality() { return quality; },
     get loaded() { return model !== null; },
     setNight(on) { state.nightTarget = on ? 1 : 0; },
     setPointer(x, y) { state.pointer.set(x, y); },
@@ -297,8 +343,13 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
     },
     stop() { state.running = false; },
     /** For poking at the scene from the console (`#debug` in the URL exposes this as window.templeScene). */
-    debug: { renderer, scene, camera, sun, hemi, floods, sky, bloom, get life() { return life; } },
+    debug: {
+      renderer, scene, camera, sun, hemi, floods, sky, bloom, stages: STAGES,
+      get life() { return life; }, get decor() { return decor; }, get fx() { return fx; },
+      get calls() { return renderer.info.render.calls; },
+      get programs() { return renderer.info.programs.length; },
+    },
     renderOnce() { resize(); step(0); if (bloom.enabled) composer.render(); else renderer.render(scene, camera); },
-    dispose() { state.running = false; if (life) life.dispose(); composer.dispose(); pmrem.dispose(); renderer.dispose(); },
+    dispose() { state.running = false; for (const l of [life, decor, fx]) if (l) l.dispose(); composer.dispose(); pmrem.dispose(); renderer.dispose(); },
   };
 }

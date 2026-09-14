@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import L from './landmarks.json';
+import { PATH } from './walk.js';
 import { alponaCanvas } from '../ornament.js';
+import { GROUP, attachReveal, revealAttributes, revealUniforms, setReveal, swag, walkOrder } from './util.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Everything that moves or glows, layered over the baked model at runtime so the glb stays a
@@ -10,6 +12,11 @@ import { alponaCanvas } from '../ornament.js';
 // on the ground, and the shrine in the navaratna's sanctum — the deity as a lit picture (a photo
 // or painting the owner drops in as public/images/bhavatarini.png|jpg; without it the chamber is
 // simply lit). Positions come from landmarks.json like the camera path does.
+//
+// Since the wedding was choreographed (stage.js) the diyas are set out during the preparations
+// and lit in a wave outward from the mandap, the string lights come on in the same order, the
+// alpona are drawn in as the walk reaches them, the bells swing as the guest crosses a
+// threshold, and the trees move in the wind. The shrine is a living temple: lit from the start.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const g = L.ground;
@@ -32,16 +39,19 @@ const DEITY_URLS = ['png', 'jpg', 'webp'].map((ext) => `${import.meta.env.BASE_U
 // bloom at night.
 const FLAME_VERT = /* glsl */ `
   uniform float time;
+  uniform float lit;        // the illumination transition; each flame has its turn (aOrder)
   attribute float phase;
+  attribute float aOrder;
   varying vec2 vUv;
   varying float vFlick;
   void main() {
     vUv = uv;
     float f = 0.8 + 0.2 * sin(time * 9.0 + phase * 6.2832) * sin(time * 4.3 + phase * 12.0) + 0.1 * sin(time * 17.0 + phase * 40.0);
     vFlick = f;
+    float on = aOrder < 0.0 ? 1.0 : smoothstep(aOrder, aOrder + 0.08, lit);
     vec4 c = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
     float lean = 0.15 * sin(time * 2.1 + phase * 9.0);
-    vec2 p = position.xy * vec2(0.85 + 0.15 * f, 0.9 + 0.35 * f);
+    vec2 p = position.xy * vec2(0.85 + 0.15 * f, 0.9 + 0.35 * f) * on * (0.6 + 0.4 * on);
     p.x += lean * position.y;
     gl_Position = projectionMatrix * (c + vec4(p, 0.0, 0.0));
   }
@@ -65,20 +75,29 @@ const FLAME_FRAG = /* glsl */ `
 // Bulbs on the strings: a tiny glowing sphere, unlit (toneMapped off so the HDR value survives
 // into the bloom threshold), dimmed to a dull glass when the sun is up.
 const BULB_VERT = /* glsl */ `
+  uniform float time;
+  uniform float lit;
+  attribute float aOrder;
+  attribute float phase;
   varying vec3 vN;
+  varying float vOn;
   void main() {
     vN = normalize(normalMatrix * mat3(instanceMatrix) * normal);
+    // on in walk order; then mostly steady, with a slow organic waver (not a twinkle)
+    float on = smoothstep(aOrder, aOrder + 0.1, lit);
+    vOn = on * (0.93 + 0.07 * sin(time * 1.7 + phase * 50.0) * sin(time * 0.31 + phase * 7.0));
     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
   }
 `;
 const BULB_FRAG = /* glsl */ `
   uniform float night;
   varying vec3 vN;
+  varying float vOn;
   void main() {
     float rim = 0.6 + 0.4 * max(0.0, vN.z);
     vec3 off = vec3(0.72, 0.64, 0.5) * rim;
-    vec3 on = vec3(1.0, 0.72, 0.36) * 4.5;
-    gl_FragColor = vec4(mix(off, on, night), 1.0);
+    vec3 on = vec3(1.0, 0.72, 0.36) * mix(2.6, 4.5, night);   // gentler by day, or ACES burns it white
+    gl_FragColor = vec4(mix(off, on, vOn), 1.0);
   }
 `;
 // Fireflies: soft points that blink, drifting slowly; only at night.
@@ -154,21 +173,6 @@ const _p = new THREE.Vector3();
 const _q = new THREE.Quaternion();
 const _s = new THREE.Vector3(1, 1, 1);
 
-/** Points along a catenary-ish swag from a to b (both [x,y,z]), sagging `sag` metres. */
-function swag(a, b, sag, step) {
-  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b);
-  const len = A.distanceTo(B);
-  const n = Math.max(2, Math.round(len / step));
-  const out = [];
-  for (let i = 0; i <= n; i++) {
-    const t = i / n;
-    const p = A.clone().lerp(B, t);
-    p.y -= sag * 4 * t * (1 - t);
-    out.push(p);
-  }
-  return out;
-}
-
 function ghatY(x) {
   const [x0, y0] = L.ghat.foot, [x1, y1] = L.ghat.top;
   const t = Math.min(1, Math.max(0, (x - x0) / (x1 - x0)));
@@ -176,25 +180,30 @@ function ghatY(x) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export function buildLife(scene, model, { reducedMotion = false } = {}) {
+export function buildLife(scene, model, { reducedMotion = false, onBell = null, quality = 'high' } = {}) {
   const root = new THREE.Group();
   root.name = 'life';
-  const uniforms = { time: { value: 0 }, night: { value: 0 } };
+  const uniforms = { time: { value: 0 }, night: { value: 0 }, lit: { value: 0 } };
+  const reveal = revealUniforms(uniforms.time);
   const lights = [];          // PointLights on at night: { light, intensity }
   const disposables = [];
 
   // ── diyas ──────────────────────────────────────────────────────────────────
-  const diyaSpots = [];
+  // Every spot is tagged: `always` for the shrine (a living temple, lit before the wedding), else
+  // the bowl is set out during the preparations in walk order and lit in the illumination wave
+  // that spreads outward from the mandap.
+  const diyaSpots = [];   // [x, y, z, always?]
   {
-    // the temple stair: one either side of every tread, then along the rail tops beside it
+    // the temple stair: two either side of every tread, then along the rail tops round the platform
     const { stair_foot, stair_top, stair_width: sw, stair_steps: ns, stair_tread: tr } = L.navaratna;
     const rise = (pt - g) / ns;
     for (let k = 0; k < ns; k++) {
       const z = stair_foot[2] - tr * (k + 0.5);
-      for (const s of [-1, 1]) diyaSpots.push([s * (sw / 2 - 0.35), g + rise * (k + 1), z]);
+      for (const s of [-1, 1]) diyaSpots.push([s * (sw / 2 - 0.35), g + rise * (k + 1), z], [s * (sw / 2 - 1.05), g + rise * (k + 1), z]);
     }
     const zs = stair_top[2];                                   // platform south edge
     for (let x = sw / 2 + 0.6; x < P / 2 - 0.3; x += 0.7) for (const s of [-1, 1]) diyaSpots.push([s * x, pt + 1.0, zs]);
+    for (let u = -P / 2 + 0.6; u < P / 2 - 0.3; u += 0.7) diyaSpots.push([-P / 2 + 0.2, pt + 1.0, u], [P / 2 - 0.2, pt + 1.0, u], [u, pt + 1.0, -P / 2 + 0.2]);   // west, east and north rails
     // along the verandah, both sides of the central arch
     for (let x = -wall + 0.6; x <= wall - 0.5; x += 0.75) if (Math.abs(x) > 1.4) diyaSpots.push([x, pt, wall + 0.35]);
     // the halls' west stairs and plinth ledges, leaving the doorways the walk uses clear
@@ -210,19 +219,33 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
         if (Math.abs(z - hz) < hw / 2 + 0.4 || clear(z)) continue;                // skip the stair and the walk
         diyaSpots.push([hx - plinth_out + 0.3, top, z]);
       }
+      // and a ring round the alpona in the middle of each hall's floor
+      const cx = hx + H.size[0] / 2;
+      for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2;
+        diyaSpots.push([cx + Math.cos(a) * 3.1, top, hz + Math.sin(a) * 3.1]);
+      }
+    }
+    // the Shiva fronts: a pair at every door
+    for (const [first, dir] of [[L.shiva.first_north[2], -1], [L.shiva.first_south[2], 1]]) {
+      for (let i = 0; i < L.shiva.count; i++) {
+        const zc = first + dir * i * L.shiva.pitch;
+        for (const s of [-1, 1]) diyaSpots.push([L.shiva.x + L.shiva.size / 2 + 0.2, L.shiva.plinth_top, zc + s * 1.3]);
+      }
     }
     // the shrine: a row along the front of the dais and a pair either side of its door
     {
       const [dx, , dz] = L.sanctum.door;
       const front = dz - L.sanctum.depth + L.sanctum.dais_depth + 0.12;
-      for (let x = -1.0; x <= 1.0; x += 0.5) diyaSpots.push([dx + x, L.sanctum.dais_top, front]);
-      for (const s of [-1, 1]) diyaSpots.push([dx + s * (L.sanctum.arch[0] / 2 + 0.55), pt, dz + 0.45]);
+      for (let x = -1.0; x <= 1.0; x += 0.5) diyaSpots.push([dx + x, L.sanctum.dais_top, front, true]);
+      for (const s of [-1, 1]) diyaSpots.push([dx + s * (L.sanctum.arch[0] / 2 + 0.55), pt, dz + 0.45, true]);
     }
-    // a ring round the mandap on the paving
+    // a ring round the mandap on the paving, and a row along the front edge of its stage
     for (let i = 0; i < 14; i++) {
       const a = (i / 14) * Math.PI * 2;
       diyaSpots.push([mx + Math.cos(a) * 5.0, g, mz + Math.sin(a) * 5.0]);
     }
+    for (let z = -2.4; z <= 2.4; z += 0.6) if (Math.abs(z) > 1.5) diyaSpots.push([mx - L.mandap.width / 2 + 0.2, L.mandap.stage_top, mz + z]);
     // the ghat's top edge, leaving the walk through the middle clear
     const gz = L.ghat.top[2], gw = L.ghat.width;
     for (let z = gz - gw / 2 + 0.8; z <= gz + gw / 2 - 0.8; z += 1.0) if (Math.abs(z - gz) > 2.6) diyaSpots.push([L.ghat.top[0] + 0.25, g, z]);
@@ -231,17 +254,25 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
     const n = diyaSpots.length;
     const bowlGeo = new THREE.LatheGeometry(
       [new THREE.Vector2(0, 0), new THREE.Vector2(0.07, 0), new THREE.Vector2(0.1, 0.045), new THREE.Vector2(0.075, 0.05), new THREE.Vector2(0.06, 0.03), new THREE.Vector2(0, 0.03)], 10);
-    const bowlMat = new THREE.MeshStandardMaterial({ color: 0x7a3d24, roughness: 0.9 });
+    const bowlMat = attachReveal(new THREE.MeshStandardMaterial({ color: 0x7a3d24, roughness: 0.9 }), reveal, { sway: 0 });
     const bowls = new THREE.InstancedMesh(bowlGeo, bowlMat, n);
     bowls.castShadow = false;
     const flameGeo = new THREE.PlaneGeometry(0.08, 0.15);
     flameGeo.translate(0, 0.075 + 0.03, 0);
-    const phases = new Float32Array(n);
-    for (let i = 0; i < n; i++) phases[i] = Math.random();
+    const phases = new Float32Array(n), litOrder = new Float32Array(n);
+    const rdN = rz - rd / 2;
+    diyaSpots.forEach((p, i) => {
+      phases[i] = Math.random();
+      const inR = p[0] > rx && Math.abs(p[2] - rz) < rd / 2;                                  // inside the Radhakanta: first, as the walk goes through
+      const d = Math.hypot(p[0] - mx, p[2] - mz);
+      litOrder[i] = p[3] ? -1 : inR ? 0.02 + 0.1 * (p[2] - rdN) / rd : 0.22 + 0.68 * Math.pow(Math.min(1, d / 62), 0.8);
+    });
     flameGeo.setAttribute('phase', new THREE.InstancedBufferAttribute(phases, 1));
+    flameGeo.setAttribute('aOrder', new THREE.InstancedBufferAttribute(litOrder, 1));
+    revealAttributes(bowlGeo, diyaSpots.map((p) => ({ order: p[3] ? -1 : 0.86 * walkOrder(_p.set(p[0], p[1], p[2])), group: GROUP.prep })));
     const flameMat = new THREE.ShaderMaterial({
       vertexShader: FLAME_VERT, fragmentShader: FLAME_FRAG, transparent: true, depthWrite: false,
-      blending: THREE.AdditiveBlending, uniforms: { time: uniforms.time, bright: { value: 1.6 } },
+      blending: THREE.AdditiveBlending, uniforms: { time: uniforms.time, lit: uniforms.lit, bright: { value: 1.6 } },
     });
     const flames = new THREE.InstancedMesh(flameGeo, flameMat, n);
     flames.frustumCulled = false;
@@ -253,6 +284,16 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
     root.add(bowls, flames);
     disposables.push(bowlGeo, bowlMat, flameGeo, flameMat);
     uniforms.flameBright = flameMat.uniforms.bright;
+    // a little warm light where the diyas crowd (one per cluster, not one per flame): the temple
+    // stair and the mandap's front. Always visible, driven by intensity alone — toggling a light's
+    // visibility mid-walk makes three.js recompile every lit shader, a stall right at the hero
+    // moment; the low tier goes without them (emissive flames only).
+    if (quality !== 'low') for (const [x, y, z, I] of [[0, g + 1.6, 13.2, 9], [mx - 3.6, g + 1.2, mz, 6]]) {
+      const light = new THREE.PointLight(0xffa550, 0, 9, 1.8);
+      light.position.set(x, y, z);
+      root.add(light);
+      lights.push({ light, intensity: I, lit: true });
+    }
   }
 
   // ── string lights ──────────────────────────────────────────────────────────
@@ -315,7 +356,16 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
   {
     const n = bulbPts.length;
     const geo = new THREE.SphereGeometry(0.04, 6, 5);
-    const mat = new THREE.ShaderMaterial({ vertexShader: BULB_VERT, fragmentShader: BULB_FRAG, uniforms: { night: uniforms.night } });
+    // switched on in the same wave as the diyas: the Radhakanta's interior first, then outward from the mandap
+    const order = new Float32Array(n), phase = new Float32Array(n);
+    bulbPts.forEach((p, i) => {
+      const inR = p.x > rx && Math.abs(p.z - rz) < rd / 2;
+      order[i] = inR ? 0.02 + 0.1 * (p.z - (rz - rd / 2)) / rd : 0.22 + 0.68 * Math.pow(Math.min(1, Math.hypot(p.x - mx, p.z - mz) / 62), 0.8);
+      phase[i] = Math.random();
+    });
+    geo.setAttribute('aOrder', new THREE.InstancedBufferAttribute(order, 1));
+    geo.setAttribute('phase', new THREE.InstancedBufferAttribute(phase, 1));
+    const mat = new THREE.ShaderMaterial({ vertexShader: BULB_VERT, fragmentShader: BULB_FRAG, uniforms: { night: uniforms.night, lit: uniforms.lit, time: uniforms.time } });
     const bulbs = new THREE.InstancedMesh(geo, mat, n);
     bulbPts.forEach((p, i) => { _m.compose(p, _q.identity(), _s.set(1, 1, 1)); bulbs.setMatrixAt(i, _m); });
     bulbs.frustumCulled = false;
@@ -504,38 +554,94 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
   }
 
   // ── alpona on the ground ───────────────────────────────────────────────────
+  // Each decal is drawn in from its centre outward (a radial mask on its alpha) on the transition
+  // of the place it is painted at; the sanctum's threshold is painted already.
+  const alponas = [];   // { u, group, o0, o1 }
   {
     const canvas = alponaCanvas(1024, { ground: true });   // on a washed-geru disc, as on a courtyard floor
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 8;
-    const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-    const place = (x, y, z, r, rot = 0) => {
+    const base = new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    const place = (x, y, z, r, rot = 0, group = null, o0 = 0, o1 = 1) => {
+      const mat = base.clone();
+      const u = { reveal: { value: group ? 0 : 1 } };
+      mat.onBeforeCompile = (sh) => {
+        sh.uniforms.reveal = u.reveal;
+        sh.vertexShader = sh.vertexShader
+          .replace('#include <common>', '#include <common>\nvarying vec2 vUvA;')
+          .replace('#include <uv_vertex>', '#include <uv_vertex>\nvUvA = uv;');
+        sh.fragmentShader = sh.fragmentShader
+          .replace('#include <common>', '#include <common>\nuniform float reveal; varying vec2 vUvA;')
+          .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.a *= 1.0 - smoothstep(reveal * 1.1 - 0.12, reveal * 1.1, length(vUvA - 0.5) * 2.0);');
+      };
       const m = new THREE.Mesh(new THREE.PlaneGeometry(r * 2, r * 2), mat);
       m.rotation.set(-Math.PI / 2, 0, rot);
       m.position.set(x, y + 0.045, z);   // clear of the 3 cm path slabs
       m.receiveShadow = true;
       root.add(m);
-      disposables.push(m.geometry);
+      alponas.push({ u, group, o0, o1 });
+      disposables.push(m.geometry, mat);
     };
     // in front of the mandap's west stair, where the guests approach
-    place(mx - L.mandap.width / 2 - 1.0 - 2.6, g, mz, 2.3);
+    place(mx - L.mandap.width / 2 - 1.0 - 2.6, g, mz, 2.3, 0, 'prep', 0.0, 0.5);
     // on the nat-mandir's threshold ledge, before the central door
-    place(nx - L.natmandir.plinth_out / 2 - 0.05, nPlinth, nz, 0.68);
+    place(nx - L.natmandir.plinth_out / 2 - 0.05, nPlinth, nz, 0.68, 0, 'full', 0.0, 0.3);
     // the middle of each hall's floor
-    place(ncx, nPlinth, nz, 2.6);
-    place(rcx, rPlinth, rz, 2.6, Math.PI / 8);
+    place(ncx, nPlinth, nz, 2.6, 0, 'full', 0.3, 0.7);
+    place(rcx, rPlinth, rz, 2.6, Math.PI / 8, 'flowers', 0.5, 0.85);
     // the sanctum's threshold, in the corridor before its door
     place(L.sanctum.door[0], pt, L.sanctum.door[2] + (wall - 0.5 - L.sanctum.door[2]) / 2, 1.1);
-    disposables.push(tex, mat);
+    disposables.push(tex, base);
   }
 
-  // ── wind in the drapes, ripples on the river ───────────────────────────────
+  // ── the bells ──────────────────────────────────────────────────────────────
+  // The brass bells hung at the halls' central doors (glb groups bell_nat / bell_vishnu, the chain
+  // top their pivot) swing on a damped spring, set going as the walk passes each with the bell in
+  // view (the Radhakanta's front sliding by; the foot of the nat-mandir's stair); `onBell` lets the
+  // ambience ring with it.
+  const bells = [];   // { pivot, theta, omega, node, rung }
+  if (model) for (const [name, node] of [['bell_vishnu', 7], ['bell_nat', 22.3]]) {
+    const grp = model.getObjectByName(name);
+    if (!grp) continue;
+    const box = new THREE.Box3().setFromObject(grp);
+    const pivot = new THREE.Group();
+    pivot.position.set(grp.position.x, box.max.y, grp.position.z);
+    grp.parent.add(pivot);
+    pivot.attach(grp);
+    bells.push({ pivot, theta: 0, omega: 0, node: node / (PATH.length - 1), rung: false, seed: Math.random() * 6 });
+  }
+
+  // ── wind in the drapes and the trees, ripples on the river ─────────────────
   const shaders = [];
+  const swayed = new Set();
   if (model) model.traverse((o) => {
     if (!o.isMesh) return;
     const name = o.name || '';
-    if (/drape.*sheet/.test(name)) {
+    if (/(_crown|_leaves|_shrub)$/.test(name)) {
+      // the leaf cards: displaced in world space (the glb's positions are quantised), the crowns as a
+      // whole, the banana leaves more the higher they are
+      if (swayed.has(o.material)) return;
+      swayed.add(o.material);
+      const banana = /_leaves$/.test(name);
+      o.material.onBeforeCompile = (sh) => {
+        sh.uniforms.time = uniforms.time;
+        sh.vertexShader = sh.vertexShader
+          .replace('#include <common>', '#include <common>\nuniform float time;')
+          .replace('#include <project_vertex>', `
+            vec4 mvPosition = vec4(transformed, 1.0);
+            vec4 wp = modelMatrix * mvPosition;
+            float k = ${banana ? 'clamp((wp.y - ' + (g + 1.0).toFixed(2) + ') / 2.2, 0.0, 1.0)' : '1.0'};
+            float gust = 0.55 + 0.45 * sin(time * 0.41 + wp.x * 0.13 + wp.z * 0.09);
+            wp.x += sin(time * 1.15 + wp.z * 0.35 + wp.y * 0.5) * ${banana ? '0.06' : '0.045'} * k * gust;
+            wp.z += sin(time * 0.95 + wp.x * 0.3 + wp.y * 0.4 + 1.3) * ${banana ? '0.05' : '0.035'} * k * gust;
+            mvPosition = viewMatrix * wp;
+            gl_Position = projectionMatrix * mvPosition;`);
+        shaders.push(sh);
+      };
+      o.material.customProgramCacheKey = () => `sway${banana}`;
+      o.material.needsUpdate = true;
+    } else if (/drape.*sheet/.test(name)) {
       o.frustumCulled = false;
       o.material.onBeforeCompile = (sh) => {
         sh.uniforms.time = uniforms.time;
@@ -585,20 +691,48 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
 
   // ── per-frame ──────────────────────────────────────────────────────────────
   let time = 0;
-  function update(dt, night, eye = null) {
+  let lastProgress = 0;
+  /**
+   * `stage` is the timeline (stage.js); `night` the day/night crossfade; `eye` the camera. The
+   * night toggle lights everything at once (a floodlit temple with dark diyas would be odd), so
+   * the lighting reads max(stage, night).
+   */
+  function update(dt, stage, night, eye = null) {
     if (!reducedMotion) time += dt;
     uniforms.time.value = time;
     uniforms.night.value = night;
+    const lit = Math.max(stage.lights, night);
+    uniforms.lit.value = lit;
     uniforms.flameBright.value = 1.2 + 1.6 * night;
+    setReveal(reveal, stage);
+    reveal.reveal.value[GROUP.prep] = Math.max(stage.prep, night);
+    for (const a of alponas) if (a.group) a.u.reveal.value = THREE.MathUtils.smoothstep(stage[a.group], a.o0, a.o1);
     for (const m of spills) {
       const d = eye ? eye.distanceTo(m.position) : 99;
       m.material.opacity = 0.85 * night * THREE.MathUtils.smoothstep(d, 1.5, 4.5);   // gone by the time the walk reaches the doorway
     }
     shrineLamp.intensity = 12 + 10 * night;
     birds.mesh.visible = night < 0.6;
-    for (const { light, intensity } of lights) { light.intensity = intensity * night; light.visible = night > 0.01; }   // off the shader by day
-    for (const m of lampGlass) m.emissiveIntensity = 3.0 * night;
+    for (const { light, intensity, lit: byStage } of lights) {
+      // the diya-cluster lights come up with the illumination even by day; the rest is night only
+      const k = byStage ? lit * (0.35 + 0.65 * night) : night;
+      light.intensity = intensity * k;
+      if (!byStage) light.visible = k > 0.01;
+    }
+    for (const m of lampGlass) m.emissiveIntensity = 3.0 * lit * (0.5 + 0.5 * night);
     if (!reducedMotion) placeBirds(time);
+    // the bells: a damped pendulum, kicked when the walk crosses the hall's threshold going in
+    for (const b of bells) {
+      if (stage.progress >= b.node && lastProgress < b.node) {
+        if (!reducedMotion) b.omega += 1.6;
+        if (onBell) onBell();
+      }
+      if (reducedMotion) continue;
+      b.omega += (-9.0 * b.theta - 0.35 * b.omega) * dt;
+      b.theta += b.omega * dt;
+      b.pivot.rotation.x = b.theta + 0.012 * Math.sin(time * 0.6 + b.seed);
+    }
+    lastProgress = stage.progress;
   }
   function resize(height) { uniforms.flyScale.value = height * 0.45; }
 

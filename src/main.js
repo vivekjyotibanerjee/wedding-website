@@ -4,6 +4,7 @@ import { createAmbience, createPlaylist, hasPlaylist } from './audio.js';
 import { mountCards } from './cards.js';
 import { at } from './scene/walk.js';
 import { renderSections } from './sections.js';
+import { mountDebug } from './debug.js';
 
 document.title = content.site.title; // also baked into index.html at build time (vite.config.js)
 
@@ -32,8 +33,9 @@ function onProgress(f) {
 }
 
 let sceneApi = null;
+let sound = null;
 try {
-  sceneApi = createScene(canvas, { reducedMotion, onProgress });
+  sceneApi = createScene(canvas, { reducedMotion, onProgress, onBell: () => sound && sound.ring() });
 } catch (e) {
   console.error('WebGL scene failed to start', e);
   sceneApi = null;
@@ -53,10 +55,10 @@ if (!sceneApi) {
   // No WebGL — the wedding info is what matters; show it as a plain page.
   fallbackToDetails();
 } else try {
-  if (location.hash.includes('debug')) window.templeScene = sceneApi;
+  if (location.hash.includes('debug')) { window.templeScene = sceneApi; mountDebug(sceneApi); }
   armFailsafe(25000);
   const cards = mountCards(cardsEl, sceneApi);
-  const sound = hasPlaylist() ? createPlaylist() : createAmbience();
+  sound = hasPlaylist() ? createPlaylist() : createAmbience();
 
   // ── Scroll → progress ────────────────────────────────────
   let progressTarget = 0;
@@ -72,6 +74,7 @@ if (!sceneApi) {
     sceneApi.setProgress(progressTarget);
     const fade = 1 - Math.min(1, over);
     canvas.style.opacity = fade.toFixed(3);
+    document.documentElement.style.setProperty('--vignette', fade.toFixed(3));
     const nowPast = fade <= 0;
     if (nowPast !== pastWalk) {
       pastWalk = nowPast;
