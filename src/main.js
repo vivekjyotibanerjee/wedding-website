@@ -4,7 +4,7 @@ import { createAmbience, createPlaylist, hasPlaylist } from './audio.js';
 import { mountCards } from './cards.js';
 import { renderSections } from './sections.js';
 
-document.title = `${content.couple.partner1} & ${content.couple.partner2} — Wedding`;
+document.title = content.site.title; // also baked into index.html at build time (vite.config.js)
 
 const canvas = document.getElementById('scene');
 const veil = document.getElementById('veil');

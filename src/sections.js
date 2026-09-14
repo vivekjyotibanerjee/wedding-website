@@ -1,9 +1,11 @@
-import { content } from './content.js';
+import { content, fill } from './content.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 export function renderSections(main) {
   const c = content;
+  const L = c.labels;
+  const F = L.form;
   main.innerHTML = `
     <section class="section" id="story">
       <div class="section-head">
@@ -23,7 +25,7 @@ export function renderSections(main) {
 
     <section class="section" id="events">
       <div class="section-head">
-        <p class="kicker">Schedule</p>
+        <p class="kicker">${esc(L.scheduleKicker)}</p>
         <h2>${esc(c.events.heading)}</h2>
         <p>${esc(c.events.intro)}</p>
       </div>
@@ -43,7 +45,7 @@ export function renderSections(main) {
 
     <section class="section" id="travel">
       <div class="section-head">
-        <p class="kicker">Getting here</p>
+        <p class="kicker">${esc(L.travelKicker)}</p>
         <h2>${esc(c.travel.heading)}</h2>
         <p>${esc(c.travel.intro)}</p>
       </div>
@@ -52,15 +54,15 @@ export function renderSections(main) {
           <h3>${esc(c.venue.name)}</h3>
           <p>${esc(c.venue.address)}</p>
         </div>
-        <a class="btn ghost" href="${esc(c.venue.mapUrl)}" target="_blank" rel="noopener">Open in maps</a>
+        <a class="btn ghost" href="${esc(c.venue.mapUrl)}" target="_blank" rel="noopener">${esc(L.openInMaps)}</a>
       </div>
       <div class="travel-grid">
         <div>
-          <p class="col-title">Getting there</p>
+          <p class="col-title">${esc(L.gettingThere)}</p>
           ${c.travel.gettingThere.map((g) => `<div class="item"><h3>${esc(g.title)}</h3><p>${esc(g.text)}</p></div>`).join('')}
         </div>
         <div>
-          <p class="col-title">Where to stay</p>
+          <p class="col-title">${esc(L.whereToStay)}</p>
           ${c.travel.hotels.map((h) => `<div class="item"><h3>${h.url && h.url !== '#' ? `<a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.name)}</a>` : esc(h.name)}</h3><p>${esc(h.text)}</p></div>`).join('')}
         </div>
       </div>
@@ -68,30 +70,30 @@ export function renderSections(main) {
 
     <section class="section" id="rsvp">
       <div class="section-head">
-        <p class="kicker">Reply by ${esc(c.rsvp.deadline)}</p>
+        <p class="kicker">${esc(fill(L.replyBy, { deadline: c.rsvp.deadline }))}</p>
         <h2>${esc(c.rsvp.heading)}</h2>
         <p>${esc(c.rsvp.intro)}</p>
       </div>
       <form class="rsvp-form" id="rsvp-form" novalidate>
-        <label>Your name <input name="name" type="text" autocomplete="name" required /></label>
+        <label>${esc(F.name)} <input name="name" type="text" autocomplete="name" required /></label>
         <div class="row">
-          <label>Email <input name="email" type="email" autocomplete="email" /></label>
-          <label>Guests (including you) <input name="guests" type="number" min="1" max="10" value="1" /></label>
+          <label>${esc(F.email)} <input name="email" type="email" autocomplete="email" /></label>
+          <label>${esc(F.guestsLong)} <input name="guests" type="number" min="1" max="10" value="1" /></label>
         </div>
-        <label>Will you join us?
+        <label>${esc(F.attending)}
           <select name="attending">
-            <option value="Joyfully accepts">Joyfully accepts</option>
-            <option value="Regretfully declines">Regretfully declines</option>
+            <option value="${esc(F.accepts)}">${esc(F.accepts)}</option>
+            <option value="${esc(F.declines)}">${esc(F.declines)}</option>
           </select>
         </label>
-        <label>Which events?
+        <label>${esc(F.whichEvents)}
           <select name="events" multiple size="${Math.min(5, c.events.list.length)}">
             ${c.events.list.map((e) => `<option value="${esc(e.name)}" selected>${esc(e.name)}</option>`).join('')}
           </select>
         </label>
-        <label>Anything we should know? (dietary needs, a song request…) <textarea name="notes" rows="3"></textarea></label>
+        <label>${esc(F.notes)} <textarea name="notes" rows="3" placeholder="${esc(F.notesHint)}"></textarea></label>
         <div class="actions">
-          <button class="btn" type="submit">Send RSVP</button>
+          <button class="btn" type="submit">${esc(F.submit)}</button>
           <span class="status" id="rsvp-status"></span>
         </div>
       </form>
@@ -112,11 +114,12 @@ export function renderSections(main) {
 }
 
 function wireRsvp(form, status) {
+  const F = content.labels.form;
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const data = new FormData(form);
     const name = (data.get('name') || '').toString().trim();
-    if (!name) { status.textContent = 'Please tell us your name.'; form.name.focus(); return; }
+    if (!name) { status.textContent = F.needName; form.name.focus(); return; }
     const events = data.getAll('events').join(', ');
     const lines = [
       `Name: ${name}`,
@@ -128,20 +131,20 @@ function wireRsvp(form, status) {
     ];
     const endpoint = content.rsvp.formEndpoint;
     if (endpoint) {
-      status.textContent = 'Sending…';
+      status.textContent = F.sending;
       try {
         const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: data });
         if (!res.ok) throw new Error(String(res.status));
-        status.textContent = 'Thank you — we have your reply!';
+        status.textContent = F.sent;
         form.reset();
       } catch (e) {
-        status.textContent = 'Something went wrong. Please email us instead.';
+        status.textContent = F.failed;
       }
       return;
     }
-    const subject = encodeURIComponent(`RSVP — ${name}`);
+    const subject = encodeURIComponent(fill(F.subject, { name }));
     const body = encodeURIComponent(lines.join('\n'));
     window.location.href = `mailto:${content.rsvp.email}?subject=${subject}&body=${body}`;
-    status.textContent = 'Opening your email app…';
+    status.textContent = F.openingMail;
   });
 }

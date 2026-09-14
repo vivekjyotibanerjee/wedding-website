@@ -1,4 +1,4 @@
-import { content } from './content.js';
+import { content, fill } from './content.js';
 import { ANCHORS } from './scene/walk.js';
 import { alponaCanvas, alponaCornerCanvas, vineSVG } from './ornament.js';
 
@@ -19,6 +19,8 @@ function buildCards() {
   const c = content;
   const w = c.walk;
   const ev = c.events.list;
+  const L = c.labels;
+  const F = L.form;
   return [
     {
       id: 'title', centered: true, range: [0, 0, 0.045, 0.1],
@@ -27,14 +29,14 @@ function buildCards() {
         <h1>${names(c.couple.partner1, c.couple.partner2)}</h1>
         <p class="lead">${esc(c.date.display)} · ${esc(c.venue.name)}</p>
         <p class="hint">${esc(w.intro)}</p>
-        <a class="skip" href="#rsvp" data-jump="end">Jump to RSVP</a>`,
+        <a class="skip" href="#rsvp" data-jump="end">${esc(L.jumpToRsvp)}</a>`,
     },
     {
       id: 'gate', ...ANCHORS.gate, side: 'left',
       html: `
         <p class="kicker">${esc(w.gate.kicker)}</p>
         <h2>${names(c.couple.partner1, c.couple.partner2)}</h2>
-        <p>${esc(w.gate.body.replace('{names}', `${c.couple.partner1} and ${c.couple.partner2}`))}</p>`,
+        <p>${esc(fill(w.gate.body, { names: `${c.couple.partner1} and ${c.couple.partner2}` }))}</p>`,
     },
     {
       id: 'story', ...ANCHORS.story, side: 'right',
@@ -48,7 +50,7 @@ function buildCards() {
     {
       id: 'events', ...ANCHORS.events, side: 'left',
       html: `
-        <p class="kicker">Schedule</p>
+        <p class="kicker">${esc(L.scheduleKicker)}</p>
         <h2>${esc(c.events.heading)}</h2>
         <p class="sub">${esc(c.events.intro)}</p>
         <ul class="events">
@@ -67,17 +69,17 @@ function buildCards() {
     {
       id: 'travel', ...ANCHORS.travel, side: 'left',
       html: `
-        <p class="kicker">Getting here</p>
+        <p class="kicker">${esc(L.travelKicker)}</p>
         <h2>${esc(c.travel.heading)}</h2>
         <p class="big">${esc(c.venue.name)}<br><span class="muted">${esc(c.venue.address)}</span></p>
-        <a class="btn ghost" href="${esc(c.venue.mapUrl)}" target="_blank" rel="noopener">Open in maps</a>
+        <a class="btn ghost" href="${esc(c.venue.mapUrl)}" target="_blank" rel="noopener">${esc(L.openInMaps)}</a>
         <div class="two-col">
           <div>
-            <p class="col-title">Getting there</p>
+            <p class="col-title">${esc(L.gettingThere)}</p>
             ${c.travel.gettingThere.map((g) => `<p><b>${esc(g.title)}</b> ${esc(g.text)}</p>`).join('')}
           </div>
           <div>
-            <p class="col-title">Where to stay</p>
+            <p class="col-title">${esc(L.whereToStay)}</p>
             ${c.travel.hotels.map((h) => `<p><b>${h.url && h.url !== '#' ? `<a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.name)}</a>` : esc(h.name)}</b> ${esc(h.text)}</p>`).join('')}
           </div>
         </div>`,
@@ -89,20 +91,20 @@ function buildCards() {
         <h2>${esc(w.sanctum.title)}</h2>
         <p class="sub">${esc(c.rsvp.intro)}</p>
         <form class="rsvp-form" id="rsvp-form" novalidate>
-          <label>Your name <input name="name" type="text" autocomplete="name" required /></label>
+          <label>${esc(F.name)} <input name="name" type="text" autocomplete="name" required /></label>
           <div class="row">
-            <label>Email <input name="email" type="email" autocomplete="email" /></label>
-            <label>Guests <input name="guests" type="number" min="1" max="10" value="1" /></label>
+            <label>${esc(F.email)} <input name="email" type="email" autocomplete="email" /></label>
+            <label>${esc(F.guests)} <input name="guests" type="number" min="1" max="10" value="1" /></label>
           </div>
-          <label>Will you join us?
+          <label>${esc(F.attending)}
             <select name="attending">
-              <option value="Joyfully accepts">Joyfully accepts</option>
-              <option value="Regretfully declines">Regretfully declines</option>
+              <option value="${esc(F.accepts)}">${esc(F.accepts)}</option>
+              <option value="${esc(F.declines)}">${esc(F.declines)}</option>
             </select>
           </label>
-          <label>Anything we should know? <textarea name="notes" rows="2" placeholder="Dietary needs, a song request…"></textarea></label>
+          <label>${esc(F.notes)} <textarea name="notes" rows="2" placeholder="${esc(F.notesHint)}"></textarea></label>
           <div class="actions">
-            <button class="btn" type="submit">Send RSVP</button>
+            <button class="btn" type="submit">${esc(F.submit)}</button>
             <span class="status" id="rsvp-status"></span>
           </div>
         </form>`,
@@ -193,11 +195,12 @@ export function mountCards(container, sceneApi) {
 }
 
 function wireRsvp(form, status) {
+  const F = content.labels.form;
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const data = new FormData(form);
     const name = (data.get('name') || '').toString().trim();
-    if (!name) { status.textContent = 'Please tell us your name.'; form.name.focus(); return; }
+    if (!name) { status.textContent = F.needName; form.name.focus(); return; }
     const lines = [
       `Name: ${name}`,
       `Email: ${data.get('email') || '-'}`,
@@ -207,20 +210,20 @@ function wireRsvp(form, status) {
     ];
     const endpoint = content.rsvp.formEndpoint;
     if (endpoint) {
-      status.textContent = 'Sending…';
+      status.textContent = F.sending;
       try {
         const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: data });
         if (!res.ok) throw new Error(String(res.status));
-        status.textContent = 'Thank you — we have your reply!';
+        status.textContent = F.sent;
         form.reset();
       } catch (e) {
-        status.textContent = 'Something went wrong. Please email us instead.';
+        status.textContent = F.failed;
       }
       return;
     }
-    const subject = encodeURIComponent(`RSVP — ${name}`);
+    const subject = encodeURIComponent(fill(F.subject, { name }));
     const body = encodeURIComponent(lines.join('\n'));
     window.location.href = `mailto:${content.rsvp.email}?subject=${subject}&body=${body}`;
-    status.textContent = 'Opening your email app…';
+    status.textContent = F.openingMail;
   });
 }

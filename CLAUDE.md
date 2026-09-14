@@ -34,7 +34,10 @@ bake) and `--only '<regex>'` with `--out` for a test glb the site loads via `?mo
 - `src/scene/scene.js`: renderer, sky shader (clouds), IBL from the sky, sun/moon, day↔night,
   floods, bloom (night only — day renders straight to the canvas), camera along the path.
 - `src/cards.js` + `src/ornament.js`: the cards (vine + alpona frame generated at runtime)
-  pinned to anchors and projected every frame. `src/content.js` holds all guest-facing text.
+  pinned to anchors and projected every frame. All guest-facing text is in `content.json` at
+  the repo root (loaded by `src/content.js`, which fills in `labels` defaults; `vite.config.js`
+  bakes `site.title`/`site.description` into `index.html`). New strings go in the JSON, not in
+  the templates.
 
 ## Judging changes
 

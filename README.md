@@ -25,14 +25,37 @@ npm run preview    # serve dist/ locally
 
 ## Put your details in
 
-- **`src/content.js`** — names, date, venue, the card texts, story, events, travel, RSVP.
-  The placeholders are deliberately fictional.
-- **`index.html`** — the `<meta name="description">` (what link previews show).
+Everything guests read is in **`content.json`** at the repo root — names, date, venue, the
+card texts, story, events, travel, RSVP, the page title and link-preview description. Edit
+it freely; the dev server reloads on save, and `npm run build` bakes it into `dist/` for
+deploying. The placeholders in it are deliberately fictional. JSON has no comments, so the
+fields are explained here:
+
+| Field | What it is |
+| --- | --- |
+| `site.title`, `site.description` | Browser-tab title and the `<meta name="description">` link previews show. Both are also written into `index.html` at build time (`vite.config.js`), so crawlers see them. Omit `site` and the title becomes "*A* & *B* — Wedding". |
+| `couple.partner1/2`, `hashtag` | The two names, rendered as "*A* & *B*"; the hashtag heads the story card. |
+| `couple.bengaliTitle` | Short blessing above the names on the title screen (শুভ বিবাহ = "auspicious wedding"). |
+| `date.display`, `date.time`, `date.iso` | The main ceremony, as guests should read it. `iso` (`YYYY-MM-DD`) is not rendered anywhere yet — kept for a future add-to-calendar link. |
+| `venue.name/address/mapUrl` | `name` is on the title card; `name` and `address` on the travel card, where `mapUrl` is the "Open in maps" button. |
+| `walk.intro` | The scroll hint under the names. |
+| `walk.gate` | The invitation card at the ghat; `{names}` in `body` becomes "*A* and *B*". |
+| `walk.ceremony` | The card at the mandap: `kicker`, `title`, `body`, `dress`. |
+| `walk.sanctum` | Kicker (Bengali font) and title over the RSVP form in the temple. |
+| `story` | `heading`, `intro` (fallback page only) and a `timeline` of `{ when, title, text }`. |
+| `events` | `heading`, `intro` and `list` of `{ name, date, time, place, dress, note }`; `dress` and `note` may be empty. |
+| `travel` | `heading`, `intro`, `gettingThere` (`{ title, text }`) and `hotels` (`{ name, text, url }`; leave `url` empty for no link). |
+| `rsvp.email` | Where the RSVP goes when `formEndpoint` is empty: the form opens the guest's email app with a pre-filled message. |
+| `rsvp.formEndpoint` | Set it to a form-service URL (Formspree, Basin, Getform…) and the form POSTs there instead. |
+| `rsvp.heading/intro/deadline` | Text over the form; `deadline` feeds the "Reply by …" kicker on the fallback page. |
+| `footer.line` | The sign-off under the plain-page footer. |
+| `labels` | Every fixed bit of UI text — kickers ("Schedule", "Getting here"), buttons, the RSVP form's labels, options and status messages. Optional: anything missing falls back to the English defaults in `src/content.js`. `{deadline}` and `{name}` tokens are filled in. |
+
+`src/content.js` loads the JSON and fills in the `labels` defaults; nothing else needs touching.
+
 - **`music/`** — drop `.mp3` / `.m4a` / `.ogg` files here and the **Sound** button plays
   them in alphabetical order (see `music/README.md`). With no files it falls back to a
   synthesized temple ambience.
-- RSVP: leave `rsvp.formEndpoint` empty and the form opens the guest's email app
-  pre-filled; set it to a form-service URL (Formspree, Basin, Getform…) to POST instead.
 
 ## Update the model
 
@@ -85,8 +108,10 @@ Re-run the build after adding music.
 
 ```
 public/models/dakshineswar.glb   ← the complex, exported from recon/ (see above)
+content.json         ← all guest-facing text (see "Put your details in")
+vite.config.js       ← also bakes the title/description from content.json into index.html
 src/
-  content.js         ← all guest-facing text
+  content.js         ← loads content.json, fills in label defaults
   main.js            ← scroll → scene, cards, day/night, sound; loading veil; WebGL fallback
   cards.js           ← cards pinned to 3D anchors (projected each frame)
   audio.js           ← /music playlist + synthesized ambience fallback
