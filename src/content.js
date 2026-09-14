@@ -8,10 +8,6 @@ import raw from '../content.json';
 
 const DEFAULT_LABELS = {
   jumpToRsvp: 'Jump to RSVP',
-  scheduleKicker: 'Schedule',
-  travelKicker: 'Getting here',
-  gettingThere: 'Getting there',
-  whereToStay: 'Where to stay',
   openInMaps: 'Open in maps',
   replyBy: 'Reply by {deadline}',
   form: {
@@ -35,8 +31,11 @@ const DEFAULT_LABELS = {
   },
 };
 
-for (const key of ['couple', 'date', 'venue', 'walk', 'story', 'events', 'travel', 'rsvp', 'footer']) {
+for (const key of ['couple', 'date', 'venue', 'walk', 'cards', 'story', 'rsvp', 'footer']) {
   if (!raw[key]) throw new Error(`content.json is missing the "${key}" section`);
+}
+for (const id of ['gate', 'story', 'rsvp', ...raw.walk.before.cards, ...raw.walk.day.cards]) {
+  if (!raw.cards[id]) throw new Error(`content.json is missing the "${id}" card`);
 }
 
 export const content = {
@@ -55,3 +54,12 @@ export const content = {
 
 /** Replace `{key}` tokens in a content string, e.g. fill('{names} invite you', { names: 'A and B' }). */
 export const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+
+/** The tokens any card text may use: {names}, {hashtag}, {date}, {time}, {venue}. */
+export const TOKENS = {
+  names: `${raw.couple.partner1} and ${raw.couple.partner2}`,
+  hashtag: raw.couple.hashtag,
+  date: raw.date.display,
+  time: raw.date.time,
+  venue: raw.venue.name,
+};

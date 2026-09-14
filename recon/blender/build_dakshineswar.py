@@ -1137,11 +1137,17 @@ def build_shiva_row(L):
             c.parent = inst
 
 
-def storey(name, size, h, z, n, arch_w, arch_h, core_inset, cx=0.0, cy=0.0, amp=1.0):
+SANCTUM = {"door": (1.8, 3.2), "width": 3.8, "depth": 2.9, "height": 3.6, "dais": (2.6, 1.2, 0.7)}
+
+
+def storey(name, size, h, z, n, arch_w, arch_h, core_inset, cx=0.0, cy=0.0, amp=1.0, sanctum=None):
     """One square storey of the navaratna: four pierced walls + corner posts around an open
     verandah corridor (you can see through the corner arches), a solid core, a roof slab that is
     the terrace of the storey above, striped corner pilasters, rose surrounds, cornice rings, a
-    dentil course and the arched Bengal parapet. Returns the terrace level."""
+    dentil course and the arched Bengal parapet. Returns the terrace level.
+    `sanctum` (SANCTUM) hollows a shrine chamber out of the core behind the central south bay: a
+    cusped door in the core's south face with a rose surround, a white dais against the back wall
+    and a rose panel behind it — the deity herself is a lit picture the site adds at runtime."""
     t = 0.5
     wl = size - 2 * t
     pitch = wl / n
@@ -1149,8 +1155,26 @@ def storey(name, size, h, z, n, arch_w, arch_h, core_inset, cx=0.0, cy=0.0, amp=
     xs = [-wl / 2 + pitch * (i + 0.5) for i in range(n)]
     wall = pierced_wall(wl, h, t, [(x, 0.0, poly) for x in xs])
     posts = merge(*[box(t, t, h, sx * (size - t) / 2, sy * (size - t) / 2, 0) for sx in (-1, 1) for sy in (-1, 1)])
-    body = merge(four_faces(wall, size), posts,
-                 box(size - 2 * core_inset, size - 2 * core_inset, h, 0, 0, 0),      # core (sanctum)
+    c = size - 2 * core_inset                                                          # core (sanctum block)
+    if sanctum is None:
+        core = box(c, c, h, 0, 0, 0)
+    else:
+        # the core as closed, touching, non-overlapping solids around the chamber (no boolean):
+        # a pierced south wall with the door, two flanks, the back block and the block above
+        dw, dh = sanctum["door"]
+        sw, sd, sh = sanctum["width"], sanctum["depth"], sanctum["height"]
+        door = cusped_arch_poly(dw, dh, cusps=9, steps=3)
+        core = merge(place(pierced_wall(c, h, t, [(0.0, 0.0, door)]), (0, -c / 2, 0)),
+                     box((c - sw) / 2, c - t, h, -(c + sw) / 4, t / 2, 0),
+                     box((c - sw) / 2, c - t, h, (c + sw) / 4, t / 2, 0),
+                     box(sw, c - t - sd, h, 0, (t + sd) / 2, 0),
+                     box(sw, sd, h - sh, 0, -c / 2 + t + sd / 2, sh))
+        ddw, ddd, ddh = sanctum["dais"]
+        new_object(name + "_dais", *box(ddw, ddd, ddh, 0, -c / 2 + t + sd - ddd / 2, 0), "white", loc=(cx, cy, z))
+        panel = box(sw - 1.0, 0.03, sh - ddh - 0.5, 0, -c / 2 + t + sd - 0.015, ddh)
+        surround = ring_prism(cusped_arch_poly(dw + 0.5, dh + 0.3, cusps=9, steps=3), door, 0.08, "y", 0, 0, -c / 2 - 0.08)
+        new_object(name + "_shrine", *merge(panel, surround), "rose", loc=(cx, cy, z))
+    body = merge(four_faces(wall, size), posts, core,
                  box(size + 0.2, size + 0.2, 0.4, 0, 0, h))                            # roof slab / terrace
     new_object(name, *body, "stucco", loc=(cx, cy, z))
     new_object(name + "_pilasters", *pilasters(size, size, h - 1.4, t=0.7, proud=0.16), "striped", loc=(cx, cy, z))
@@ -1220,7 +1244,7 @@ def build_navaratna(L):
     # M131870345); 5 / 3 / 3 cusped bays per face, corridors open at the corners
     zb = z0 + ph
     h1, S2, h2, S3, h3 = 10.0, S * 0.6, 5.2, S * 0.36, 4.4
-    z2 = storey("mandir_s1", S, h1, zb, 5, 1.7, 5.6, 3.0, cx, cy, amp=1.2)
+    z2 = storey("mandir_s1", S, h1, zb, 5, 1.7, 5.6, 3.0, cx, cy, amp=1.2, sanctum=SANCTUM)
     z3 = storey("mandir_s2", S2, h2, z2, 3, 1.5, 3.4, 2.0, cx, cy, amp=0.8)
     zt = storey("mandir_s3", S3, h3, z3, 3, 0.9, 2.8, 1.3, cx, cy, amp=0.55)
     # spires: 4 on the s1 terrace corners, 4 on the s2 terrace corners, 1 central on top

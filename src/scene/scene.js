@@ -259,7 +259,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null }
     camera.lookAt(tmpLook);
     sky.position.copy(camera.position);
     skyMat.uniforms.time.value = state.time;
-    if (life) life.update(dt, state.night);
+    if (life) life.update(dt, state.night, camera.position);
   }
 
   function frame(now) {

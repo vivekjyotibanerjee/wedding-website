@@ -34,10 +34,17 @@ bake) and `--only '<regex>'` with `--out` for a test glb the site loads via `?mo
 - `src/scene/scene.js`: renderer, sky shader (clouds), IBL from the sky, sun/moon, day↔night,
   floods, bloom (night only — day renders straight to the canvas), camera along the path.
 - `src/cards.js` + `src/ornament.js`: the cards (vine + alpona frame generated at runtime)
-  pinned to anchors and projected every frame. All guest-facing text is in `content.json` at
-  the repo root (loaded by `src/content.js`, which fills in `labels` defaults; `vite.config.js`
-  bakes `site.title`/`site.description` into `index.html`). New strings go in the JSON, not in
-  the templates.
+  pinned to anchors and projected every frame. One generic template (`cardHTML`) renders every
+  card from its `content.json` entry; `ANCHORS` in `walk.js` says where and when, keyed by the
+  same ids, and `src/sections.js` renders the same entries as the no-WebGL page. All guest-facing
+  text is in `content.json` at the repo root (loaded by `src/content.js`, which fills in `labels`
+  defaults; `vite.config.js` bakes `site.title`/`site.description` into `index.html`). New
+  strings go in the JSON, not in the templates. A card's anchor must stay in front of the
+  camera for its whole range (a point behind the camera can't be projected).
+- The sanctum: `build_dakshineswar.SANCTUM` hollows a shrine chamber out of the navaratna's
+  ground-storey core behind the central south arch (closed boxes + a pierced wall, no boolean);
+  `landmarks.sanctum` locates it. The deity is a runtime picture plane in `life.js` reading
+  `public/images/bhavatarini.jpg` (owner-supplied, not in the repo) — never a modelled figure.
 
 ## Judging changes
 
@@ -55,7 +62,10 @@ Time-based transitions must use wall-clock dt (the headless frame loop runs at a
 
 ## Decisions already made (don't relitigate)
 
-- No human figures in the scene ("trying to add human meshes is going to look ugly").
+- No human figures in the scene ("trying to add human meshes is going to look ugly"); Ma Kali
+  in the sanctum is a picture, not a mesh.
+- The walk's order: ghat → left (north) into the Radhakanta at its northmost door → mandap →
+  nat-mandir by its west stair, out of its northmost door → temple stair → the sanctum door.
 - No mixing polygon fallbacks into the future splat scene; when splats arrive they replace the
   glb in `scene.js` wholesale, and the walk/life layers keep reading `landmarks.json`.
 - Geometry only for silhouette-level detail; fine relief lives in maps/shaders. Closed,

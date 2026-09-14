@@ -1,11 +1,38 @@
-import { content, fill } from './content.js';
+import { content, fill, TOKENS } from './content.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const text = (s) => esc(fill(s, TOKENS));
+const link = (url) => url && url !== '#';
+
+/** One card of content.json as a plain article (the same fields cards.js renders in the walk). */
+function article(c) {
+  const body = c.body == null ? [] : [].concat(c.body);
+  return `
+    <article class="event">
+      ${c.kicker ? `<p class="kicker">${text(c.kicker)}</p>` : ''}
+      <h3>${text(c.title)}</h3>
+      ${c.when || c.place ? `<div class="meta">${c.when ? `<span><b>${text(c.when)}</b></span>` : ''}${c.place ? `<span>${text(c.place)}</span>` : ''}</div>` : ''}
+      ${c.dress ? `<span class="dress">${text(c.dress)}</span>` : ''}
+      ${body.map((p) => `<p>${text(p)}</p>`).join('')}
+      ${c.items ? `<ul class="items">${c.items.map((it) => `<li><b>${link(it.url) ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${text(it.name)}</a>` : text(it.name)}</b> ${text(it.text)}</li>`).join('')}</ul>` : ''}
+      ${c.button && link(c.button.url) ? `<p><a href="${esc(c.button.url)}" target="_blank" rel="noopener">${text(c.button.label)}</a></p>` : ''}
+    </article>`;
+}
 
 export function renderSections(main) {
   const c = content;
+  const K = c.cards;
   const L = c.labels;
   const F = L.form;
+  const group = (id, g) => `
+    <section class="section" id="${id}">
+      <div class="section-head">
+        <h2>${esc(g.heading)}</h2>
+      </div>
+      <div class="events">
+        ${g.cards.map((k) => article(K[k])).join('')}
+      </div>
+    </section>`;
   main.innerHTML = `
     <section class="section" id="story">
       <div class="section-head">
@@ -23,32 +50,7 @@ export function renderSections(main) {
       </ol>
     </section>
 
-    <section class="section" id="events">
-      <div class="section-head">
-        <p class="kicker">${esc(L.scheduleKicker)}</p>
-        <h2>${esc(c.events.heading)}</h2>
-        <p>${esc(c.events.intro)}</p>
-      </div>
-      <div class="events">
-        ${c.events.list.map((e) => `
-          <article class="event">
-            <h3>${esc(e.name)}</h3>
-            <div class="meta">
-              <span><b>${esc(e.date)}</b> · ${esc(e.time)}</span>
-              <span>${esc(e.place)}</span>
-            </div>
-            ${e.dress ? `<span class="dress">${esc(e.dress)}</span>` : ''}
-            ${e.note ? `<p>${esc(e.note)}</p>` : ''}
-          </article>`).join('')}
-      </div>
-    </section>
-
-    <section class="section" id="travel">
-      <div class="section-head">
-        <p class="kicker">${esc(L.travelKicker)}</p>
-        <h2>${esc(c.travel.heading)}</h2>
-        <p>${esc(c.travel.intro)}</p>
-      </div>
+    <section class="section" id="venue">
       <div class="venue-card">
         <div>
           <h3>${esc(c.venue.name)}</h3>
@@ -56,17 +58,10 @@ export function renderSections(main) {
         </div>
         <a class="btn ghost" href="${esc(c.venue.mapUrl)}" target="_blank" rel="noopener">${esc(L.openInMaps)}</a>
       </div>
-      <div class="travel-grid">
-        <div>
-          <p class="col-title">${esc(L.gettingThere)}</p>
-          ${c.travel.gettingThere.map((g) => `<div class="item"><h3>${esc(g.title)}</h3><p>${esc(g.text)}</p></div>`).join('')}
-        </div>
-        <div>
-          <p class="col-title">${esc(L.whereToStay)}</p>
-          ${c.travel.hotels.map((h) => `<div class="item"><h3>${h.url && h.url !== '#' ? `<a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.name)}</a>` : esc(h.name)}</h3><p>${esc(h.text)}</p></div>`).join('')}
-        </div>
-      </div>
     </section>
+
+    ${group('before', c.walk.before)}
+    ${group('day', c.walk.day)}
 
     <section class="section" id="rsvp">
       <div class="section-head">
@@ -86,11 +81,12 @@ export function renderSections(main) {
             <option value="${esc(F.declines)}">${esc(F.declines)}</option>
           </select>
         </label>
+        ${c.rsvp.events && c.rsvp.events.length ? `
         <label>${esc(F.whichEvents)}
-          <select name="events" multiple size="${Math.min(5, c.events.list.length)}">
-            ${c.events.list.map((e) => `<option value="${esc(e.name)}" selected>${esc(e.name)}</option>`).join('')}
+          <select name="events" multiple size="${Math.min(5, c.rsvp.events.length)}">
+            ${c.rsvp.events.map((e) => `<option value="${esc(e)}" selected>${esc(e)}</option>`).join('')}
           </select>
-        </label>
+        </label>` : ''}
         <label>${esc(F.notes)} <textarea name="notes" rows="3" placeholder="${esc(F.notesHint)}"></textarea></label>
         <div class="actions">
           <button class="btn" type="submit">${esc(F.submit)}</button>

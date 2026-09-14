@@ -5,9 +5,11 @@ import { alponaCanvas } from '../ornament.js';
 // ─────────────────────────────────────────────────────────────────────────────
 // Everything that moves or glows, layered over the baked model at runtime so the glb stays a
 // static bake: diyas with flickering flames, string lights swagged between the arches, warm
-// light in the nat-mandir's doorways, the lamp posts, fireflies, birds over the spires, the flag
-// on the central ratna, wind in the mandap drapes, ripples on the river and alpona painted on
-// the ground. Positions come from landmarks.json like the camera path does.
+// light in the halls' doorways and inside them, the lamp posts, fireflies, birds over the spires,
+// the flag on the central ratna, wind in the mandap drapes, ripples on the river, alpona painted
+// on the ground, and the shrine in the navaratna's sanctum — the deity as a lit picture (a photo
+// or painting the owner drops in as public/images/bhavatarini.jpg; without it the chamber is
+// simply lit). Positions come from landmarks.json like the camera path does.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const g = L.ground;
@@ -16,9 +18,14 @@ const nx = L.natmandir.west_face_x;
 const [ncx, , nz] = L.natmandir.center;
 const [nw, nd] = L.natmandir.size;
 const nPlinth = L.natmandir.plinth_top;
+const rx = L.radhakanta.west_face_x;
+const [rcx, , rz] = L.radhakanta.center;
+const [, rd] = L.radhakanta.size;
+const rPlinth = L.radhakanta.plinth_top;
 const pt = L.navaratna.platform_top;
 const wall = L.navaratna.wall_x;
 const P = L.navaratna.platform;
+const DEITY_URL = `${import.meta.env.BASE_URL}images/bhavatarini.jpg`;
 
 // ── shaders ──────────────────────────────────────────────────────────────────
 // Flames: camera-facing quads, each with its own flicker phase; drawn additive and bright so they
@@ -190,14 +197,26 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
     for (let x = sw / 2 + 0.6; x < P / 2 - 0.3; x += 0.7) for (const s of [-1, 1]) diyaSpots.push([s * x, pt + 1.0, zs]);
     // along the verandah, both sides of the central arch
     for (let x = -wall + 0.6; x <= wall - 0.5; x += 0.75) if (Math.abs(x) > 1.4) diyaSpots.push([x, pt, wall + 0.35]);
-    // the nat-mandir's west stair and its plinth ledge
-    const { stair_width: hw, stair_steps: hn, stair_tread: ht, plinth_out } = L.natmandir;
-    const hr = (nPlinth - g) / hn;
-    const x0 = nx - plinth_out - hn * ht;
-    for (let k = 0; k < hn; k++) for (const s of [-1, 1]) diyaSpots.push([x0 + ht * (k + 0.5), g + hr * (k + 1), nz + s * (hw / 2 - 0.3)]);
-    for (let z = nz - nd / 2 - plinth_out + 0.5; z < nz + nd / 2 + plinth_out - 0.4; z += 0.8) {
-      if (Math.abs(z - nz) < hw / 2 + 0.4 || z < nz - nd / 2 + 1.5) continue;   // skip the stair and the corner the walk crosses
-      diyaSpots.push([nx - plinth_out + 0.3, nPlinth, z]);
+    // the halls' west stairs and plinth ledges, leaving the doorways the walk uses clear
+    for (const [H, hx, hz, hd, top, clear] of [
+      [L.natmandir, nx, nz, nd, nPlinth, (z) => z < nz - 3 * L.natmandir.bay_pitch + 1.5],              // the northmost door and the ledge north of it
+      [L.radhakanta, rx, rz, rd, rPlinth, (z) => Math.abs(Math.abs(z - rz) - (L.radhakanta.bays_west - 1) / 2 * L.radhakanta.bay_pitch) < 1.6], // its northmost and southmost doors
+    ]) {
+      const { stair_width: hw, stair_steps: hn, stair_tread: ht, plinth_out } = H;
+      const hr = (top - g) / hn;
+      const x0 = hx - plinth_out - hn * ht;
+      for (let k = 0; k < hn; k++) for (const s of [-1, 1]) diyaSpots.push([x0 + ht * (k + 0.5), g + hr * (k + 1), hz + s * (hw / 2 - 0.3)]);
+      for (let z = hz - hd / 2 - plinth_out + 0.5; z < hz + hd / 2 + plinth_out - 0.4; z += 0.8) {
+        if (Math.abs(z - hz) < hw / 2 + 0.4 || clear(z)) continue;                // skip the stair and the walk
+        diyaSpots.push([hx - plinth_out + 0.3, top, z]);
+      }
+    }
+    // the shrine: a row along the front of the dais and a pair either side of its door
+    {
+      const [dx, , dz] = L.sanctum.door;
+      const front = dz - L.sanctum.depth + L.sanctum.dais_depth + 0.12;
+      for (let x = -1.0; x <= 1.0; x += 0.5) diyaSpots.push([dx + x, L.sanctum.dais_top, front]);
+      for (const s of [-1, 1]) diyaSpots.push([dx + s * (L.sanctum.arch[0] / 2 + 0.55), pt, dz + 0.45]);
     }
     // a ring round the mandap on the paving
     for (let i = 0; i < 14; i++) {
@@ -258,6 +277,20 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
     // its north face, seen from the plinth walk
     const zN = nz - nd / 2;
     addString([-1.5, 0, 1.5].map((k) => [ncx + k * 3.0, y, zN - 0.12]));
+    // the Radhakanta's west face the same way
+    const yr = rPlinth + L.radhakanta.arch_spring + 0.35;
+    const rl = [];
+    for (let i = 0; i <= L.radhakanta.bays_west; i++) rl.push([rx - 0.12, yr, rz + (i - L.radhakanta.bays_west / 2) * L.radhakanta.bay_pitch]);
+    addString(rl);
+    // and inside both halls, the walk goes through them: along the long walls, bay to bay
+    for (const [H, hx, hz, top] of [[L.natmandir, nx, nz, nPlinth], [L.radhakanta, rx, rz, rPlinth]]) {
+      const yi = Math.min(top + 0.9 + H.arch[1] + 0.5, top + (H.storey_h || H.height) - 0.55);   // above the windows, under the ceiling
+      for (const x of [hx + 0.62, hx + H.size[0] - 0.62]) {
+        const line = [];
+        for (let i = 0; i <= H.bays_west; i++) line.push([x, yi, hz + (i - H.bays_west / 2) * H.bay_pitch]);
+        addString(line, 0.4);
+      }
+    }
     // the navaratna's south and west arcades
     const yv = pt + L.navaratna.arch_spring + 0.3;
     const bp = L.navaratna.bay_pitch;
@@ -293,19 +326,32 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
     disposables.push(geo, mat, wireGeo, wire.material);
   }
 
-  // ── warm light in the doorways, the lamp posts ─────────────────────────────
-  const spillMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.66, 0.34).multiplyScalar(1.15), toneMapped: false, transparent: true, opacity: 0, depthWrite: false });
-  {
-    const [aw, ah] = L.natmandir.arch;
+  // ── warm light in the doorways, inside the halls, the lamp posts ───────────
+  // A glowing plane in every west doorway of both halls reads as lamplight inside; the walk goes
+  // through three of them, so each plane fades out as the camera comes near (see update()).
+  const spillColor = new THREE.Color(1.0, 0.66, 0.34).multiplyScalar(1.15);
+  const spills = [];
+  for (const [H, hx, hz, top] of [[L.natmandir, nx, nz, nPlinth], [L.radhakanta, rx, rz, rPlinth]]) {
+    const [aw, ah] = H.arch;
     const geo = new THREE.PlaneGeometry(aw + 0.1, ah - 0.1);
     geo.rotateY(-Math.PI / 2);
-    const pitch = L.natmandir.bay_pitch, bays = L.natmandir.bays_west;
-    for (let i = 0; i < bays; i++) {
-      const m = new THREE.Mesh(geo, spillMat);
-      m.position.set(nx + 0.25, nPlinth + ah / 2, nz + (i - (bays - 1) / 2) * pitch);
+    for (let i = 0; i < H.bays_west; i++) {
+      const mat = new THREE.MeshBasicMaterial({ color: spillColor, toneMapped: false, transparent: true, opacity: 0, depthWrite: false });
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(hx + 0.25, top + ah / 2, hz + (i - (H.bays_west - 1) / 2) * H.bay_pitch);
       root.add(m);
+      spills.push(m);
+      disposables.push(mat);
     }
-    disposables.push(geo, spillMat);
+    disposables.push(geo);
+    // and, for when the walk is inside, lamplight under the ceiling
+    for (const k of [-0.25, 0.25]) {
+      const light = new THREE.PointLight(0xffc27a, 0, 22, 1.6);
+      light.position.set(hx + H.size[0] / 2, top + Math.min(H.height, H.storey_h || H.height) - 2.2, hz + k * H.size[1]);
+      light.visible = false;
+      root.add(light);
+      lights.push({ light, intensity: 14 });
+    }
   }
   for (const p of L.lamps) {
     const light = new THREE.PointLight(0xffc27a, 0, 16, 1.8);
@@ -325,6 +371,54 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
       lampGlass.push(o.material);
     }
   });
+
+  // ── the shrine ─────────────────────────────────────────────────────────────
+  // Ma Kali in the sanctum: a picture on a plane over the dais, a soft halo behind it, and a
+  // lamp in the chamber that is lit day and night. The picture is the owner's (DEITY_URL); if it
+  // is not there the plane stays hidden and the chamber is just lit.
+  const shrineLamp = new THREE.PointLight(0xffb070, 12, 9, 1.7);
+  {
+    const [dx, , dz] = L.sanctum.door;
+    const back = dz - L.sanctum.depth;                              // the chamber's back wall
+    const h = L.sanctum.height - (L.sanctum.dais_top - pt) - 0.4, w = h * 0.7;   // portrait, dais to ceiling
+    const y = L.sanctum.dais_top + h / 2 + 0.05;
+    const zp = back + 0.1;
+    const haloCanvas = document.createElement('canvas');                // a soft radial glow
+    haloCanvas.width = haloCanvas.height = 128;
+    const hc = haloCanvas.getContext('2d');
+    const grad = hc.createRadialGradient(64, 64, 4, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255, 200, 120, 0.9)');
+    grad.addColorStop(0.5, 'rgba(255, 150, 70, 0.35)');
+    grad.addColorStop(1, 'rgba(255, 120, 40, 0)');
+    hc.fillStyle = grad;
+    hc.fillRect(0, 0, 128, 128);
+    const haloTex = new THREE.CanvasTexture(haloCanvas);
+    const halo = new THREE.Mesh(
+      new THREE.PlaneGeometry(w * 2.2, w * 2.2),
+      new THREE.MeshBasicMaterial({ map: haloTex, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
+    );
+    halo.position.set(dx, y + h * 0.1, zp - 0.02);
+    halo.visible = false;                                               // shown with the picture
+    root.add(halo);
+    disposables.push(halo.geometry, halo.material, haloTex);
+    const picMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false, transparent: true });
+    const pic = new THREE.Mesh(new THREE.PlaneGeometry(w, h), picMat);
+    pic.position.set(dx, y, zp);
+    pic.visible = false;
+    root.add(pic);
+    disposables.push(pic.geometry, picMat);
+    new THREE.TextureLoader().load(DEITY_URL, (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const a = tex.image.width / tex.image.height;                  // keep the picture's own proportions
+      pic.scale.set(a > w / h ? 1 : (a * h) / w, a > w / h ? w / (a * h) : 1, 1);
+      picMat.map = tex;
+      picMat.needsUpdate = true;
+      pic.visible = halo.visible = true;
+      disposables.push(tex);
+    }, undefined, () => { /* no picture yet: the chamber is lit, the dais bare */ });
+    shrineLamp.position.set(dx, pt + L.sanctum.height * 0.6, dz - 1.6);
+    root.add(shrineLamp);
+  }
 
   // ── fireflies ──────────────────────────────────────────────────────────────
   {
@@ -422,8 +516,11 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
     place(mx - L.mandap.width / 2 - 1.0 - 2.6, g, mz, 2.3);
     // on the nat-mandir's threshold ledge, before the central door
     place(nx - L.natmandir.plinth_out / 2 - 0.05, nPlinth, nz, 0.68);
-    // at the foot of the temple stair
-    place(0, g, L.navaratna.stair_foot[2] + 2.9, 2.4);
+    // the middle of each hall's floor
+    place(ncx, nPlinth, nz, 2.6);
+    place(rcx, rPlinth, rz, 2.6, Math.PI / 8);
+    // the sanctum's threshold, in the corridor before its door
+    place(L.sanctum.door[0], pt, L.sanctum.door[2] + (wall - 0.5 - L.sanctum.door[2]) / 2, 1.1);
     disposables.push(tex, mat);
   }
 
@@ -482,12 +579,16 @@ export function buildLife(scene, model, { reducedMotion = false } = {}) {
 
   // ── per-frame ──────────────────────────────────────────────────────────────
   let time = 0;
-  function update(dt, night) {
+  function update(dt, night, eye = null) {
     if (!reducedMotion) time += dt;
     uniforms.time.value = time;
     uniforms.night.value = night;
     uniforms.flameBright.value = 1.2 + 1.6 * night;
-    spillMat.opacity = 0.85 * night;
+    for (const m of spills) {
+      const d = eye ? eye.distanceTo(m.position) : 99;
+      m.material.opacity = 0.85 * night * THREE.MathUtils.smoothstep(d, 1.5, 4.5);   // gone by the time the walk reaches the doorway
+    }
+    shrineLamp.intensity = 12 + 10 * night;
     birds.mesh.visible = night < 0.6;
     for (const { light, intensity } of lights) { light.intensity = intensity * night; light.visible = night > 0.01; }   // off the shader by day
     for (const m of lampGlass) m.emissiveIntensity = 3.0 * night;

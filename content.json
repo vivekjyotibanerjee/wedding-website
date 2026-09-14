@@ -1,41 +1,128 @@
 {
   "site": {
-    "title": "Ananya & Arjun — Wedding",
-    "description": "Walk through the Dakshineswar temple complex to our wedding — the date, events, travel and RSVP."
+    "title": "Antara & Vivek — Wedding",
+    "description": "Walk through the Dakshineswar temple to explore the date, events, travel, and RSVP."
   },
 
   "couple": {
-    "partner1": "Ananya",
-    "partner2": "Arjun",
+    "partner1": "Antara",
+    "partner2": "Vivek",
     "bengaliTitle": "শুভ বিবাহ",
-    "hashtag": "#AnanyaWedsArjun"
+    "hashtag": "#AntaraWedsVivek"
   },
 
   "date": {
-    "display": "Saturday, 13 February 2027",
-    "iso": "2027-02-13",
-    "time": "6:30 PM onwards"
+    "display": "Saturday, 14 November 2027",
+    "iso": "2027-11-14",
+    "time": "12:00 PM"
   },
 
   "venue": {
-    "name": "Rajbari Heritage Grounds",
-    "address": "Placeholder Road, Kolkata 700001, West Bengal",
-    "mapUrl": "https://maps.google.com/?q=Kolkata"
+    "name": "The Merion",
+    "address": "1301 Route 130 South, Cinnaminson, NJ 08077",
+    "mapUrl": "https://maps.app.goo.gl/XJ1oBBCreG5eUBdu7"
   },
 
   "walk": {
     "intro": "Scroll to walk in",
+    "before": { "heading": "Before the wedding", "cards": ["train", "air", "hotels", "haldi"] },
+    "day": { "heading": "The wedding day", "cards": ["ceremony", "breakfast", "baraat", "vows", "cocktails", "reception"] }
+  },
+
+  "cards": {
     "gate": {
       "kicker": "You are invited",
-      "body": "Together with their families, {names} request the honour of your presence as they are joined in marriage at Dakshineswar."
+      "body": "{names} request the honour of your presence as they are joined in marriage."
     },
+    "story": {
+      "kicker": "{hashtag}",
+      "title": "Our story"
+    },
+
+    "train": {
+      "kicker": "Getting here",
+      "title": "By train",
+      "body": [
+        "Amtrak and NJ Transit both stop at Trenton, about 35 minutes from the venue by car; Philadelphia's 30th Street Station is a 30-minute drive the other way.",
+        "The River Line light rail runs from Trenton and Camden to Cinnaminson station, a five-minute cab ride from The Merion."
+      ],
+      "button": { "label": "Amtrak", "url": "https://www.amtrak.com" }
+    },
+    "air": {
+      "kicker": "Getting here",
+      "title": "By air",
+      "body": [
+        "Fly into Philadelphia International (PHL) — the venue is about 25 minutes by car, and a taxi or rideshare from the terminal is the easiest way.",
+        "Newark (EWR) works too at about an hour and a half by car, or by train to Trenton."
+      ]
+    },
+    "hotels": {
+      "kicker": "Where to stay",
+      "title": "Hotel blocks",
+      "venue": true,
+      "body": "We have rooms held at two hotels near the venue; mention the wedding when you book.",
+      "items": [
+        { "name": "The Placeholder Inn, Mount Laurel", "text": "10 minutes from the venue. Block rate until 14 October 2027.", "url": "" },
+        { "name": "Riverside Suites, Cherry Hill", "text": "15 minutes away, on the shuttle route.", "url": "" }
+      ]
+    },
+    "haldi": {
+      "kicker": "The day before",
+      "title": "Haldi & Sangeet",
+      "when": "Friday, 13 November 2027 · 4:00 PM",
+      "place": "The Merion — Garden Room",
+      "body": "Turmeric first — come ready to get messy — then music, dancing and dinner into the night.",
+      "dress": "Yellows and whites for the haldi, festive for the sangeet"
+    },
+
     "ceremony": {
       "kicker": "The mandap",
       "title": "The wedding ceremony",
-      "body": "Bor jatri arrives at 6. Shubho drishti — the first look — around 8, then the saat paak, the seven rounds around the fire.",
+      "when": "{date} · {time}",
+      "body": [
+        "A Bengali Hindu wedding is held under a mandap, a canopy on four pillars, before a sacred fire. It opens with the shubho drishti — the bride is carried in seated on a piri and circled seven times round the groom (the saat paak) before the two see each other, eyes meeting for the first time as the conch shells sound.",
+        "Then the mala badal, the exchange of garlands; the sampradan, the giving of the bride's hand; the saptapadi, seven steps round the fire, each a vow; and the sindoor daan, the vermilion in the parting of her hair that seals the marriage."
+      ],
       "dress": "Traditional — saris, panjabis, lots of colour"
     },
-    "sanctum": {
+    "breakfast": {
+      "kicker": "The wedding day",
+      "title": "Breakfast",
+      "when": "9:00 AM",
+      "place": "The Merion — Terrace",
+      "body": "Luchi, aloor dom and a great deal of cha to set you up for the day."
+    },
+    "baraat": {
+      "kicker": "The wedding day",
+      "title": "The baraat",
+      "when": "11:00 AM",
+      "place": "The Merion — Front drive",
+      "body": "The groom's procession arrives with the dhol; everyone on the groom's side, join in — everyone on the bride's side, come out to meet it."
+    },
+    "vows": {
+      "kicker": "The wedding day",
+      "title": "The ceremony",
+      "when": "{time}",
+      "place": "The Merion — Grand Ballroom mandap",
+      "body": "Shubho drishti, the seven rounds and the seven steps. Please be seated by a quarter to twelve."
+    },
+    "cocktails": {
+      "kicker": "The wedding day",
+      "title": "Cocktail hour",
+      "when": "4:30 PM",
+      "place": "The Merion — Courtyard",
+      "body": "Drinks and small plates while the ballroom is turned around."
+    },
+    "reception": {
+      "kicker": "The wedding day",
+      "title": "Reception",
+      "when": "6:00 PM",
+      "place": "The Merion — Grand Ballroom",
+      "body": "Dinner, speeches and the dance floor until late.",
+      "dress": "Cocktail / Indian formal"
+    },
+
+    "rsvp": {
       "kicker": "শুভ দৃষ্টি",
       "title": "Will you join us?"
     }
@@ -52,37 +139,11 @@
     ]
   },
 
-  "events": {
-    "heading": "Events",
-    "intro": "Three days of celebration in the courtyard and by the river. Come to all, or to whichever you can.",
-    "list": [
-      { "name": "Aiburo Bhaat", "date": "Thu, 11 Feb 2027", "time": "12:00 PM", "place": "Family home, Ballygunge", "dress": "Comfortable, colourful", "note": "A last unmarried feast — lots of food, lots of teasing." },
-      { "name": "Gaye Holud", "date": "Fri, 12 Feb 2027", "time": "10:00 AM", "place": "Rajbari Heritage Grounds", "dress": "Yellows and whites", "note": "Turmeric, laughter and a fair amount of getting messy." },
-      { "name": "Sangeet", "date": "Fri, 12 Feb 2027", "time": "7:00 PM", "place": "Rajbari Heritage Grounds — Lawn", "dress": "Festive", "note": "Dance floor opens at 8. No excuses." },
-      { "name": "Wedding Ceremony", "date": "Sat, 13 Feb 2027", "time": "6:30 PM", "place": "Rajbari Heritage Grounds — Mandap", "dress": "Traditional", "note": "Bor jatri arrives at 6. Shubho drishti around 8." },
-      { "name": "Reception", "date": "Sun, 14 Feb 2027", "time": "7:30 PM", "place": "Rajbari Heritage Grounds — Ballroom", "dress": "Cocktail / Indian formal", "note": "Dinner, speeches, and one more dance." }
-    ]
-  },
-
-  "travel": {
-    "heading": "Travel & stay",
-    "intro": "Everything you need to get here and rest well.",
-    "gettingThere": [
-      { "title": "By air", "text": "Fly into Netaji Subhas Chandra Bose International Airport (CCU). The venue is about 45 minutes by cab." },
-      { "title": "By train", "text": "Howrah and Sealdah are both around 30 minutes away. Pre-paid taxis are available at the station." },
-      { "title": "Getting around", "text": "Uber and Ola work well. Yellow taxis are charming but negotiate the fare first." }
-    ],
-    "hotels": [
-      { "name": "The Placeholder Grand", "text": "Closest to the venue, 5 minutes. Mention the wedding for a group rate.", "url": "" },
-      { "name": "Hotel Ganga View", "text": "Mid-range, by the river, 15 minutes away.", "url": "" },
-      { "name": "Guest house at the venue", "text": "Limited rooms for family. Ask us if you need one.", "url": "" }
-    ]
-  },
-
   "rsvp": {
     "heading": "RSVP",
-    "intro": "Please let us know by 15 January 2027.",
-    "deadline": "15 January 2027",
+    "intro": "Please let us know by 15 September 2027.",
+    "deadline": "15 September 2027",
+    "events": ["Haldi & Sangeet — Fri 13 Nov", "The wedding — Sat 14 Nov"],
     "email": "hello@example.com",
     "formEndpoint": ""
   },
@@ -93,10 +154,6 @@
 
   "labels": {
     "jumpToRsvp": "Jump to RSVP",
-    "scheduleKicker": "Schedule",
-    "travelKicker": "Getting here",
-    "gettingThere": "Getting there",
-    "whereToStay": "Where to stay",
     "openInMaps": "Open in maps",
     "replyBy": "Reply by {deadline}",
     "form": {

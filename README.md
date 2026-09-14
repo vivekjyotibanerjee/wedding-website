@@ -1,12 +1,14 @@
 # Wedding website — a walk through Dakshineswar
 
 Scroll-driven wedding site. As guests scroll they walk through the Dakshineswar Kali
-Temple complex — from the Hooghly up the ghat, between the twelve Shiva temples, across
-the courtyard to the wedding mandap, past the nat-mandir, up the stairs of the navaratna
-temple and into its arcaded verandah. Every piece of wedding information is a card pinned
-to a place in the scene: the invitation at the ghat, the story by the Shiva temples, the
-ceremony at the mandap, the schedule at the nat-mandir, travel at the temple stairs, and
-the RSVP form under the temple's central arch.
+Temple complex — from the Hooghly up the ghat, left along the Shiva temples and through the
+Radhakanta hall, back to the wedding mandap, through the nat-mandir, up the stairs of the
+navaratna temple and into its central arch, where the sanctum door stands open. Every piece
+of wedding information is a card pinned to a place in the scene: the invitation at the ghat,
+the story by the Shiva temples, how to get here and the day before inside the Radhakanta
+(train, air, hotels, haldi & sangeet), the ceremony and what it means at the mandap, the
+wedding day inside the nat-mandir (breakfast, baraat, ceremony, cocktails, reception), and
+the RSVP form before Ma Kali in the sanctum.
 
 The complex is the Blender model from `recon/` (built parametrically from reference
 photographs of the real temple — cream stucco with rose bands, ribbed spires, the 9-foil
@@ -37,21 +39,30 @@ fields are explained here:
 | `couple.partner1/2`, `hashtag` | The two names, rendered as "*A* & *B*"; the hashtag heads the story card. |
 | `couple.bengaliTitle` | Short blessing above the names on the title screen (শুভ বিবাহ = "auspicious wedding"). |
 | `date.display`, `date.time`, `date.iso` | The main ceremony, as guests should read it. `iso` (`YYYY-MM-DD`) is not rendered anywhere yet — kept for a future add-to-calendar link. |
-| `venue.name/address/mapUrl` | `name` is on the title card; `name` and `address` on the travel card, where `mapUrl` is the "Open in maps" button. |
+| `venue.name/address/mapUrl` | `name` is on the title card; `name` and `address` on any card with `"venue": true` (the hotels card), where `mapUrl` is the "Open in maps" button. |
 | `walk.intro` | The scroll hint under the names. |
-| `walk.gate` | The invitation card at the ghat; `{names}` in `body` becomes "*A* and *B*". |
-| `walk.ceremony` | The card at the mandap: `kicker`, `title`, `body`, `dress`. |
-| `walk.sanctum` | Kicker (Bengali font) and title over the RSVP form in the temple. |
+| `walk.before`, `walk.day` | The two groups of cards the walk goes through — inside the Radhakanta hall and inside the nat-mandir: a `heading` (used by the fallback page) and the `cards` ids in order. |
+| `cards` | One entry per card, keyed by id (see below). Every field is optional: `kicker`, `title`, `when` and `place` (set big), `body` (a string or a list of paragraphs), `items` (`{ name, text, url }`, a list — hotels; leave `url` empty for no link), `dress`, `button` (`{ label, url }`) and `venue` (true to show the venue and its map button). `{names}`, `{hashtag}`, `{date}`, `{time}` and `{venue}` are filled in. |
+| `cards.gate` | The invitation at the ghat — its title is the couple's names. |
+| `cards.story` | Kicker and title over the story timeline, by the Shiva temples. |
+| `cards.train/air/hotels/haldi` | Inside the Radhakanta hall: how to get here and the day before. |
+| `cards.ceremony` | At the mandap: the ceremony and what it means. |
+| `cards.breakfast/baraat/vows/cocktails/reception` | Inside the nat-mandir: the wedding day, in order. |
+| `cards.rsvp` | Kicker (Bengali font) and title over the RSVP form, before the sanctum door. |
 | `story` | `heading`, `intro` (fallback page only) and a `timeline` of `{ when, title, text }`. |
-| `events` | `heading`, `intro` and `list` of `{ name, date, time, place, dress, note }`; `dress` and `note` may be empty. |
-| `travel` | `heading`, `intro`, `gettingThere` (`{ title, text }`) and `hotels` (`{ name, text, url }`; leave `url` empty for no link). |
 | `rsvp.email` | Where the RSVP goes when `formEndpoint` is empty: the form opens the guest's email app with a pre-filled message. |
 | `rsvp.formEndpoint` | Set it to a form-service URL (Formspree, Basin, Getform…) and the form POSTs there instead. |
-| `rsvp.heading/intro/deadline` | Text over the form; `deadline` feeds the "Reply by …" kicker on the fallback page. |
+| `rsvp.heading/intro/deadline/events` | Text over the form; `deadline` feeds the "Reply by …" kicker and `events` the "Which events?" choices on the fallback page. |
 | `footer.line` | The sign-off under the plain-page footer. |
-| `labels` | Every fixed bit of UI text — kickers ("Schedule", "Getting here"), buttons, the RSVP form's labels, options and status messages. Optional: anything missing falls back to the English defaults in `src/content.js`. `{deadline}` and `{name}` tokens are filled in. |
+| `labels` | Every fixed bit of UI text — buttons, the RSVP form's labels, options and status messages. Optional: anything missing falls back to the English defaults in `src/content.js`. `{deadline}` and `{name}` tokens are filled in. |
 
 `src/content.js` loads the JSON and fills in the `labels` defaults; nothing else needs touching.
+Where each card pins and when it shows is `ANCHORS` in `src/scene/walk.js`, keyed by the same ids.
+
+- **`public/images/bhavatarini.jpg`** — the picture of Ma Kali in the sanctum, seen through the
+  open door at the end of the walk (a photo or painting, portrait, any size; it is shown at its
+  own proportions on a lit plane over the dais). Not in the repo: drop your own in. Without it the
+  chamber is simply lit, the dais bare.
 
 - **`music/`** — drop `.mp3` / `.m4a` / `.ogg` files here and the **Sound** button plays
   them in alphabetical order (see `music/README.md`). With no files it falls back to a
@@ -82,9 +93,10 @@ npx gltf-transform meshopt /tmp/t/dakshineswar.glb public/models/preview.glb --l
 ```
 
 Everything that moves or glows is not in the glb but layered over it at runtime
-(`src/scene/life.js`): the diyas, string lights, the light in the doorways and the lamp
-posts at night, fireflies, birds, the flag, wind in the mandap drapes, ripples on the river,
-the alpona painted on the ground. Their positions come from `landmarks.json` too.
+(`src/scene/life.js`): the diyas, string lights, the light in the doorways and inside the
+halls and the lamp posts at night, fireflies, birds, the flag, wind in the mandap drapes,
+ripples on the river, the alpona painted on the ground, and the shrine (the picture, its halo
+and lamp) in the sanctum. Their positions come from `landmarks.json` too.
 
 ## Check it without a browser
 
@@ -113,7 +125,7 @@ vite.config.js       ← also bakes the title/description from content.json into
 src/
   content.js         ← loads content.json, fills in label defaults
   main.js            ← scroll → scene, cards, day/night, sound; loading veil; WebGL fallback
-  cards.js           ← cards pinned to 3D anchors (projected each frame)
+  cards.js           ← cards pinned to 3D anchors (projected each frame), one template for every card
   audio.js           ← /music playlist + synthesized ambience fallback
   sections.js        ← plain-HTML details, shown only when WebGL is unavailable
   style.css

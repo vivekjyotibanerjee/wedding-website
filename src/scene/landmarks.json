@@ -129,7 +129,36 @@
       30.0
     ],
     "height": 10.4,
-    "west_face_x": -7.5
+    "west_face_x": -7.5,
+    "plinth_top": 2.4,
+    "plinth_out": 1.5,
+    "bays_west": 8,
+    "bay_pitch": 3.0,
+    "arch": [
+      1.9,
+      3.8
+    ],
+    "arch_spring": 2.992,
+    "storey_h": 5.2,
+    "stair_width": 8.6,
+    "stair_steps": 6,
+    "stair_tread": 0.36
+  },
+  "sanctum": {
+    "door": [
+      0.0,
+      3.8,
+      4.0
+    ],
+    "arch": [
+      1.8,
+      3.2
+    ],
+    "width": 3.8,
+    "depth": 2.9,
+    "height": 3.6,
+    "dais_top": 4.5,
+    "dais_depth": 1.2
   },
   "arcade": {
     "east_x": 13.0,

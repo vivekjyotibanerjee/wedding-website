@@ -1,9 +1,11 @@
-import { content, fill } from './content.js';
+import { content, fill, TOKENS } from './content.js';
 import { ANCHORS } from './scene/walk.js';
 import { alponaCanvas, alponaCornerCanvas, vineSVG } from './ornament.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const names = (a, b) => `${esc(a)} <span class="amp">&amp;</span> ${esc(b)}`;
+const text = (s) => esc(fill(s, TOKENS));
+const link = (url) => url && url !== '#';
 
 function smooth(a, b, x) {
   const t = Math.min(1, Math.max(0, (x - a) / Math.max(1e-6, b - a)));
@@ -11,84 +13,48 @@ function smooth(a, b, x) {
 }
 
 /**
- * Cards pinned to places in the complex. Where each one pins (`anchor`, a world-space point) and
- * when it shows (`range`: [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd] in walk progress)
- * come from scene/walk.js, next to the camera path. `side` docks the card left/right on wide screens.
+ * The body of one card from its content.json entry (README, "Put your details in"): kicker, title,
+ * `when` and `place` big, `body` as one or more paragraphs, the venue block with its map button,
+ * `items` as a list, `dress`, and a `button`. Every field is optional. `{names}`, `{hashtag}`,
+ * `{date}`, `{time}` and `{venue}` are filled in.
+ */
+export function cardHTML(c, { h = 'h2', titleHTML = null } = {}) {
+  const v = content.venue;
+  const L = content.labels;
+  const body = c.body == null ? [] : [].concat(c.body);
+  return [
+    c.kicker && `<p class="kicker${/[\u0980-\u09ff]/.test(c.kicker) ? ' bengali' : ''}">${text(c.kicker)}</p>`,
+    (titleHTML || c.title) && `<${h}>${titleHTML || text(c.title)}</${h}>`,
+    (c.when || c.place) && `<p class="big">${c.when ? text(c.when) : ''}${c.when && c.place ? '<br>' : ''}${c.place ? `<span class="muted">${text(c.place)}</span>` : ''}</p>`,
+    c.venue && `<p class="big">${esc(v.name)}<br><span class="muted">${esc(v.address)}</span></p><a class="btn ghost" href="${esc(v.mapUrl)}" target="_blank" rel="noopener">${esc(L.openInMaps)}</a>`,
+    ...body.map((p) => `<p>${text(p)}</p>`),
+    c.items && `<ul class="items">${c.items.map((it) => `<li><b>${link(it.url) ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${text(it.name)}</a>` : text(it.name)}</b> ${text(it.text)}</li>`).join('')}</ul>`,
+    c.dress && `<p class="dress">${text(c.dress)}</p>`,
+    c.button && link(c.button.url) && `<a class="btn ghost" href="${esc(c.button.url)}" target="_blank" rel="noopener">${text(c.button.label)}</a>`,
+  ].filter(Boolean).join('\n');
+}
+
+/**
+ * Cards pinned to places in the complex. Where each one pins (`anchor`, a world-space point), when
+ * it shows (`range`: [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd] in walk progress) and which
+ * screen edge it docks to on wide screens (`side`) come from scene/walk.js, next to the camera
+ * path; the text comes from content.json's `cards`, keyed the same way.
  */
 function buildCards() {
   const c = content;
-  const w = c.walk;
-  const ev = c.events.list;
+  const K = c.cards;
   const L = c.labels;
   const F = L.form;
-  return [
-    {
-      id: 'title', centered: true, range: [0, 0, 0.045, 0.1],
-      html: `
-        <p class="bengali-title">${esc(c.couple.bengaliTitle)}</p>
-        <h1>${names(c.couple.partner1, c.couple.partner2)}</h1>
-        <p class="lead">${esc(c.date.display)} · ${esc(c.venue.name)}</p>
-        <p class="hint">${esc(w.intro)}</p>
-        <a class="skip" href="#rsvp" data-jump="end">${esc(L.jumpToRsvp)}</a>`,
-    },
-    {
-      id: 'gate', ...ANCHORS.gate, side: 'left',
-      html: `
-        <p class="kicker">${esc(w.gate.kicker)}</p>
-        <h2>${names(c.couple.partner1, c.couple.partner2)}</h2>
-        <p>${esc(fill(w.gate.body, { names: `${c.couple.partner1} and ${c.couple.partner2}` }))}</p>`,
-    },
-    {
-      id: 'story', ...ANCHORS.story, side: 'right',
-      html: `
-        <p class="kicker">${esc(c.couple.hashtag)}</p>
-        <h2>${esc(c.story.heading)}</h2>
-        <ol class="timeline">
+  const special = {
+    gate: { titleHTML: names(c.couple.partner1, c.couple.partner2) },
+    story: {
+      extra: `<ol class="timeline">
           ${c.story.timeline.map((t) => `<li><span class="when">${esc(t.when)}</span><b>${esc(t.title)}</b><span>${esc(t.text)}</span></li>`).join('')}
         </ol>`,
     },
-    {
-      id: 'events', ...ANCHORS.events, side: 'left',
-      html: `
-        <p class="kicker">${esc(L.scheduleKicker)}</p>
-        <h2>${esc(c.events.heading)}</h2>
-        <p class="sub">${esc(c.events.intro)}</p>
-        <ul class="events">
-          ${ev.map((e) => `<li><b>${esc(e.name)}</b><span>${esc(e.date)} · ${esc(e.time)}</span><span class="place">${esc(e.place)}</span>${e.dress ? `<em>${esc(e.dress)}</em>` : ''}</li>`).join('')}
-        </ul>`,
-    },
-    {
-      id: 'ceremony', ...ANCHORS.ceremony, side: 'right',
-      html: `
-        <p class="kicker">${esc(w.ceremony.kicker)}</p>
-        <h2>${esc(w.ceremony.title)}</h2>
-        <p class="big">${esc(c.date.display)}<br>${esc(c.date.time)}</p>
-        <p>${esc(w.ceremony.body)}</p>
-        <p class="dress">${esc(w.ceremony.dress)}</p>`,
-    },
-    {
-      id: 'travel', ...ANCHORS.travel, side: 'left',
-      html: `
-        <p class="kicker">${esc(L.travelKicker)}</p>
-        <h2>${esc(c.travel.heading)}</h2>
-        <p class="big">${esc(c.venue.name)}<br><span class="muted">${esc(c.venue.address)}</span></p>
-        <a class="btn ghost" href="${esc(c.venue.mapUrl)}" target="_blank" rel="noopener">${esc(L.openInMaps)}</a>
-        <div class="two-col">
-          <div>
-            <p class="col-title">${esc(L.gettingThere)}</p>
-            ${c.travel.gettingThere.map((g) => `<p><b>${esc(g.title)}</b> ${esc(g.text)}</p>`).join('')}
-          </div>
-          <div>
-            <p class="col-title">${esc(L.whereToStay)}</p>
-            ${c.travel.hotels.map((h) => `<p><b>${h.url && h.url !== '#' ? `<a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.name)}</a>` : esc(h.name)}</b> ${esc(h.text)}</p>`).join('')}
-          </div>
-        </div>`,
-    },
-    {
-      id: 'rsvp', ...ANCHORS.rsvp, side: 'right', form: true,
-      html: `
-        <p class="kicker bengali">${esc(w.sanctum.kicker)}</p>
-        <h2>${esc(w.sanctum.title)}</h2>
+    rsvp: {
+      form: true,
+      extra: `
         <p class="sub">${esc(c.rsvp.intro)}</p>
         <form class="rsvp-form" id="rsvp-form" novalidate>
           <label>${esc(F.name)} <input name="name" type="text" autocomplete="name" required /></label>
@@ -109,6 +75,21 @@ function buildCards() {
           </div>
         </form>`,
     },
+  };
+  return [
+    {
+      id: 'title', centered: true, range: [0, 0, 0.03, 0.08],
+      html: `
+        <p class="bengali-title">${esc(c.couple.bengaliTitle)}</p>
+        <h1>${names(c.couple.partner1, c.couple.partner2)}</h1>
+        <p class="lead">${esc(c.date.display)} · ${esc(c.venue.name)}</p>
+        <p class="hint">${esc(c.walk.intro)}</p>
+        <a class="skip" href="#rsvp" data-jump="end">${esc(L.jumpToRsvp)}</a>`,
+    },
+    ...Object.entries(ANCHORS).map(([id, where]) => {
+      const sp = special[id] || {};
+      return { id, ...where, form: sp.form, html: cardHTML(K[id], { titleHTML: sp.titleHTML }) + (sp.extra || '') };
+    }),
   ];
 }
 

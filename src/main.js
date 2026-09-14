@@ -2,6 +2,7 @@ import { content } from './content.js';
 import { createScene } from './scene/scene.js';
 import { createAmbience, createPlaylist, hasPlaylist } from './audio.js';
 import { mountCards } from './cards.js';
+import { at } from './scene/walk.js';
 import { renderSections } from './sections.js';
 
 document.title = content.site.title; // also baked into index.html at build time (vite.config.js)
@@ -77,7 +78,7 @@ if (!sceneApi) {
       if (pastWalk) sceneApi.stop(); else sceneApi.start();
     }
     hint.classList.toggle('is-hidden', y > 40);
-    sound.setDepth(Math.min(1, Math.max(0, (progressTarget - 0.7) / 0.25)));
+    sound.setDepth(Math.min(1, Math.max(0, (progressTarget - at(30)) / (at(34) - at(30)))));   // deeper as the temple stair is climbed
   }
   window.addEventListener('scroll', onScroll, { passive: true });
 

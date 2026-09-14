@@ -411,7 +411,8 @@ def landmarks() -> dict:
     ccx, ccy, cw, cl = L["courtyard_cx"], L["courtyard_cy"], L["courtyard_w"], L["courtyard_l"]
     wx = ccx - cw / 2                                    # west edge of the courtyard platform
     gap, half = L["shiva_gap"], L["shiva_ghat_gap"] / 2
-    s1_arch_h, nat_arch = 5.6, (2.0, 4.3)                # build_navaratna / build_halls arch sizes
+    s1_arch_h, nat_arch, vis_arch = 5.6, (2.0, 4.3), (1.9, 3.8)   # build_navaratna / build_halls arch sizes
+    sanc = B.SANCTUM
 
     def T(x, y, z):                                      # Blender (x, y, z) → Three (x, z, -y)
         return [round(x, 3), round(z, 3), round(-y, 3)]
@@ -442,7 +443,14 @@ def landmarks() -> dict:
                       "plinth_top": round(ch + 1.2, 3), "plinth_out": 1.5, "bays_west": 7, "bay_pitch": 3.0,
                       "arch": list(nat_arch), "arch_spring": spring(*nat_arch),
                       "stair_width": round(3 * 3.0 - 0.4, 3), "stair_steps": 6, "stair_tread": 0.36},
-        "radhakanta": {"center": T(vx, vy, ch), "size": [vw, vd], "height": vh, "west_face_x": round(vx - vw / 2, 3)},
+        "radhakanta": {"center": T(vx, vy, ch), "size": [vw, vd], "height": vh, "west_face_x": round(vx - vw / 2, 3),
+                       "plinth_top": round(ch + 1.2, 3), "plinth_out": 1.5, "bays_west": 8, "bay_pitch": 3.0,
+                       "arch": list(vis_arch), "arch_spring": spring(*vis_arch), "storey_h": round(vh / 2, 3),
+                       "stair_width": round(3 * 3.0 - 0.4, 3), "stair_steps": 6, "stair_tread": 0.36},
+        # the shrine chamber in the navaratna's core, behind the central south arch (build_dakshineswar.SANCTUM)
+        "sanctum": {"door": T(cx, cy - (S / 2 - 3.0), ch + ph), "arch": list(sanc["door"]),
+                    "width": sanc["width"], "depth": sanc["depth"], "height": sanc["height"],
+                    "dais_top": round(ch + ph + sanc["dais"][2], 3), "dais_depth": sanc["dais"][1]},
         "arcade": {"east_x": round(ccx + cw / 2 - L["arcade_depth"], 3), "height": L["arcade_h"]},
         "lamps": [T(*p) for p in B.PROPS["lamps"]],      # lantern centres
         "bells": [T(*p) for p in B.PROPS["bells"]],
