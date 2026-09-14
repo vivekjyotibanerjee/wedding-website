@@ -150,7 +150,7 @@ def _stripe_mask(nt, coord, period, duty, offset=0.0, zmax=None):
 
 
 def pbr(name: str, tex_set: str, tint=(1.0, 1.0, 1.0), rough=0.8, normal=1.0, displace=False,
-        disp_scale=None, grime=0.35, period=None, stripes=None, checker=None) -> bpy.types.Material:
+        disp_scale=None, grime=0.35, period=None, stripes=None, checker=None, streak=0.5, damp=0.0) -> bpy.types.Material:
     """Textured material: generated albedo × tint, tangent normal map, height → bump (or true
     displacement when displace=True — pair it with an adaptive-subdivision object). grime darkens
     occluded corners (AO-driven dirt under cornices, inside arches, along plinths).
@@ -158,7 +158,10 @@ def pbr(name: str, tex_set: str, tint=(1.0, 1.0, 1.0), rough=0.8, normal=1.0, di
     coord = "object_z" | "generated_z" | "uv_u".
     checker = dict(period, n, bump, tex): relief on a body of revolution — `n` beads around the
     axis (generated coords), chequered with rows every `period` of normalised height when given,
-    added to the bump height; `tex` scales the texture's own height down so the relief dominates."""
+    added to the bump height; `tex` scales the texture's own height down so the relief dominates.
+    Weathering (world-space, so it bakes per instance position): streak = dirt washed down from
+    ledges and cornices — long-range occlusion × noise stretched vertically; damp = the rising
+    damp / algae band along the bottom of walls that stand on the courtyard."""
     if name in MATS:
         return MATS[name]
     t = TEX[tex_set]
@@ -234,6 +237,50 @@ def pbr(name: str, tex_set: str, tint=(1.0, 1.0, 1.0), rough=0.8, normal=1.0, di
         nt.links.new(colour, dirt.inputs["Color1"])
         nt.links.new(mr.outputs["Result"], dirt.inputs["Color2"])
         colour = dirt.outputs["Color"]
+    if streak > 0 or damp > 0:
+        geo = nt.nodes.new("ShaderNodeNewGeometry")
+        wsep = nt.nodes.new("ShaderNodeSeparateXYZ")
+        nt.links.new(geo.outputs["Position"], wsep.inputs["Vector"])
+    if streak > 0:
+        ao2 = nt.nodes.new("ShaderNodeAmbientOcclusion")
+        ao2.samples = 4
+        ao2.inputs["Distance"].default_value = 3.0
+        mp2 = nt.nodes.new("ShaderNodeMapping")
+        mp2.inputs["Scale"].default_value = (2.5, 2.5, 0.22)           # streaks: fine across, long down
+        nt.links.new(geo.outputs["Position"], mp2.inputs["Vector"])
+        sn = nt.nodes.new("ShaderNodeTexNoise")
+        sn.inputs["Scale"].default_value, sn.inputs["Detail"].default_value = 1.0, 4.0
+        nt.links.new(mp2.outputs["Vector"], sn.inputs["Vector"])
+        smask = nt.nodes.new("ShaderNodeMapRange")                        # noise 0.45..0.75 → 0..1
+        smask.inputs["From Min"].default_value, smask.inputs["From Max"].default_value = 0.45, 0.75
+        nt.links.new(sn.outputs["Fac"], smask.inputs["Value"])
+        shelter = _math(nt, "MULTIPLY", _math(nt, "SUBTRACT", ao2.outputs["AO"], 1.0), -1.8)   # 0 in the open
+        fac = _math(nt, "MINIMUM", _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", smask.outputs["Result"], shelter), streak), 1.0)
+        sd = nt.nodes.new("ShaderNodeMixRGB")
+        sd.blend_type = "MULTIPLY"
+        sd.inputs["Color2"].default_value = (0.42, 0.40, 0.36, 1.0)
+        nt.links.new(colour, sd.inputs["Color1"])
+        nt.links.new(fac, sd.inputs["Fac"])
+        colour = sd.outputs["Color"]
+    if damp > 0:
+        ch = LAYOUT["courtyard_h"]
+        band = nt.nodes.new("ShaderNodeMapRange")                         # 1 at the courtyard, 0 at +0.9 m
+        band.inputs["From Min"].default_value, band.inputs["From Max"].default_value = ch + 0.12, ch + 0.9
+        band.inputs["To Min"].default_value, band.inputs["To Max"].default_value = 1.0, 0.0
+        nt.links.new(wsep.outputs["Z"], band.inputs["Value"])
+        dn = nt.nodes.new("ShaderNodeTexNoise")
+        dn.inputs["Scale"].default_value, dn.inputs["Detail"].default_value = 1.4, 5.0
+        nt.links.new(geo.outputs["Position"], dn.inputs["Vector"])
+        dmask = nt.nodes.new("ShaderNodeMapRange")
+        dmask.inputs["From Min"].default_value, dmask.inputs["From Max"].default_value = 0.38, 0.7
+        nt.links.new(dn.outputs["Fac"], dmask.inputs["Value"])
+        fac = _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", band.outputs["Result"], dmask.outputs["Result"]), damp)
+        dd = nt.nodes.new("ShaderNodeMixRGB")
+        dd.blend_type = "MULTIPLY"
+        dd.inputs["Color2"].default_value = (0.40, 0.46, 0.30, 1.0)      # algae-green damp
+        nt.links.new(colour, dd.inputs["Color1"])
+        nt.links.new(fac, dd.inputs["Fac"])
+        colour = dd.outputs["Color"]
     nt.links.new(colour, p.inputs["Base Color"])
     p.inputs["Roughness"].default_value = rough
     nm = nt.nodes.new("ShaderNodeNormalMap")
@@ -323,6 +370,44 @@ def garland_material() -> bpy.types.Material:
     return m
 
 
+def foliage_material(name: str, path: Path) -> bpy.types.Material:
+    """A leaf card: the RGBA atlas from textures.ensure_foliage, alpha-clipped, two-sided, with a
+    little translucency so the sun reads through the crowns in the stills. The web export ships
+    the image itself (see export_web.FOLIAGE)."""
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    p = nt.nodes["Principled BSDF"]
+    out = nt.nodes["Material Output"]
+    p.inputs["Roughness"].default_value = 0.75
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.image = _image(path, False)
+    tex.image.alpha_mode = "STRAIGHT"
+    tex.extension = "EXTEND"
+    uv = nt.nodes.new("ShaderNodeUVMap")
+    uv.uv_map = "cube"
+    nt.links.new(uv.outputs["UV"], tex.inputs["Vector"])
+    nt.links.new(tex.outputs["Color"], p.inputs["Base Color"])
+    nt.links.new(tex.outputs["Alpha"], p.inputs["Alpha"])
+    tr = nt.nodes.new("ShaderNodeBsdfTranslucent")
+    nt.links.new(tex.outputs["Color"], tr.inputs["Color"])
+    mix = nt.nodes.new("ShaderNodeMixShader")
+    mix.inputs["Fac"].default_value = 0.3
+    nt.links.new(p.outputs["BSDF"], mix.inputs[1])
+    nt.links.new(tr.outputs["BSDF"], mix.inputs[2])
+    clip = nt.nodes.new("ShaderNodeMixShader")            # alpha clip for the translucent branch too
+    tp = nt.nodes.new("ShaderNodeBsdfTransparent")
+    nt.links.new(tex.outputs["Alpha"], clip.inputs["Fac"])
+    nt.links.new(tp.outputs["BSDF"], clip.inputs[1])
+    nt.links.new(mix.outputs["Shader"], clip.inputs[2])
+    nt.links.new(clip.outputs["Shader"], out.inputs["Surface"])
+    m.blend_method = "CLIP"
+    m.shadow_method = "CLIP"
+    m.use_backface_culling = False
+    MATS[name] = m
+    return m
+
+
 def water_material() -> bpy.types.Material:
     m = mat("water", (0.13, 0.17, 0.14), 0.08)
     nt = m.node_tree
@@ -349,7 +434,7 @@ MARIGOLD = (0.95, 0.45, 0.05)
 def make_materials() -> None:
     global TEX
     TEX = textures.ensure_textures(TEX_DIR)
-    pbr("stucco", "stucco", rough=0.85, normal=1.0)
+    pbr("stucco", "stucco", rough=0.85, normal=1.0, damp=0.7)
     pbr("stucco_fine", "stucco", rough=0.85, normal=0.6, period=1.5, grime=0.25)   # columns, drums
     pbr("rose", "stucco", tint=ROSE, rough=0.75, normal=0.5, period=1.5, grime=0.2)
     # aat-chala roofs are red-painted plaster (refs M131868947, M130391230), not tiles: bump only
@@ -358,7 +443,7 @@ def make_materials() -> None:
     pbr("laterite", "brick", tint=(0.9, 0.75, 0.7), rough=0.95, normal=1.0)
     pbr("paving", "paving", rough=0.85, normal=1.0, displace=True)      # adaptive-subdivision objects only
     pbr("path", "stucco", tint=(0.78, 0.74, 0.66), rough=0.9, normal=0.4, period=2.0, grime=0.25)
-    pbr("white", "stucco", tint=(0.95, 0.94, 0.9), rough=0.6, normal=0.4, period=1.0, grime=0.2)
+    pbr("white", "stucco", tint=(0.95, 0.94, 0.9), rough=0.6, normal=0.4, period=1.0, grime=0.2, damp=0.5)
     # painted detail instead of geometry:
     #   spire   – maroon bands on the ribbed ratnas (normalised height → same look on every size)
     #   striped – maroon/cream banded corner pilasters of the navaratna (object z, origin at the base)
@@ -372,11 +457,11 @@ def make_materials() -> None:
         checker=dict(n=48, bump=-0.8, tex=0.3))
     pbr("colonette", "stucco", rough=0.8, normal=0.5, period=1.5, grime=0.2,
         stripes=dict(colour=ROSE, coord="uv_u", period=0.14, duty=0.5, bump=0.5))
-    pbr("column", "stucco", tint=(0.95, 0.94, 0.9), rough=0.75, normal=0.4, period=1.0, grime=0.2,
+    pbr("column", "stucco", tint=(0.95, 0.94, 0.9), rough=0.75, normal=0.4, period=1.0, grime=0.2, damp=0.5,
         stripes=dict(colour=ROSE, coord="object_z", period=1000.0, duty=0.0016))
     pbr("striped", "stucco", rough=0.8, normal=0.6, period=1.5, grime=0.25,
         stripes=dict(colour=ROSE, coord="object_z", period=0.9, duty=0.5))
-    pbr("dado", "stucco", rough=0.85, normal=1.0,
+    pbr("dado", "stucco", rough=0.85, normal=1.0, damp=0.4,
         stripes=dict(colour=ROSE, coord="object_z", period=1000.0, duty=0.0009))
     pbr("dentil", "stucco", tint=(0.95, 0.94, 0.9), rough=0.6, normal=0.4, period=1.0, grime=0.2,
         stripes=dict(colour=(0.30, 0.22, 0.18), coord="uv_u", period=0.6, duty=0.5, bump=-0.6))
@@ -396,6 +481,16 @@ def make_materials() -> None:
     mat("earth", (0.30, 0.25, 0.17), 0.95, bump=0.25, bump_scale=8)
     mat("green", (0.12, 0.26, 0.08), 0.9)
     mat("bank", (0.22, 0.30, 0.14), 0.95, bump=0.3, bump_scale=3)
+    # greenery and courtyard furniture
+    for name, path in textures.ensure_foliage(TEX_DIR).items():
+        foliage_material(name, path)
+    mat("bark", (0.30, 0.22, 0.15), 0.9, bump=0.5, bump_scale=6)
+    mat("palm_bark", (0.42, 0.34, 0.24), 0.9, bump=0.6, bump_scale=14)
+    mat("banana_stem", (0.48, 0.56, 0.26), 0.7, bump=0.2, bump_scale=8)
+    mat("terracotta", (0.55, 0.28, 0.17), 0.85, bump=0.15, bump_scale=30)
+    mat("soil", (0.18, 0.13, 0.09), 1.0, bump=0.4, bump_scale=40)
+    mat("iron", (0.09, 0.09, 0.10), 0.55, metal=0.5)
+    mat("lamp_glass", (0.98, 0.93, 0.78), 0.15)      # the site turns this emissive at night (web_lamp_glass)
 
 
 def cube_uv(me: bpy.types.Mesh) -> None:
@@ -1386,51 +1481,193 @@ def build_mandap(L):
     new_object("mandap_flowers", *merge(*balls), "garland", smooth=True)
 
 
+def quad(c, ax, ay):
+    """One two-sided card: centre `c`, half-axes `ax` (→ u) and `ay` (→ v). Returns (verts, faces, uvs)."""
+    c, ax, ay = Vector(c), Vector(ax), Vector(ay)
+    v = [tuple(c - ax - ay), tuple(c + ax - ay), tuple(c + ax + ay), tuple(c - ax + ay)]
+    return v, [(0, 1, 2, 3)], [(0, 0), (1, 0), (1, 1), (0, 1)]
+
+
+def bent_card(origin, direction, length, width, rise, droop, u0=0.0, u1=1.0, along="u"):
+    """A card in two segments from `origin` along the horizontal `direction`: the first climbs at
+    `rise` radians, the second at `droop` (negative = hanging). The texture runs along the card
+    (u for a 2:1 frond, v for a 1:2 banana leaf). Returns (verts, faces, uvs)."""
+    d = Vector((direction[0], direction[1], 0.0)).normalized()
+    side = Vector((-d.y, d.x, 0.0)) * (width / 2)
+    o = Vector(origin)
+    p1 = o + d * (length / 2 * math.cos(rise)) + Vector((0, 0, length / 2 * math.sin(rise)))
+    p2 = p1 + d * (length / 2 * math.cos(droop)) + Vector((0, 0, length / 2 * math.sin(droop)))
+    verts = [tuple(o - side), tuple(o + side), tuple(p1 - side), tuple(p1 + side), tuple(p2 - side), tuple(p2 + side)]
+    faces = [(0, 1, 3, 2), (2, 3, 5, 4)]
+    um = (u0 + u1) / 2
+    if along == "u":
+        uvs = [(u0, 0), (u0, 1), (um, 0), (um, 1), (u1, 0), (u1, 1)]
+    else:
+        uvs = [(0, u0), (1, u0), (0, um), (1, um), (0, u1), (1, u1)]
+    return verts, faces, uvs
+
+
+def merge_uv(*parts):
+    verts, faces, uvs = [], [], []
+    for v, f, u in parts:
+        off = len(verts)
+        verts.extend(v)
+        faces.extend(tuple(i + off for i in face) for face in f)
+        uvs.extend(u)
+    return verts, faces, uvs
+
+
+def _proto(name, part, material, smooth=False):
+    """A prototype parked out of frame (hide_render); instances share its mesh. `part` is
+    (verts, faces) or (verts, faces, uvs) for cards."""
+    verts, faces, *uvs = part
+    ob = new_object(name, verts, faces, material, smooth=smooth, uvs=uvs[0] if uvs else None)
+    ob.location = (0, 0, -100)
+    ob.hide_render = True
+    return ob
+
+
+def _crown(rnd, n_clumps, radius, size, z, spread_z=1.6):
+    """Leaf-card clumps around a crown centre: each clump is three cards through one point."""
+    parts = []
+    for k in range(n_clumps):
+        t = 2 * math.pi * k / n_clumps + rnd.random() * 0.7
+        r = radius * (0.35 + 0.65 * rnd.random()) if k else 0.0
+        c = (r * math.cos(t), r * math.sin(t), z + (rnd.random() - 0.5) * spread_z + (0.9 if k == 0 else 0))
+        sz = size * (1.2 if k == 0 else 0.8 + 0.4 * rnd.random())
+        for j in range(3):
+            a = rnd.random() * math.pi
+            tilt = (rnd.random() - 0.5) * 0.9
+            ax = Vector((math.cos(a), math.sin(a), 0.0)) * (sz / 2)
+            up = Vector((-math.sin(a) * math.sin(tilt), math.cos(a) * math.sin(tilt), math.cos(tilt))) * (sz / 2)
+            parts.append(quad(c, ax, up))
+    return merge_uv(*parts)
+
+
+PROPS = {"lamps": [], "bells": []}       # positions the web export writes into landmarks.json (Blender frame)
+
+
 def build_trees(L):
-    """A few stylised palms on the far bank and behind the east arcade — silhouettes only."""
-    trunk = lathe([(0, 0), (0.25, 0), (0.18, 9), (0, 9)], 8)
-    fronds = []
-    for k in range(9):
-        t = 2 * math.pi * k / 9
-        cx_, cy_ = math.cos(t), math.sin(t)
-        pts = []
-        for j in range(6):          # droop curve
-            u = j / 5
-            pts.append((cx_ * 3.2 * u, cy_ * 3.2 * u, 9.0 + 1.2 * math.sin(u * 2.2) - 1.6 * u * u))
-        verts, faces = [], []
-        for j, (px, py, pz) in enumerate(pts):
-            w = 0.55 * math.sin(math.pi * min(1, 0.15 + j / 5))
-            verts += [(px - cy_ * w, py + cx_ * w, pz), (px + cy_ * w, py - cx_ * w, pz)]
-            if j:
-                a = 2 * (j - 1)
-                faces.append((a, a + 1, a + 3, a + 2))
-        fronds.append((verts, faces))
-    crown = merge(*fronds)
-    t = new_object("palm_trunk", *trunk, "dark")
-    c = new_object("palm_crown", *crown, "green", smooth=True)
-    c.parent = t
-    t.location = (0, 0, -100)
-    t.hide_render = c.hide_render = True
-    # the river is directly west of the complex, so near trees only stand east, north and south of it
-    spots = [(34, 74), (40, 44), (38, -34), (44, -72), (6, 78), (-14, -82), (-30, 84), (24, -90)]
-    rx = L["river_x"] - 250
+    """Greenery: card-based broadleaf trees and palms (an old grove north and south of the walls,
+    the far bank), banana-plant pairs (kola gach, the Bengali wedding marker) at the ghat top and
+    the two hall stairs, potted shrubs along the plinths. Cards use the RGBA atlases from
+    textures.ensure_foliage, so a tree is ~50 faces."""
     import random
     rnd = random.Random(7)
-    spots += [(rx - 8 - rnd.random() * 30, -600 + k * 23 + rnd.random() * 10) for k in range(52)]
-    blob = merge(*[lathe([(0, 0), (r, 0), (r * 1.1, hh * 0.35), (r * 0.8, hh * 0.75), (0, hh)], 10, ox, oy, 5 + oz)
-                   for (r, hh, ox, oy, oz) in ((4.5, 6, 0, 0, 0), (3.5, 5, 3, 1, 1), (3.2, 4.5, -2.5, -2, 0.5), (2.8, 4, 0.5, 3, 1.5))])
-    b = new_object("canopy", *blob, "green", smooth=True, auto_smooth=80)
-    b.location = (0, 0, -100)
-    b.hide_render = True
-    for k in range(70):
-        instance(f"canopy_{k}", b, (rx - 20 - rnd.random() * 120, -700 + k * 20 + rnd.random() * 15, 0),
-                 rot_z=rnd.random() * 6, scale=(1 + rnd.random() * 0.8,) * 3)
-    for k, (x, y) in enumerate([(34, 62), (40, 18), (36, -22), (44, -60), (18, 82), (-24, 80), (-20, -84), (30, -84), (8, 90), (-4, -96)]):
-        instance(f"canopy_n{k}", b, (x, y, 0), rot_z=k * 1.3, scale=(1.1 + (k % 3) * 0.3,) * 3)
-    for i, (x, y) in enumerate(spots):
-        p = instance(f"palm_{i}", t, (x, y, 0), rot_z=i * 0.7, scale=(1, 1, 0.9 + 0.1 * (i % 3)))
-        cc = instance(f"palm_{i}_crown", c, (0, 0, 0))
-        cc.parent = p
+    cx, cy, cw, cl, ch = L["courtyard_cx"], L["courtyard_cy"], L["courtyard_w"], L["courtyard_l"], L["courtyard_h"]
+    # ── prototypes
+    trunk = _proto("tree_trunk", lathe([(0, 0), (0.42, 0), (0.30, 2.6), (0.22, 5.2), (0.12, 7.4), (0, 7.6)], 10), "bark", smooth=True)
+    crown = _proto("tree_crown", _crown(rnd, 7, 3.2, 6.0, 8.2), "leaves")
+    crown.parent = trunk
+    ptrunk = _proto("palm_trunk", lathe([(0, 0), (0.28, 0), (0.22, 0.5), (0.19, 8.4), (0.15, 9.2), (0, 9.3)], 8), "palm_bark", smooth=True)
+    fronds = []
+    for k in range(11):
+        t = 2 * math.pi * k / 11 + rnd.random() * 0.3
+        fronds.append(bent_card((0, 0, 9.0 + rnd.random() * 0.3), (math.cos(t), math.sin(t)), 3.8 + rnd.random() * 0.6, 1.5,
+                                math.radians(38 - 60 * rnd.random() ** 2), math.radians(-42 - 20 * rnd.random())))
+    pcrown = _proto("palm_crown", merge_uv(*fronds), "frond")
+    pcrown.parent = ptrunk
+    stem = _proto("banana_stem", lathe([(0, 0), (0.15, 0), (0.12, 1.5), (0.08, 2.3), (0, 2.4)], 8), "banana_stem", smooth=True)
+    leaves = []
+    for k in range(8):
+        t = k * 2.399963 + 0.4                                        # golden angle, a rosette
+        z = 1.3 + 0.13 * k
+        rise = math.radians(62 - 6 * k) if k < 6 else math.radians(-15)  # the oldest leaves hang
+        droop = math.radians(-5 - 8 * k) if k < 6 else math.radians(-60)
+        leaves.append(bent_card((0.1 * math.cos(t), 0.1 * math.sin(t), z), (math.cos(t), math.sin(t)),
+                                1.9 + 0.2 * rnd.random(), 0.75, rise, droop, along="v"))
+    bleaves = _proto("banana_leaves", merge_uv(*leaves), "banana")
+    bleaves.parent = stem
+    pot = _proto("pot", lathe([(0, 0), (0.17, 0), (0.25, 0.4), (0.27, 0.44), (0.22, 0.44), (0.22, 0.4), (0, 0.4)], 14), "terracotta", smooth=True)
+    shrub = _proto("pot_shrub", _crown(rnd, 1, 0.0, 1.0, 0.75, 0.0), "leaves")
+    shrub.parent = pot
+
+    def tree(name, x, y, scale=1.0, rot=None):
+        t = instance(name, trunk, (x, y, 0.0), rot_z=rnd.random() * 6 if rot is None else rot, scale=(scale,) * 3)
+        instance(name + "_crown", crown, (0, 0, 0)).parent = t
+
+    def palm(name, x, y, scale=1.0):
+        t = instance(name, ptrunk, (x, y, 0.0), rot_z=rnd.random() * 6, scale=(scale, scale, scale * (0.85 + 0.3 * rnd.random())))
+        instance(name + "_crown", pcrown, (0, 0, 0)).parent = t
+
+    def kola(name, x, y, z, scale=1.0):
+        t = instance(name, stem, (x, y, z), rot_z=rnd.random() * 6, scale=(scale,) * 3)
+        instance(name + "_leaves", bleaves, (0, 0, 0)).parent = t
+
+    def potted(name, x, y, z):
+        t = instance(name, pot, (x, y, z), rot_z=rnd.random() * 6, scale=(0.9 + 0.2 * rnd.random(),) * 3)
+        instance(name + "_shrub", shrub, (0, 0, 0)).parent = t
+
+    # ── the grove: old trees north and south of the walls and a line behind the east range
+    yn, ys = cy + cl / 2, cy - cl / 2
+    for i, (x, y, sc) in enumerate([(-30, yn + 9, 1.5), (-16, yn + 14, 1.8), (-2, yn + 8, 1.4), (12, yn + 13, 1.6), (24, yn + 7, 1.3),
+                                    (-26, ys - 8, 1.4), (-10, ys - 13, 1.7), (6, ys - 7, 1.3), (20, ys - 12, 1.5)]):
+        tree(f"grove_{i}", x, y, sc)
+    xe = cx + cw / 2
+    for i in range(9):
+        tree(f"east_{i}", xe + 5 + rnd.random() * 6, cy - 46 + i * 11.5 + rnd.random() * 3, 1.1 + 0.5 * rnd.random())
+    for i, (x, y) in enumerate([(xe + 3, cy + 30), (xe + 4, cy - 20), (-20, yn + 5), (8, ys - 4)]):
+        palm(f"palm_{i}", x, y, 1.0 + 0.2 * (i % 3))
+    # ── the far bank (Bally side): a loose tree line
+    rx = L["river_x"] - 250
+    for k in range(60):
+        tree(f"far_{k}", rx - 15 - rnd.random() * 110, -700 + k * 23 + rnd.random() * 12, 1.2 + rnd.random() * 1.0)
+    for k in range(16):
+        palm(f"far_palm_{k}", rx - 8 - rnd.random() * 30, -600 + k * 75 + rnd.random() * 20, 0.9 + rnd.random() * 0.4)
+    # ── kola gach: pairs flanking the ghat top, the nat-mandir's west stair and the navaratna stair
+    wx = cx - cw / 2
+    (nx, ny), (nw, nd) = L["natmandir_center"], L["natmandir_size"]
+    mcx, mcy = L["mandir_center"]
+    P = L["mandir_platform"]
+    pairs = [((wx + 1.3, cy + 5.0), (wx + 1.3, cy - 5.0)),
+             ((nx - nw / 2 - 2.6, ny + 5.4), (nx - nw / 2 - 2.6, ny - 5.4)),
+             ((mcx + 5.9, mcy - P / 2 - 3.0), (mcx - 5.9, mcy - P / 2 - 3.0))]
+    for i, pair in enumerate(pairs):
+        for j, (x, y) in enumerate(pair):
+            kola(f"kola_{i}_{j}", x, y, ch, 1.0 + 0.1 * j)
+            potted(f"kola_pot_{i}_{j}", x + 0.9, y + (0.6 if j else -0.6), ch)
+    # ── potted shrubs along the nat-mandir's west plinth (the Shiva row's foot is the walk's sightline: none there)
+    px = nx - nw / 2 - 1.5 - 0.5
+    for k, dy in enumerate((-7.0, 7.0)):                    # the walk passes the north-west corner: keep it clear
+        potted(f"nat_pot_{k}", px, ny + dy, ch)
+
+
+def build_furniture(L):
+    """Cast-iron lamp posts along the centre walk and at the ghat top (the site lights them at
+    night), brass bells hung in the central arch of the nat-mandir's and the Radhakanta's west
+    faces. Positions go to PROPS for landmarks.json."""
+    ch = L["courtyard_h"]
+    cx, cy, cw = L["courtyard_cx"], L["courtyard_cy"], L["courtyard_w"]
+    post = _proto("lamp_post", merge(lathe([(0, 0), (0.36, 0), (0.36, 0.08), (0.24, 0.12), (0.15, 0.5), (0.07, 0.58), (0.055, 3.3), (0.11, 3.42), (0, 3.42)], 12),
+                                      # lantern frame: cap and finial
+                                      lathe([(0, 3.95), (0.34, 3.95), (0.34, 4.0), (0.05, 4.3), (0, 4.34)], 4)), "iron", smooth=True)
+    glass = _proto("lamp_glass", lathe([(0, 3.42), (0.20, 3.42), (0.26, 3.95), (0, 3.95)], 4), "lamp_glass")
+    glass.parent = post
+    bell = _proto("bell", lathe([(0, 0), (0.30, 0), (0.30, 0.05), (0.25, 0.14), (0.19, 0.32), (0.11, 0.44), (0.05, 0.5), (0, 0.52)], 18), "gold", smooth=True)
+    chain = _proto("bell_chain", lathe([(0, 0), (0.015, 0), (0.015, 1.0), (0, 1.0)], 6), "iron")
+    chain.parent = bell
+
+    def lamp(name, x, y, z=ch):
+        instance(name, post, (x, y, z), rot_z=math.pi / 4)
+        instance(name + "_glass", glass, (0, 0, 0)).parent = bpy.data.objects[name]
+        PROPS["lamps"].append((x, y, z + 3.7))
+
+    _, _, strip_cx = strip_extent(L)
+    for k, dy in enumerate((-41, -27, -13, 19, 33, 47)):
+        lamp(f"lamp_{k}", strip_cx - 2.1, cy + dy)
+    wx = cx - cw / 2
+    for k, dy in enumerate((-8.5, 8.5)):
+        lamp(f"lamp_ghat_{k}", wx + 1.5, cy + dy)
+
+    def hang(name, x, y, z_top):
+        b = instance(name, bell, (x, y, z_top - 1.0 - 0.52))
+        instance(name + "_chain", chain, (0, 0, 0.52)).parent = b
+        PROPS["bells"].append((x, y, z_top - 1.0 - 0.26))
+
+    (nx, ny), (nw, nd) = L["natmandir_center"], L["natmandir_size"]
+    hang("bell_nat", nx - nw / 2 - 0.3, ny, ch + 1.2 + 4.3 - 0.15)
+    (vx, vy), (vw, vd) = L["vishnu_center"], L["vishnu_size"]
+    hang("bell_vishnu", vx - vw / 2 - 0.3, vy, ch + 1.2 + 3.8 - 0.15)
 
 
 # ------------------------------------------------------------------------------------------------
@@ -1635,6 +1872,7 @@ def main():
     build_mandap(L)
     if a.mode == "full":
         build_trees(L)
+        build_furniture(L)
     setup_world_and_light()
     configure_render(res, a.samples)
     mesh_audit()

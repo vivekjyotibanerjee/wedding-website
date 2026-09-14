@@ -97,6 +97,25 @@ Ordered by maturity; each is gated behind the pilot so the plain exterior splat 
 
 ## Status / log
 
+- 2026-09-14 — **Site now renders the Blender model** (`blender/export_web.py` → bake → glTF →
+  meshopt → `public/models/dakshineswar.glb`; `src/scene/{walk,model,scene}.js`). The hand-coded
+  Three.js complex (`dakshineswar.js`, `geo.js`, `materials.js`, `nature.js`) is retired. Walk
+  redesigned for the model's layout (no lion gate, solid navaratna core): river → ghat → Shiva
+  row → mandap → nat-mandir front and plinth → temple stair → south verandah arch. The splat
+  plan below is unchanged; when splats land they replace the glb in `scene.js`, and the card
+  anchors / camera path already live in the layout frame (`landmarks.json`).
+- 2026-09-14 — **Life layer.** Against "the temple looks barren": the export now bakes
+  ambient occlusion (`occlusionTexture`, also over the tiling ground/plinths) and weathering
+  (streaks under ledges, damp band at courtyard level); the model gains card-based trees and
+  palms (RGBA atlases from `textures.ensure_foliage`), a grove north/south of the walls, kola
+  gach pairs at the ghat top and both hall stairs, potted shrubs, cast-iron lamp posts and two
+  hung bells (positions exported in `landmarks.json`). Everything that moves or glows lives in
+  the site instead (`src/scene/life.js`, no re-bake needed): diyas, string lights + bloom,
+  doorway light and lit lamps at night, fireflies, birds, the flag, wind in the drapes, river
+  ripples, alpona decals; the cards get a vine and an alpona frame (`src/ornament.js`). No
+  human figures by decision. When splats replace the glb, the life layer stays as is — it only
+  reads landmarks.
+
 - 2026-09-13 — Blender track: `blender/build_dakshineswar.py` builds the complex parametrically
   (Cycles CPU previews verified against the CG video's overview angle and the satellite plan view).
   Deliverable = `.blend` + stills + turntable in `data/blender/`. Not integrated with the site.

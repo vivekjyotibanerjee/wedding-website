@@ -8,6 +8,7 @@ document.title = `${content.couple.partner1} & ${content.couple.partner2} — We
 
 const canvas = document.getElementById('scene');
 const veil = document.getElementById('veil');
+const veilNote = document.getElementById('veil-note');
 const walk = document.getElementById('walk');
 const cardsEl = document.getElementById('cards');
 const hint = document.getElementById('scroll-hint');
@@ -17,29 +18,42 @@ const details = document.getElementById('details');
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Whatever happens, never leave guests stuck behind the loading veil: if the model download makes
+// no progress for a while (or fails), show the details as a plain page instead.
+let veilFailsafe = 0;
+function armFailsafe(ms) {
+  clearTimeout(veilFailsafe);
+  veilFailsafe = setTimeout(() => { console.warn('Model load stalled; showing details only'); fallbackToDetails(); }, ms);
+}
+function onProgress(f) {
+  veilNote.textContent = f >= 0 && f < 1 ? `${Math.round(f * 100)} %` : '';
+  armFailsafe(25000);
+}
+
 let sceneApi = null;
 try {
-  sceneApi = createScene(canvas, { reducedMotion });
+  sceneApi = createScene(canvas, { reducedMotion, onProgress });
 } catch (e) {
   console.error('WebGL scene failed to start', e);
   sceneApi = null;
 }
 
-// Whatever happens, never leave guests stuck behind the loading veil.
-const veilFailsafe = setTimeout(() => veil.classList.add('is-done'), 6000);
-
 function fallbackToDetails() {
+  clearTimeout(veilFailsafe);
+  if (document.body.classList.contains('no-webgl')) return;
+  if (sceneApi) { try { sceneApi.stop(); sceneApi.dispose(); } catch (_) { /* ignore */ } }
   document.body.classList.add('no-webgl');
   details.hidden = false;
   renderSections(details);
   veil.classList.add('is-done');
-  clearTimeout(veilFailsafe);
 }
 
 if (!sceneApi) {
   // No WebGL — the wedding info is what matters; show it as a plain page.
   fallbackToDetails();
 } else try {
+  if (location.hash.includes('debug')) window.templeScene = sceneApi;
+  armFailsafe(25000);
   const cards = mountCards(cardsEl, sceneApi);
   const sound = hasPlaylist() ? createPlaylist() : createAmbience();
 
@@ -110,18 +124,23 @@ if (!sceneApi) {
     else { sound.resume(); if (!pastWalk) sceneApi.start(); }
   });
 
-  // ── Boot ─────────────────────────────────────────────────
+  // ── Boot: the veil lifts once the model is in ────────────
   sceneApi.resize();
   onScroll();
-  sceneApi.renderOnce(); // compile shaders before lifting the veil
-  requestAnimationFrame(() => {
-    sceneApi.start();
-    syncCards();
-    veil.classList.add('is-done');
+  sceneApi.ready.then(() => {
+    if (document.body.classList.contains('no-webgl')) return; // the failsafe already gave up on us
     clearTimeout(veilFailsafe);
+    sceneApi.renderOnce(); // compile shaders before lifting the veil
+    requestAnimationFrame(() => {
+      if (!pastWalk) sceneApi.start();
+      syncCards();
+      veil.classList.add('is-done');
+    });
+  }).catch((e) => {
+    console.error('Model failed to load; showing details only', e);
+    fallbackToDetails();
   });
 } catch (e) {
   console.error('Temple walk failed to start; showing details only', e);
-  try { sceneApi.dispose(); } catch (_) { /* ignore */ }
   fallbackToDetails();
 }

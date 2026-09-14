@@ -167,3 +167,154 @@ def ensure_textures(out_dir: Path, force=False) -> dict[str, dict]:
             print(f"  textures: wrote {name} ({N}²)")
         info[name] = {"period": SETS[name]["period"], "disp": {"stucco": 0.006, "tiles": 0.045, "brick": 0.02, "paving": 0.012}[name], **paths}
     return info
+
+
+# ------------------------------------------------------------------------------------------------
+# Foliage cards (RGBA, straight alpha): a leaf clump for broadleaf trees and potted shrubs, a
+# palm frond and a banana leaf. Painted leaf by leaf into a float canvas so the site's alpha-test
+# edge stays crisp; the colour under transparent pixels is filled with the mean leaf colour so
+# bilinear filtering never bleeds black into the edges.
+# ------------------------------------------------------------------------------------------------
+def _paint_leaf(rgba, cx, cy, length, width, angle, colour, rib=0.35, taper=0.6, soft=1.2):
+    """A pointed leaf (lens outline, darker midrib) at pixel (cx, cy), `length` px long along
+    `angle`, painted over the canvas with normal alpha compositing."""
+    h, w = rgba.shape[:2]
+    r = int(length * 0.55 + 3)
+    x0, x1, y0, y1 = max(0, int(cx) - r), min(w, int(cx) + r + 1), max(0, int(cy) - r), min(h, int(cy) + r + 1)
+    if x1 <= x0 or y1 <= y0:
+        return
+    yy, xx = np.mgrid[y0:y1, x0:x1]
+    dx, dy = xx - cx, yy - cy
+    c, s = np.cos(angle), np.sin(angle)
+    u = (dx * c + dy * s) / (length / 2)                       # -1 … 1 along the leaf
+    v = (-dx * s + dy * c)                                     # px across
+    half = (width / 2) * np.clip(1 - np.abs(u) ** 2, 0, 1) ** taper
+    d = np.abs(v) - half                                       # signed distance to the edge (approx)
+    a = np.clip(0.5 - d / soft, 0, 1) * (np.abs(u) < 1)
+    if not a.any():
+        return
+    shade = 1.0 - 0.35 * np.clip(np.abs(v) / np.maximum(half, 1e-3), 0, 1) ** 2   # darker toward the edge
+    shade *= 1.0 - rib * np.exp(-(v / max(1.0, width * 0.04)) ** 2)            # midrib
+    shade *= 0.85 + 0.15 * (u + 1) / 2                                          # lighter toward the tip
+    col = np.asarray(colour)[None, None, :] * shade[..., None]
+    dst = rgba[y0:y1, x0:x1]
+    a3 = a[..., None]
+    dst[..., :3] = col * a3 + dst[..., :3] * (1 - a3)
+    dst[..., 3] = a + dst[..., 3] * (1 - a)
+
+
+def _fill_transparent(rgba):
+    a = rgba[..., 3]
+    if (a > 0.05).any():
+        mean = (rgba[..., :3] * a[..., None]).sum((0, 1)) / max(a.sum(), 1e-6)
+    else:
+        mean = np.array([0.2, 0.35, 0.1])
+    k = np.clip(a / 0.05, 0, 1)[..., None]
+    rgba[..., :3] = rgba[..., :3] * k + mean[None, None, :] * (1 - k)
+    return rgba
+
+
+def gen_leaves(rng, n=1024):
+    """A round clump of ~400 broadleaf leaves, dense in the middle and ragged at the edge; back
+    leaves darker so the card reads as a volume."""
+    rgba = np.zeros((n, n, 4), dtype=np.float32)
+    dark, light = np.array([0.08, 0.20, 0.05]), np.array([0.34, 0.52, 0.16])
+    for i in range(420):
+        t = i / 419
+        rr = 0.44 * n * np.sqrt(rng.random()) * (0.85 + 0.3 * rng.random())
+        ang = rng.random() * 2 * np.pi
+        cx, cy = n / 2 + rr * np.cos(ang), n / 2 + rr * np.sin(ang) * 0.92
+        length = n * (0.10 + 0.07 * rng.random())
+        colour = dark + (light - dark) * (0.25 + 0.75 * t) * (0.8 + 0.3 * rng.random())
+        colour[0] *= 0.9 + 0.5 * rng.random() ** 3                  # a few yellowing leaves
+        _paint_leaf(rgba, cx, cy, length, length * 0.45, rng.random() * 2 * np.pi, colour, taper=0.55)
+    lit = (0.7 + 0.45 * (1 - np.arange(n) / n))[:, None, None]      # sky-lit from the top of the card
+    rgba[..., :3] *= lit
+    return _fill_transparent(rgba)
+
+
+def gen_frond(rng, w=1024, h=512):
+    """A palm frond, rachis along the middle of a 2:1 card (tip at the right), leaflets alternating
+    above and below and shortening toward the tip."""
+    rgba = np.zeros((h, w, 4), dtype=np.float32)
+    green = np.array([0.24, 0.42, 0.12])
+    x0, x1 = 0.02 * w, 0.985 * w
+    n_leaf = 46
+    for i in range(n_leaf):
+        t = i / (n_leaf - 1)
+        x = x0 + (x1 - x0) * t
+        length = h * 0.46 * (1 - 0.55 * t ** 2) * (0.92 + 0.16 * rng.random())
+        for side in (-1, 1):
+            ang = side * np.radians(62 - 30 * t) + rng.normal(0, 0.06)
+            col = green * (0.8 + 0.4 * rng.random()) * np.array([1.0 + 0.4 * t, 1.0, 1.0 - 0.2 * t])
+            _paint_leaf(rgba, x + np.cos(ang) * length / 2, h / 2 + np.sin(ang) * length / 2, length, 0.030 * h,
+                        ang, col, rib=0.2, taper=0.4, soft=1.0)
+    # rachis: a tapered stem over the leaflets
+    yy, xx = np.mgrid[0:h, 0:w]
+    rad = 0.012 * h * (1 - 0.8 * (xx - x0) / (x1 - x0))
+    a = np.clip(0.5 - (np.abs(yy - h / 2) - rad), 0, 1) * (xx >= x0) * (xx <= x1)
+    col = np.array([0.42, 0.36, 0.14])[None, None, :] * (0.8 + 0.4 * (1 - np.abs(yy - h / 2) / np.maximum(rad, 1))[..., None])
+    rgba[..., :3] = col * a[..., None] + rgba[..., :3] * (1 - a[..., None])
+    rgba[..., 3] = a + rgba[..., 3] * (1 - a)
+    return _fill_transparent(rgba)
+
+
+def gen_banana(rng, w=512, h=1024):
+    """One banana leaf on a 1:2 card (stalk at the bottom): long blade with a pale midrib, parallel
+    veins running out and up from it, and a few wind tears along the veins."""
+    rgba = np.zeros((h, w, 4), dtype=np.float32)
+    yy, xx = np.mgrid[0:h, 0:w]
+    v = (h - 1 - yy) / (h - 1)                                  # 0 at the stalk, 1 at the tip
+    u = (xx - w / 2) / (w / 2)
+    t = np.clip((v - 0.10) / 0.90, 0, 1)
+    half = 0.80 * np.clip(np.sin(np.pi * t) ** 0.35, 0, 1) * (1 - 0.25 * t)      # long, blunt-ended blade
+    half = np.where(v < 0.10, 0.025, half)
+    half += 0.012 * np.sin(v * 90) * (v > 0.12) * (v < 0.95)
+    a = np.clip((half - np.abs(u)) * (w / 2) / 1.2 + 0.5, 0, 1)
+    slope = 0.55                                                # veins climb toward the tip as they leave the rib
+    along = v - slope * np.abs(u)
+    vein = np.abs(np.sin(along * np.pi * 48))
+    tone = 1.0 - 0.12 * (vein ** 10)
+    tone *= 1.0 - 0.22 * np.clip(np.abs(u) / np.maximum(half, 1e-3), 0, 1) ** 3
+    base = np.array([0.28, 0.55, 0.15])[None, None, :] * (0.9 + 0.2 * np.clip(u, 0, 1)[..., None])
+    base = base * tone[..., None]
+    rib = np.exp(-(u * w / 2 / (4.0 + 7.0 * (1 - v))) ** 2)
+    base = base * (1 - rib[..., None]) + np.array([0.78, 0.82, 0.42])[None, None, :] * rib[..., None]
+    for _ in range(10):                                         # tears: slits from the edge in, along a vein
+        tv = 0.18 + 0.72 * rng.random()                         # where the tear meets the edge (v)
+        side = 1 if rng.random() < 0.5 else -1
+        depth = 0.3 + 0.55 * rng.random()
+        edge_half = 0.80 * np.sin(np.pi * np.clip((tv - 0.10) / 0.90, 0, 1)) ** 0.35 * (1 - 0.25 * np.clip((tv - 0.10) / 0.90, 0, 1))
+        slit = (np.abs(along - (tv - slope * edge_half)) < 0.0035) & (side * u > (1 - depth) * half) & (side * u > 0.05)
+        a = np.where(slit, 0, a)
+    rgba[..., :3] = base
+    rgba[..., 3] = a
+    return _fill_transparent(rgba)
+
+
+FOLIAGE = {"leaves": gen_leaves, "frond": gen_frond, "banana": gen_banana}
+
+
+def _save_rgba(path: Path, rgba):
+    import bpy
+    h, w = rgba.shape[:2]
+    img = bpy.data.images.new(path.name, w, h, alpha=True)
+    img.alpha_mode = "STRAIGHT"
+    img.pixels.foreach_set(np.ascontiguousarray(rgba[::-1]).astype(np.float32).ravel())
+    img.filepath_raw = str(path)
+    img.file_format = "PNG"
+    img.save()
+    bpy.data.images.remove(img)
+
+
+def ensure_foliage(out_dir: Path, force=False) -> dict[str, Path]:
+    """Write <name>.png (RGBA) for every foliage card into out_dir; return name → path."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    paths = {}
+    for i, (name, gen) in enumerate(FOLIAGE.items()):
+        p = out_dir / f"foliage_{name}.png"
+        if force or not p.exists():
+            _save_rgba(p, np.clip(gen(np.random.default_rng(300 + i)), 0, 1))
+            print(f"  textures: wrote foliage {name}")
+        paths[name] = p
+    return paths

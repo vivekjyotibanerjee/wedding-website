@@ -1,4 +1,6 @@
 import { content } from './content.js';
+import { ANCHORS } from './scene/walk.js';
+import { alponaCanvas, alponaCornerCanvas, vineSVG } from './ornament.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const names = (a, b) => `${esc(a)} <span class="amp">&amp;</span> ${esc(b)}`;
@@ -9,9 +11,9 @@ function smooth(a, b, x) {
 }
 
 /**
- * Cards pinned to places in the complex. `anchor` is a world-space point; `range` is
- * [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd] in walk progress (0–1).
- * `side` nudges the card left/right of its anchor on wide screens.
+ * Cards pinned to places in the complex. Where each one pins (`anchor`, a world-space point) and
+ * when it shows (`range`: [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd] in walk progress)
+ * come from scene/walk.js, next to the camera path. `side` docks the card left/right on wide screens.
  */
 function buildCards() {
   const c = content;
@@ -28,14 +30,14 @@ function buildCards() {
         <a class="skip" href="#rsvp" data-jump="end">Jump to RSVP</a>`,
     },
     {
-      id: 'gate', anchor: [-2.6, 5.6, 62.8], side: 'left', range: [0.1, 0.15, 0.2, 0.24],
+      id: 'gate', ...ANCHORS.gate, side: 'left',
       html: `
         <p class="kicker">${esc(w.gate.kicker)}</p>
         <h2>${names(c.couple.partner1, c.couple.partner2)}</h2>
         <p>${esc(w.gate.body.replace('{names}', `${c.couple.partner1} and ${c.couple.partner2}`))}</p>`,
     },
     {
-      id: 'story', anchor: [-13.6, 6.4, 40], side: 'right', range: [0.245, 0.29, 0.345, 0.385],
+      id: 'story', ...ANCHORS.story, side: 'right',
       html: `
         <p class="kicker">${esc(c.couple.hashtag)}</p>
         <h2>${esc(c.story.heading)}</h2>
@@ -44,7 +46,7 @@ function buildCards() {
         </ol>`,
     },
     {
-      id: 'events', anchor: [-3, 5.6, 15], side: 'left', range: [0.40, 0.445, 0.52, 0.555],
+      id: 'events', ...ANCHORS.events, side: 'left',
       html: `
         <p class="kicker">Schedule</p>
         <h2>${esc(c.events.heading)}</h2>
@@ -54,7 +56,7 @@ function buildCards() {
         </ul>`,
     },
     {
-      id: 'ceremony', anchor: [0, 4.6, 8], side: 'right', range: [0.575, 0.62, 0.68, 0.715],
+      id: 'ceremony', ...ANCHORS.ceremony, side: 'right',
       html: `
         <p class="kicker">${esc(w.ceremony.kicker)}</p>
         <h2>${esc(w.ceremony.title)}</h2>
@@ -63,7 +65,7 @@ function buildCards() {
         <p class="dress">${esc(w.ceremony.dress)}</p>`,
     },
     {
-      id: 'travel', anchor: [-4.6, 4.0, -1.6], side: 'left', range: [0.73, 0.775, 0.84, 0.875],
+      id: 'travel', ...ANCHORS.travel, side: 'left',
       html: `
         <p class="kicker">Getting here</p>
         <h2>${esc(c.travel.heading)}</h2>
@@ -81,7 +83,7 @@ function buildCards() {
         </div>`,
     },
     {
-      id: 'rsvp', anchor: [1.9, 6.2, -17.5], side: 'right', range: [0.9, 0.95, 2, 2], form: true,
+      id: 'rsvp', ...ANCHORS.rsvp, side: 'right', form: true,
       html: `
         <p class="kicker bengali">${esc(w.sanctum.kicker)}</p>
         <h2>${esc(w.sanctum.title)}</h2>
@@ -108,17 +110,34 @@ function buildCards() {
   ];
 }
 
+/** Alpona corner motifs for the card frames and a faint rosette behind the title, as CSS vars. */
+function installOrnament() {
+  const corner = alponaCornerCanvas(160).toDataURL('image/png');
+  const rosette = alponaCanvas(768, { ink: 'rgba(255, 240, 210, 1)', seed: 5 }).toDataURL('image/png');
+  const root = document.documentElement.style;
+  root.setProperty('--alpona-corner', `url(${corner})`);
+  root.setProperty('--alpona-rosette', `url(${rosette})`);
+}
+
 export function mountCards(container, sceneApi) {
+  installOrnament();
   const cards = buildCards();
-  const els = cards.map((c) => {
+  const els = cards.map((c, i) => {
     const el = document.createElement('section');
     el.className = `card ${c.centered ? 'card-centered' : 'card-pinned'} card-${c.id}`;
-    el.innerHTML = `${c.centered ? '' : '<span class="pin" aria-hidden="true"></span>'}<div class="card-inner">${c.html}</div>`;
+    // pinned cards: the pin, then a box that carries the greenery draped over the top edge and the
+    // scrolling text panel; only the box moves, so the vine can overflow it
+    el.innerHTML = c.centered
+      ? `<div class="card-inner">${c.html}</div>`
+      : `<span class="pin" aria-hidden="true"></span><div class="card-box"><div class="card-vine card-vine-${c.side}" aria-hidden="true">${vineSVG(420, 110, 11 + i * 7)}</div><div class="card-inner">${c.html}</div><i class="card-corner tl"></i><i class="card-corner tr"></i><i class="card-corner br"></i><i class="card-corner bl"></i></div>`;
     el.style.opacity = '0';
     el.style.visibility = 'hidden';
     container.appendChild(el);
     return el;
   });
+  const boxes = els.map((el) => el.querySelector('.card-box'));
+  const inners = els.map((el) => el.querySelector('.card-inner'));
+  const pins = els.map((el) => el.querySelector('.pin'));
 
   const jump = container.querySelector('[data-jump="end"]');
   if (jump) jump.addEventListener('click', (e) => {
@@ -152,11 +171,10 @@ export function mountCards(container, sceneApi) {
 
         if (c.centered) return;
         const p = sceneApi.project({ x: c.anchor[0], y: c.anchor[1], z: c.anchor[2] });
-        const pin = el.firstElementChild;
         if (!p) { el.style.opacity = '0'; el.style.visibility = 'hidden'; return; }
         const px = p.x * W, py = p.y * H;
-        pin.style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px)`;
-        const inner = el.lastElementChild;
+        pins[i].style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px)`;
+        const inner = inners[i];
         const cw = inner.offsetWidth, ch = inner.offsetHeight;
         let x, y;
         if (docked) {
@@ -166,9 +184,9 @@ export function mountCards(container, sceneApi) {
           // dock to the screen edge on the card's side so the subject stays visible; the pin marks the spot
           x = c.side === 'left' ? 24 : W - cw - 24;
           y = py - ch * 0.35;
-          y = Math.min(Math.max(72, y), H - ch - 24);
+          y = Math.min(Math.max(116, y), H - ch - 24);   // below the HUD buttons, vine included
         }
-        inner.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        boxes[i].style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
       });
     },
   };

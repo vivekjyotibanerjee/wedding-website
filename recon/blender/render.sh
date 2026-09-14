@@ -4,6 +4,8 @@
 #   bash recon/blender/render.sh                 # .blend + 13 stills (1280x720, 128 samples)
 #   bash recon/blender/render.sh turntable       # 48-frame turntable only (960x540) → data/blender/turntable.mp4
 #   bash recon/blender/render.sh quick           # 960x540, 24 samples — for iterating on the script
+#   bash recon/blender/render.sh web             # bake + export the model the website loads → public/models/dakshineswar.glb
+#                                                #   (BLENDER=path/to/official/blender — the Ubuntu package's Cycles cannot bake)
 #
 # Output: recon/data/blender/  (git-ignored; everything is reproducible from build_dakshineswar.py)
 # Textures: data/blender/textures/ — the albedo/normal/height maps are generated on first run by
@@ -12,6 +14,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 OUT=data/blender
 MODE=${1:-stills}
+BLENDER=${BLENDER:-blender}
 
 SKY_URL=https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/kloofendal_38d_partly_cloudy_puresky_2k.hdr
 SKY_SHA1=e0ecd267d63708bccd89dd64f5397c9eb49f692c
@@ -24,9 +27,14 @@ if [ ! -f "$OUT/textures/sky.hdr" ] || ! echo "$SKY_SHA1  $OUT/textures/sky.hdr"
 fi
 
 case "$MODE" in
-  quick)     blender -b -P blender/build_dakshineswar.py -- --out "$OUT" --render stills --res 960x540 --samples 24 ;;
-  stills)    blender -b -P blender/build_dakshineswar.py -- --out "$OUT" --render stills --res 1280x720 --samples 128 ;;
-  turntable) blender -b -P blender/build_dakshineswar.py -- --out "$OUT" --render turntable --res 960x540 --samples 48 --frames 48
+  web)       "$BLENDER" -b -P blender/export_web.py -- "${@:2}"
+             case " ${*:2} " in *" --dry "*|*" --landmarks-only "*|*" --only "*|*" --out "*) exit 0 ;; esac   # no full glb written
+             # geometry → EXT_meshopt_compression (three.js decodes it with its bundled decoder, no extra files to host)
+             (cd .. && npx gltf-transform meshopt recon/data/web/dakshineswar.glb public/models/dakshineswar.glb --level medium)
+             ls -la ../public/models/dakshineswar.glb; exit 0 ;;
+  quick)     "$BLENDER" -b -P blender/build_dakshineswar.py -- --out "$OUT" --render stills --res 960x540 --samples 24 ;;
+  stills)    "$BLENDER" -b -P blender/build_dakshineswar.py -- --out "$OUT" --render stills --res 1280x720 --samples 128 ;;
+  turntable) "$BLENDER" -b -P blender/build_dakshineswar.py -- --out "$OUT" --render turntable --res 960x540 --samples 48 --frames 48
              ffmpeg -loglevel error -y -framerate 12 -i "$OUT/turntable/frame_%04d.png" -c:v libx264 -pix_fmt yuv420p -crf 20 "$OUT/turntable.mp4"
              echo "→ $OUT/turntable.mp4" ;;
   *) echo "usage: $0 [quick|stills|turntable]"; exit 1 ;;

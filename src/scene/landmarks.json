@@ -1,0 +1,195 @@
+{
+  "frame": "three.js: x east, y up, z south; metres; origin = navaratna centre at ground",
+  "ground": 1.2,
+  "courtyard": {
+    "center": [
+      -9.5,
+      1.2,
+      -3.0
+    ],
+    "size": [
+      58.0,
+      107.0
+    ]
+  },
+  "river_x": -41.0,
+  "ghat": {
+    "foot": [
+      -47.5,
+      -2.0,
+      -3.0
+    ],
+    "top": [
+      -38.5,
+      1.2,
+      -3.0
+    ],
+    "width": 25.0
+  },
+  "shiva": {
+    "x": -32.0,
+    "plinth_top": 2.2,
+    "size": 6.2,
+    "pitch": 7.9,
+    "count": 6,
+    "first_north": [
+      -32.0,
+      2.2,
+      -11.45
+    ],
+    "first_south": [
+      -32.0,
+      2.2,
+      5.45
+    ],
+    "steps_foot_x": -23.9
+  },
+  "strip": {
+    "west_x": -23.9,
+    "east_x": -9.0,
+    "center_x": -16.45
+  },
+  "mandap": {
+    "center": [
+      -16.45,
+      1.2,
+      -3.0
+    ],
+    "width": 5.8,
+    "stage_top": 1.82,
+    "canopy": 4.91,
+    "finial": 7.54
+  },
+  "navaratna": {
+    "center": [
+      0.0,
+      1.2,
+      -0.0
+    ],
+    "size": 14.0,
+    "platform": 22.0,
+    "platform_top": 3.8,
+    "stair_foot": [
+      0.0,
+      1.2,
+      14.6
+    ],
+    "stair_top": [
+      0.0,
+      3.8,
+      11.0
+    ],
+    "wall_x": 7.0,
+    "core_x": 4.0,
+    "bay_pitch": 2.6,
+    "stair_width": 9.8,
+    "stair_steps": 9,
+    "stair_tread": 0.4,
+    "s1_h": 10.0,
+    "arch": [
+      1.7,
+      5.6
+    ],
+    "arch_spring": 4.877,
+    "top": 33.6
+  },
+  "natmandir": {
+    "center": [
+      1.5,
+      1.2,
+      27.0
+    ],
+    "size": [
+      18.0,
+      24.5
+    ],
+    "height": 7.4,
+    "west_face_x": -7.5,
+    "plinth_top": 2.4,
+    "plinth_out": 1.5,
+    "bays_west": 7,
+    "bay_pitch": 3.0,
+    "arch": [
+      2.0,
+      4.3
+    ],
+    "arch_spring": 3.45,
+    "stair_width": 8.6,
+    "stair_steps": 6,
+    "stair_tread": 0.36
+  },
+  "radhakanta": {
+    "center": [
+      1.5,
+      1.2,
+      -29.5
+    ],
+    "size": [
+      18.0,
+      30.0
+    ],
+    "height": 10.4,
+    "west_face_x": -7.5
+  },
+  "arcade": {
+    "east_x": 13.0,
+    "height": 5.2
+  },
+  "lamps": [
+    [
+      -18.55,
+      4.9,
+      38.0
+    ],
+    [
+      -18.55,
+      4.9,
+      24.0
+    ],
+    [
+      -18.55,
+      4.9,
+      10.0
+    ],
+    [
+      -18.55,
+      4.9,
+      -22.0
+    ],
+    [
+      -18.55,
+      4.9,
+      -36.0
+    ],
+    [
+      -18.55,
+      4.9,
+      -50.0
+    ],
+    [
+      -37.0,
+      4.9,
+      5.5
+    ],
+    [
+      -37.0,
+      4.9,
+      -11.5
+    ]
+  ],
+  "bells": [
+    [
+      -7.8,
+      5.29,
+      27.0
+    ],
+    [
+      -7.8,
+      4.79,
+      -29.5
+    ]
+  ],
+  "sun": {
+    "bearing": 205.0
+  }
+}

@@ -119,15 +119,42 @@ bash blender/render.sh turntable   # 48-frame turntable only (960x540, keeps the
 ```
 
 Outputs land in `data/blender/` (git-ignored — the `.blend` is reproducible from the script).
-This is a *deliverable for review*, not part of the splat pipeline; site integration (glTF export)
-was deliberately left out.
+
+**This model is what the website renders.** `blender/export_web.py` rebuilds it, bakes every
+procedural material (tint, stripes, beading, AO grime, the weathering streaks and damp band, the
+drapes' hem, the garland) to per-mesh albedo + tangent-normal maps over a smart-projected UV
+layer — striped/beaded materials at 2 cm texels, plain stucco at 5 cm with half-res normals,
+while the brick/paving/path surfaces keep the tiling source maps through metre-scaled UVs — bakes
+a Cycles ambient-occlusion map for each of those (over the same UVs, or a second layer for the
+tiling meshes; 2 m rays) that ships as the glTF `occlusionTexture`, ships the RGBA leaf-card
+atlases (`textures.ensure_foliage`) alpha-clipped, swaps in plain Principled materials the glTF
+exporter carries verbatim, and writes an uncompressed `.glb` plus `src/scene/landmarks.json`
+(key positions converted to the site's Y-up frame: three (x, y, z) = Blender (x, z, −y) — the
+buildings, the stairs and arches, the lamp posts and bells). `render.sh web` runs that and then
+`gltf-transform meshopt` into `public/models/dakshineswar.glb`. The site's camera path, card
+anchors and runtime props (`src/scene/walk.js`, `life.js`) read the landmarks, so moving a
+building in `LAYOUT` moves the walk with it.
+
+```bash
+BLENDER=~/opt/blender-4.0.2-linux-x64/blender bash blender/render.sh web        # ~17 min CPU → 11.7 MB glb
+bash blender/render.sh web --landmarks-only                                     # rebuild + landmarks.json, no bake
+blender -b -P blender/export_web.py -- --dry                                    # print the bake plan only
+blender -b -P blender/export_web.py -- --only '^(paving_web|nat)$' --out /tmp/t --bake-dir /tmp/t/bake   # a few meshes only;
+#   npx gltf-transform meshopt /tmp/t/dakshineswar.glb ../public/models/preview.glb  → site with ?model=/models/preview.glb
+blender -b -P blender/preview_web.py -- --glb data/web/dakshineswar.glb          # re-import + render stills to check the bake
+```
+
+The Ubuntu/Debian `blender` package (4.0.2+dfsg) renders fine but its Cycles **bakes black** for
+every pass except NORMAL, and it lacks Draco and OIDN — hence the official build for the export
+(`~/opt/blender-4.0.2-linux-x64`, sha256-verified from a blender.org mirror). Same 4.0.2 API, so
+the build script needs no change.
 
 ## Layout
 
 ```
 configs/    sources.yaml (seeds) · manifest.json (lock) · selection.yaml (audit) · selection.example.yaml · layout.geojson (OSM) · layout.inner.yaml (traced landmarks)
-blender/    build_dakshineswar.py · textures.py · render.sh
+blender/    build_dakshineswar.py · textures.py · render.sh · export_web.py (bake + glTF for the site) · preview_web.py
 scripts/    reconlib.py + fetch.py (both machines) · laptop/{discover,audit,layout,trace}.py · cluster/00…06 + prune_ply.py
 envs/       cluster.yml
-data/       git-ignored: raw/ images/ masks/ colmap/ ns/ outputs/ audit/ layout/ reference/ blender/
+data/       git-ignored: raw/ images/ masks/ colmap/ ns/ outputs/ audit/ layout/ reference/ blender/ web/ (bakes, uncompressed glb)
 ```

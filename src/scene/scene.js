@@ -1,8 +1,15 @@
 import * as THREE from 'three';
-import { createMaterials } from './materials.js';
-import { buildComplex } from './dakshineswar.js';
-import { buildNature } from './nature.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { loadModel } from './model.js';
+import { buildLife } from './life.js';
+import { PATH } from './walk.js';
+import L from './landmarks.json';
+
+// `?model=…` swaps the glb in for checking a test export without touching the committed one.
+const MODEL_URL = new URLSearchParams(location.search).get('model') || `${import.meta.env.BASE_URL}models/dakshineswar.glb`;
 
 const SKY_VERT = /* glsl */ `
   varying vec3 vDir;
@@ -14,9 +21,20 @@ const SKY_VERT = /* glsl */ `
 const SKY_FRAG = /* glsl */ `
   varying vec3 vDir;
   uniform float night;
+  uniform float time;
   uniform vec3 sunDir;
   uniform vec3 moonDir;
   float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+  }
+  float fbm(vec2 p) {
+    float v = 0.0, a = 0.5;
+    for (int i = 0; i < 5; i++) { v += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
+    return v;
+  }
   void main() {
     float h = clamp(vDir.y, -0.1, 1.0);
     // ── day: hazy Bengal sky
@@ -25,6 +43,13 @@ const SKY_FRAG = /* glsl */ `
     day = mix(day, dTop, smoothstep(0.18, 0.85, h));
     float sd = max(0.0, dot(vDir, sunDir));
     day += vec3(1.0, 0.96, 0.86) * (pow(sd, 600.0) * 2.0 + pow(sd, 6.0) * 0.22);
+    // ── clouds: a thin sheet of fair-weather cumulus projected onto a high plane, drifting east
+    vec2 cp = vDir.xz / (vDir.y + 0.08) * 1.2 + vec2(time * 0.006, time * 0.0015);
+    float cov = fbm(cp * 0.4) + 0.06 * fbm(cp * 2.5) - 0.03;
+    float cloud = smoothstep(0.56, 0.72, cov) * smoothstep(0.03, 0.2, h);
+    float lit = 0.72 + 0.28 * smoothstep(0.5, 0.85, cov);
+    vec3 cloudCol = mix(vec3(0.78, 0.8, 0.86), vec3(1.0, 0.99, 0.96), lit) * (1.0 + 0.5 * pow(sd, 3.0));
+    day = mix(day, cloudCol, cloud * 0.85);
     // ── night: indigo with a warm haze low on the horizon, stars, moon
     vec3 nTop = vec3(0.04, 0.04, 0.13), nMid = vec3(0.14, 0.11, 0.28), nHor = vec3(0.36, 0.20, 0.30);
     vec3 nite = mix(nHor, nMid, smoothstep(0.0, 0.25, h));
@@ -34,29 +59,21 @@ const SKY_FRAG = /* glsl */ `
     nite += star * smoothstep(0.3, 0.8, h) * 0.6;
     float md = max(0.0, dot(vDir, moonDir));
     nite += vec3(0.95, 0.95, 1.0) * (pow(md, 1500.0) * 1.6 + pow(md, 12.0) * 0.12);
+    nite = mix(nite, vec3(0.16, 0.14, 0.22), cloud * 0.25);
     vec3 c = mix(day, nite, night);
     gl_FragColor = vec4(c, 1.0);
   }
 `;
 
-// Camera path through the complex (position + look target). Each Catmull-Rom segment spans an
-// equal slice of t, so short segments (stairs, sanctum) are walked slowly on purpose.
-export const PATH = [
-  { p: [0.6, 1.7, 100], l: [0, 6.0, 62] },
-  { p: [0.3, 1.7, 80], l: [0, 7.0, 62] },
-  { p: [0.0, 1.7, 65], l: [0, 3.5, 40] },
-  { p: [2.5, 1.7, 50], l: [-14, 6.0, 40] },
-  { p: [1.5, 1.7, 36], l: [-6, 5.0, 22] },
-  { p: [0.0, 2.7, 22], l: [0, 3.0, 6] },
-  { p: [6.0, 1.7, 13.5], l: [0, 2.4, 8] },
-  { p: [6.5, 1.7, 6.5], l: [0, 2.6, 8] },
-  { p: [0.5, 1.7, 2.8], l: [0, 14.0, -14] },
-  { p: [0.0, 4.3, -3.5], l: [0, 4.5, -14] },
-  { p: [0.0, 4.3, -8.5], l: [0, 4.2, -18] },
-  { p: [0.0, 4.2, -13.0], l: [0, 3.6, -17.3] },
-];
+/** Direction toward the sun from a compass bearing (where it shines from) and an elevation. */
+function sunFromBearing(bearingDeg, elevationDeg) {
+  const b = THREE.MathUtils.degToRad(bearingDeg);
+  const e = THREE.MathUtils.degToRad(elevationDeg);
+  // bearing is clockwise from north; north is −z, east is +x
+  return new THREE.Vector3(Math.sin(b) * Math.cos(e), Math.sin(e), -Math.cos(b) * Math.cos(e)).normalize();
+}
 
-export function createScene(canvas, { reducedMotion = false } = {}) {
+export function createScene(canvas, { reducedMotion = false, onProgress = null } = {}) {
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -70,48 +87,97 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0xd8dfe6, 0.004);
-  // soft reflections for the brass, silver and gold
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.35;
-  pmrem.dispose();
-  const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 500);
+  scene.fog = new THREE.FogExp2(0xd8dfe6, 0.0026);
+  const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 900);
 
-  const sunDir = new THREE.Vector3(0.55, 0.62, 0.55).normalize();
-  const moonDir = new THREE.Vector3(-0.45, 0.5, -0.6).normalize();
-  const sky = new THREE.Mesh(
-    new THREE.SphereGeometry(400, 32, 16),
-    new THREE.ShaderMaterial({
-      vertexShader: SKY_VERT, fragmentShader: SKY_FRAG, side: THREE.BackSide, depthWrite: false, fog: false,
-      uniforms: { night: { value: 0 }, sunDir: { value: sunDir }, moonDir: { value: moonDir } },
-    }),
-  );
+  // The same afternoon sun the Blender stills use (SSW, ~38° up); the moon is roughly opposite.
+  const sunDir = sunFromBearing(L.sun.bearing, 38);
+  const moonDir = new THREE.Vector3(0.45, 0.5, -0.6).normalize();
+  const skyMat = new THREE.ShaderMaterial({
+    vertexShader: SKY_VERT, fragmentShader: SKY_FRAG, side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: { night: { value: 0 }, time: { value: 0 }, sunDir: { value: sunDir }, moonDir: { value: moonDir } },
+  });
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(800, 32, 16), skyMat);
   scene.add(sky);
+  // Image-based lighting comes from that same sky, so the gold finials, the brass and the river
+  // pick up the right colours in both day and night; regenerated as the sky crossfades.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envScene = new THREE.Scene();
+  envScene.add(new THREE.Mesh(sky.geometry, skyMat));
+  let envNight = -1;
+  function refreshEnvironment(n) {
+    if (envNight >= 0 && Math.abs(n - envNight) < 0.08 && !((n === 0 || n === 1) && n !== envNight)) return;
+    envNight = n;
+    const old = scene.environment;
+    scene.environment = pmrem.fromScene(envScene, 0.04, 1, 2000).texture;
+    if (old) old.dispose();
+  }
 
   // Lights
-  const hemi = new THREE.HemisphereLight(0xcfe3ff, 0x8a7a5a, 1.4);
+  const hemi = new THREE.HemisphereLight(0xcfe3ff, 0x8a7a5a, 0.45);
   scene.add(hemi);
-  const sun = new THREE.DirectionalLight(0xfff1dc, 3.0);
-  sun.position.copy(sunDir).multiplyScalar(90);
-  sun.target.position.set(0, 0, 20);
+  const sun = new THREE.DirectionalLight(0xfff1dc, 3.2);
+  sun.position.copy(sunDir).multiplyScalar(160);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.camera.near = 10;
-  sun.shadow.camera.far = 260;
-  sun.shadow.camera.left = -40;
-  sun.shadow.camera.right = 40;
-  sun.shadow.camera.top = 70;
-  sun.shadow.camera.bottom = -70;
-  sun.shadow.bias = -0.0005;
-  sun.shadow.normalBias = 0.04;
+  sun.shadow.camera.near = 20;
+  sun.shadow.camera.far = 400;
+  // one shadow map over the walled complex (courtyard 58 × 107 m plus the ghat)
+  const [ccx, , ccz] = L.courtyard.center;
+  sun.target.position.set(ccx - 6, 0, ccz);
+  sun.position.add(sun.target.position);
+  const r = 78;
+  sun.shadow.camera.left = -r; sun.shadow.camera.right = r; sun.shadow.camera.top = r; sun.shadow.camera.bottom = -r;
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.05;
   scene.add(sun, sun.target);
 
-  // World
-  const mats = createMaterials();
-  const complex = buildComplex(mats);
-  const nature = buildNature(mats);
-  scene.add(complex.group, nature.group);
+  // Night: floodlights on the temple, the halls and the Shiva row, a warm glow inside the mandap.
+  const floods = [];
+  function flood(from, to, intensity, angle = 0.4, color = 0xffd8a8) {
+    const s = new THREE.SpotLight(color, 0, 140, angle, 0.6, 1.2);
+    s.position.set(...from);
+    s.target.position.set(...to);
+    s.userData.night = intensity;
+    scene.add(s, s.target);
+    floods.push(s);
+    return s;
+  }
+  const [mx, , mz] = L.mandap.center;
+  const nz = L.natmandir.center[2];
+  flood([-24, 2.6, 6], [0, 13, 0], 300, 0.42);                        // navaratna, from the courtyard strip
+  flood([14, 2.6, 18], [0, 13, 0], 230, 0.42);                        // navaratna, from the south-east
+  flood([-22, 2.6, nz], [L.natmandir.west_face_x, 5.5, nz], 170, 0.5);   // nat-mandir front
+  flood([-18, 2.4, mz - 2], [L.shiva.x, 5, mz - 24], 150, 0.55);      // the Shiva row, north group
+  flood([-18, 2.4, mz + 2], [L.shiva.x, 5, mz + 24], 150, 0.55);      // the Shiva row, south group
+  flood([mx, 9, mz + 11], [mx, 2, mz], 110, 0.35, 0xffe2c0);           // the mandap
+  const glow = new THREE.PointLight(0xffb060, 0, 22, 1.6);
+  glow.position.set(mx, L.mandap.canopy - 0.9, mz);
+  glow.userData.night = 6;
+  scene.add(glow);
+
+  // Bloom for the diyas and string lights, only at night: by day the scene renders straight to the
+  // canvas; at night it goes through a multisampled HDR target so the edges stay antialiased.
+  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }));
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.0, 0.5, 1.5);
+  bloom.enabled = false;
+  composer.addPass(bloom);
+  composer.addPass(new OutputPass());
+
+  // The model (async). The sky renders while it downloads. The life layer (diyas, lights, wind…)
+  // is built over it once it is in.
+  let model = null;
+  let life = null;
+  const ready = loadModel(MODEL_URL, renderer, onProgress).then((root) => {
+    model = root;
+    scene.add(root);
+    life = buildLife(scene, root, { reducedMotion });
+    life.resize(canvas.clientHeight || window.innerHeight);
+    life.update(0, state.night);
+    renderer.compile(scene, camera);
+    return root;
+  });
 
   const posCurve = new THREE.CatmullRomCurve3(PATH.map((n) => new THREE.Vector3(...n.p)), false, 'catmullrom', 0.5);
   const lookCurve = new THREE.CatmullRomCurve3(PATH.map((n) => new THREE.Vector3(...n.l)), false, 'catmullrom', 0.5);
@@ -123,26 +189,26 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     nightTarget: 0, night: 0,
   };
 
-  const DAY = { sunColor: new THREE.Color(0xfff1dc), sunI: 3.0, hemiSky: new THREE.Color(0xcfe3ff), hemiGround: new THREE.Color(0x8a7a5a), hemiI: 1.4, fog: new THREE.Color(0xd8dfe6), fogD: 0.004, exposure: 1.0 };
-  const NIGHT = { sunColor: new THREE.Color(0x7f8fc8), sunI: 0.35, hemiSky: new THREE.Color(0x303a6a), hemiGround: new THREE.Color(0x1b1210), hemiI: 0.4, fog: new THREE.Color(0x241a30), fogD: 0.007, exposure: 1.0 };
+  const DAY = { sunColor: new THREE.Color(0xfff1dc), sunI: 3.2, hemiSky: new THREE.Color(0xcfe3ff), hemiGround: new THREE.Color(0x8a7a5a), hemiI: 0.45, fog: new THREE.Color(0xd8dfe6), fogD: 0.0026, env: 0.55 };
+  const NIGHT = { sunColor: new THREE.Color(0x7f8fc8), sunI: 0.3, hemiSky: new THREE.Color(0x303a6a), hemiGround: new THREE.Color(0x1b1210), hemiI: 0.22, fog: new THREE.Color(0x241a30), fogD: 0.0055, env: 0.9 };
   const tmpC = new THREE.Color();
 
   function applyNight(n) {
-    sky.material.uniforms.night.value = n;
+    skyMat.uniforms.night.value = n;
     sun.color.copy(tmpC.copy(DAY.sunColor).lerp(NIGHT.sunColor, n));
     sun.intensity = THREE.MathUtils.lerp(DAY.sunI, NIGHT.sunI, n);
-    sun.position.copy(n < 0.5 ? sunDir : moonDir).multiplyScalar(90);
+    sun.position.copy(n < 0.5 ? sunDir : moonDir).multiplyScalar(160).add(sun.target.position);
     hemi.color.copy(tmpC.copy(DAY.hemiSky).lerp(NIGHT.hemiSky, n));
     hemi.groundColor.copy(tmpC.copy(DAY.hemiGround).lerp(NIGHT.hemiGround, n));
     hemi.intensity = THREE.MathUtils.lerp(DAY.hemiI, NIGHT.hemiI, n);
     scene.fog.color.copy(tmpC.copy(DAY.fog).lerp(NIGHT.fog, n));
     scene.fog.density = THREE.MathUtils.lerp(DAY.fogD, NIGHT.fogD, n);
-    renderer.toneMappingExposure = THREE.MathUtils.lerp(DAY.exposure, NIGHT.exposure, n);
-    scene.environmentIntensity = THREE.MathUtils.lerp(0.35, 0.08, n);
-    for (const l of complex.pointLights) l.userData.level = l.userData.night * (0.18 + 0.82 * n);
-    for (const s of complex.spots) s.intensity = s.userData.night * n;
-    mats.lampGlass.emissiveIntensity = 1.8 * n;
-    mats.roseBand.emissiveIntensity = 1.3 * n;
+    scene.environmentIntensity = THREE.MathUtils.lerp(DAY.env, NIGHT.env, n);
+    for (const s of floods) s.intensity = s.userData.night * n;
+    glow.intensity = glow.userData.night * n;
+    bloom.strength = 0.55 * n;
+    bloom.enabled = n > 0.02;
+    refreshEnvironment(n);
   }
   applyNight(0);
 
@@ -153,15 +219,17 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     const w = canvas.clientWidth || window.innerWidth;
     const h = canvas.clientHeight || window.innerHeight;
     renderer.setSize(w, h, false);
+    composer.setSize(w, h);
+    if (life) life.resize(h);
     camera.aspect = w / h;
     camera.fov = w < h ? 70 : 58;
     camera.updateProjectionMatrix();
   }
 
-  function frame(now) {
-    if (!state.running) return;
-    const dt = Math.min(0.05, (now - state.last) / 1000);
-    state.last = now;
+  /** Advance the walk by dt seconds (clamped, for stable easing) and place the camera; the render
+   *  itself is separate. `wallDt` is the real elapsed time, so the day/night crossfade takes the same
+   *  second on a slow device as on a fast one. */
+  function step(dt, wallDt = dt) {
     state.time += dt;
 
     const k = reducedMotion ? 1 : 1 - Math.pow(0.001, dt);
@@ -171,7 +239,8 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     state.walkPhase += Math.abs(state.velocity) * 110 * dt;
 
     if (Math.abs(state.nightTarget - state.night) > 0.0005) {
-      state.night += (state.nightTarget - state.night) * (reducedMotion ? 1 : Math.min(1, dt * 2.2));
+      state.night += (state.nightTarget - state.night) * (reducedMotion ? 1 : Math.min(1, wallDt * 2.2));
+      if (Math.abs(state.nightTarget - state.night) <= 0.0005) state.night = state.nightTarget;
       applyNight(state.night);
     }
 
@@ -188,21 +257,17 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     tmpLook.y += state.pointerSmooth.y * 0.7;
     camera.position.copy(tmpPos);
     camera.lookAt(tmpLook);
-
-    const fl = complex.flames;
-    for (let i = 0; i < fl.length; i++) {
-      const f = fl[i];
-      const s = 0.85 + Math.sin(state.time * 11 + f.seed) * 0.1 + Math.sin(state.time * 23 + f.seed * 2) * 0.06;
-      if (f.big) f.mesh.scale.set(1.6 * s, 3.2 * s, 1.6 * s); else f.mesh.scale.set(0.55 * s, 1.25 * s, 0.55 * s);
-    }
-    for (let i = 0; i < complex.pointLights.length; i++) {
-      const l = complex.pointLights[i];
-      l.intensity = l.userData.level * (0.94 + Math.sin(state.time * 9 + i * 1.7) * 0.04 + Math.sin(state.time * 17 + i) * 0.02);
-    }
-    nature.update(state.time, state.night);
-
     sky.position.copy(camera.position);
-    renderer.render(scene, camera);
+    skyMat.uniforms.time.value = state.time;
+    if (life) life.update(dt, state.night);
+  }
+
+  function frame(now) {
+    if (!state.running) return;
+    const wallDt = (now - state.last) / 1000;
+    state.last = now;
+    step(Math.min(0.05, wallDt), wallDt);
+    if (bloom.enabled) composer.render(); else renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }
 
@@ -210,10 +275,12 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
   return {
     ok: true,
     camera,
+    ready,
     resize,
     setProgress(v) { state.target = THREE.MathUtils.clamp(v, 0, 1); },
     get progress() { return state.progress; },
     get night() { return state.night; },
+    get loaded() { return model !== null; },
     setNight(on) { state.nightTarget = on ? 1 : 0; },
     setPointer(x, y) { state.pointer.set(x, y); },
     /** Project a world point to normalised screen coords; returns null when behind the camera. */
@@ -229,7 +296,9 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
       requestAnimationFrame(frame);
     },
     stop() { state.running = false; },
-    renderOnce() { resize(); renderer.render(scene, camera); },
-    dispose() { state.running = false; renderer.dispose(); },
+    /** For poking at the scene from the console (`#debug` in the URL exposes this as window.templeScene). */
+    debug: { renderer, scene, camera, sun, hemi, floods, sky, bloom, get life() { return life; } },
+    renderOnce() { resize(); step(0); if (bloom.enabled) composer.render(); else renderer.render(scene, camera); },
+    dispose() { state.running = false; if (life) life.dispose(); composer.dispose(); pmrem.dispose(); renderer.dispose(); },
   };
 }
