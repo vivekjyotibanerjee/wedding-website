@@ -71,9 +71,9 @@ Where each card pins and when it shows is `ANCHORS` in `src/scene/walk.js`, keye
   open door at the end of the walk (a photo or painting, portrait, any size; it is shown at its
   own proportions on a lit plane over the dais). Without it the chamber is simply lit, the dais bare.
 
-- **`music/`** — drop `.mp3` / `.m4a` / `.ogg` files here and the **Sound** button plays
-  them in alphabetical order (see `music/README.md`). With no files it falls back to a
-  synthesized temple ambience.
+- **`music/`** — the soundtrack (`sajani-sajani.mp3`), played on a loop by the **Sound**
+  button; more `.mp3` / `.m4a` / `.ogg` files here play in alphabetical order. The bells are the
+  one synthesized sound, struck as the walk passes under them at the halls' doors.
 
 ## Update the model
 
@@ -140,7 +140,7 @@ src/
   content.js         ← loads content.json, fills in label defaults
   main.js            ← scroll → scene, cards, day/night, sound; loading veil; WebGL fallback
   cards.js           ← cards pinned to 3D anchors (projected each frame), one template for every card
-  audio.js           ← /music playlist + synthesized ambience fallback (the bells ring from the scene)
+  audio.js           ← /music soundtrack + the synthesized bell (rung from the scene)
   debug.js           ← the #debug panel: stage, transitions, draw calls, jump-to-stage buttons
   sections.js        ← plain-HTML details, shown only when WebGL is unavailable
   style.css

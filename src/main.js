@@ -1,6 +1,6 @@
 import { content } from './content.js';
 import { createScene } from './scene/scene.js';
-import { createAmbience, createPlaylist, hasPlaylist } from './audio.js';
+import { createSound } from './audio.js';
 import { mountCards } from './cards.js';
 import { at } from './scene/walk.js';
 import { renderSections } from './sections.js';
@@ -58,7 +58,7 @@ if (!sceneApi) {
   if (location.hash.includes('debug')) { window.templeScene = sceneApi; mountDebug(sceneApi); }
   armFailsafe(25000);
   const cards = mountCards(cardsEl, sceneApi);
-  sound = hasPlaylist() ? createPlaylist() : createAmbience();
+  sound = createSound();
 
   // ── Scroll → progress ────────────────────────────────────
   let progressTarget = 0;
