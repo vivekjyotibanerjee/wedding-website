@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import L from './landmarks.json';
 import { GROUP, attachReveal, revealAttributes, revealMesh, revealUniforms, setReveal, swag, smooth, chunkBy, boundChunk, cullChunks, roomOf } from './util.js';
-import { posCurve, at, floorY, onStair, onLedge, stairSnap } from './walk.js';
+import { posCurve, at, NODE, floorY, onStair, onLedge, stairSnap } from './walk.js';
+import { tableBlooms } from './tables.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // The wedding decoration — everything that is hung, wrapped or rolled out as the guest walks
@@ -42,6 +43,7 @@ const PALETTES = {
   saffron: (i) => (i % 9 === 4 ? DEEP : SAFFRON),
   jasmine: (i) => (i % 11 === 5 ? ROSE : JASMINE),
   mixed: (i) => (i % 4 === 0 ? JASMINE : i % 4 === 2 ? ROSE : TURMERIC),
+  rose: () => ROSE,
 };
 
 export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = {}) {
@@ -56,7 +58,7 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
 
   // ── blooms ─────────────────────────────────────────────────────────────────
   const blooms = [];    // { p, c, s, order, group, hang, phase }
-  const leaves = [];    // { p, rot, order, group, hang }
+  const leaves = [];    // { p, rot, order, group, hang, c? }
   let count = 0;
   /**
    * A string of blooms along `pts` (already swagged/shaped), coloured by `palette`, radius `s`,
@@ -232,6 +234,11 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
     swags([[mx - se, ys, mz - se], [mx + se, ys, mz - se], [mx + se, ys, mz + se], [mx - se, ys, mz + se], [mx - se, ys, mz - se]], { sag: 0.0, group: GROUP.mandap, o0: 0.0, o1: 0.4 });
   }
 
+  // ── on the tables ──────────────────────────────────────────────────────────
+  // The rolled malas and heaps of loose blooms on the halls' tables, the mango leaves in the ghot,
+  // the dhak's plumes (tables.js lays them out; they are instanced here with everything else).
+  tableBlooms({ bead, leaf: (p, rot, order, group, hang, c) => leaves.push({ p, rot, order, group, hang, c }) });
+
   // ── build the instanced meshes, a chunk at a time ──────────────────────────
   const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
   {
@@ -276,7 +283,7 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
         _q.setFromEuler(new THREE.Euler(0, Math.PI / 2 + l.rot, 0.1 * (Math.random() - 0.5)));
         _m.compose(_p.copy(l.p), _q, _s.set(1, 1, 1));
         mesh.setMatrixAt(i, _m);
-        mesh.setColorAt(i, i % 3 ? LEAF : LEAF2);
+        mesh.setColorAt(i, l.c || (i % 3 ? LEAF : LEAF2));
       });
       boundChunk(mesh);
       c.mesh = mesh;
@@ -302,7 +309,7 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
       // 1.4 m wide, 1 m along a plinth ledge (which is 1.5 m wide)
       const pts = [], widths = [];
       const p = new THREE.Vector3(), last = new THREE.Vector3(), snap = [0, 0];
-      const n = Math.ceil((to - from) * 34 * 200);
+      const n = Math.ceil((to - from) * NODE.end * 200);
       let begun = !start;
       for (let i = 0; i <= n; i++) {
         posCurve.getPoint(from + (to - from) * (i / n), p);
@@ -340,10 +347,10 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
       disposables.push(geo, mat, map);
     };
     const ax = mx - L.mandap.width / 2 - 1.0 - 1.9, ar = 1.6;   // the alpona before the mandap's west steps (life.js)
-    runner({ from: at(4), to: at(9), group: 'prep', o0: 0.05, o1: 1.0 });
-    runner({ from: at(9), to: at(20), stop: (p) => p.z > mz - ar - 1.6 && Math.abs(p.x - ax) < ar + 1.5, group: 'flowers', o0: 0.42, o1: 1.0 });
-    runner({ from: at(19), to: at(22), start: (p) => p.z > mz + ar + 0.9, group: 'ceremony', o0: 0.5, o1: 1.0 });
-    runner({ from: at(22), to: at(34), stop: (p) => p.z < wall + 0.4, group: 'full', o0: 0.0, o1: 0.6 });
+    runner({ from: at(NODE.ghatTop), to: at(NODE.rLedgeN), group: 'prep', o0: 0.05, o1: 1.0 });
+    runner({ from: at(NODE.rLedgeN), to: at(NODE.mandapW), stop: (p) => p.z > mz - ar - 1.6 && Math.abs(p.x - ax) < ar + 1.5, group: 'flowers', o0: 0.42, o1: 1.0 });
+    runner({ from: at(NODE.mandapNW), to: at(NODE.nFoot), start: (p) => p.z > mz + ar + 0.9, group: 'ceremony', o0: 0.5, o1: 1.0 });
+    runner({ from: at(NODE.nFoot), to: at(NODE.end), stop: (p) => p.z < wall + 0.4, group: 'full', o0: 0.0, o1: 0.6 });
   }
 
   scene.add(root);

@@ -15,8 +15,8 @@
   --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --bengali: 'Noto Serif Bengali', 'Cormorant Garamond', serif;
 
-  --walk-height: 2000vh;
-  --walk-height: 2000svh;
+  --walk-height: 2700vh;
+  --walk-height: 2700svh;
 }
 
 * { box-sizing: border-box; }

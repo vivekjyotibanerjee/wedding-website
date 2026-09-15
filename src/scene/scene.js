@@ -7,8 +7,9 @@ import { loadModel } from './model.js';
 import { buildLife } from './life.js';
 import { buildDecor } from './decor.js';
 import { buildFx } from './fx.js';
+import { buildTables } from './tables.js';
 import { createStage, STAGES } from './stage.js';
-import { posCurve, lookCurve, eyeAt } from './walk.js';
+import { posCurve, lookCurve, eyeAt, NODE } from './walk.js';
 import L from './landmarks.json';
 
 // `?model=…` swaps the glb in for checking a test export without touching the committed one.
@@ -216,7 +217,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
   // The model (async). The sky renders while it downloads. The life layer (diyas, lights, wind…)
   // is built over it once it is in.
   let model = null;
-  let life = null, decor = null, fx = null;
+  let life = null, decor = null, fx = null, tables = null;
   const stageCtl = createStage();
   const ready = loadModel(MODEL_URL, renderer, onProgress).then((root) => {
     model = root;
@@ -224,6 +225,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     life = buildLife(scene, root, { reducedMotion, onBell, quality });
     decor = buildDecor(scene, { reducedMotion, quality });
     fx = buildFx(scene, { reducedMotion, quality, sunDir });
+    tables = buildTables(scene, { quality });
     const h = canvas.clientHeight || window.innerHeight;
     life.resize(h);
     fx.resize(h);
@@ -231,6 +233,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     life.update(0, st, state.night);
     decor.update(0, st);
     fx.update(0, st, state.night);
+    tables.update(0, st);
     bakeEnvironments();
     applyLighting(state.night, state.dusk);
     renderer.shadowMap.needsUpdate = true;
@@ -333,6 +336,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     if (life) life.update(dt, stage, state.night, camera.position);
     if (decor) decor.update(dt, stage, camera.position);
     if (fx) fx.update(dt, stage, state.night);
+    if (tables) tables.update(dt, stage, camera.position);
   }
 
   function frame(now) {
@@ -374,14 +378,14 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     stop() { state.running = false; },
     /** For poking at the scene from the console (`#debug` in the URL exposes this as window.templeScene). */
     debug: {
-      renderer, scene, camera, sun, hemi, floods, sky, bloom, stages: STAGES,
-      get life() { return life; }, get decor() { return decor; }, get fx() { return fx; },
+      renderer, scene, camera, sun, hemi, floods, sky, bloom, stages: STAGES, nodes: NODE.end,
+      get life() { return life; }, get decor() { return decor; }, get fx() { return fx; }, get tables() { return tables; },
       get calls() { return renderer.info.render.calls; },
       get triangles() { return renderer.info.render.triangles; },
       get programs() { return renderer.info.programs.length; },
       relightShadows() { renderer.shadowMap.needsUpdate = true; },
     },
     renderOnce() { resize(); step(0); if (bloom.enabled) composer.render(); else renderer.render(scene, camera); },
-    dispose() { state.running = false; for (const l of [life, decor, fx]) if (l) l.dispose(); for (const t of envMaps.values()) t.dispose(); composer.dispose(); pmrem.dispose(); renderer.dispose(); },
+    dispose() { state.running = false; for (const l of [life, decor, fx, tables]) if (l) l.dispose(); for (const t of envMaps.values()) t.dispose(); composer.dispose(); pmrem.dispose(); renderer.dispose(); },
   };
 }

@@ -22,7 +22,10 @@ bowls set out, marigold garlands drawing in along the Shiva fronts and the halls
 string lights coming on in a wave from the mandap as the light turns golden, the mandap's
 columns wrapped and strands hung from its canopy, the agni lit and petals falling for the
 ceremony, and the nat-mandir and the navaratna fully dressed and glowing by the sanctum. The
-schedule is `src/scene/stage.js`.
+schedule is `src/scene/stage.js`. Inside each hall the walk is a U past tables laid out along the
+back wall — the welcome tray and mangal ghot, the puja things, the bhog, the bride's shringar in
+the Radhakanta; the garland-maker's baskets, the musicians' corner, the lamps, the tattva trays and
+the paan in the nat-mandir — one per card, set out as the guest comes in (`src/scene/tables.js`).
 
 ## Run it
 
@@ -65,7 +68,8 @@ fields are explained here:
 | `labels` | Every fixed bit of UI text — buttons, the RSVP form's labels, options and status messages. Optional: anything missing falls back to the English defaults in `src/content.js`. `{deadline}` and `{name}` tokens are filled in. |
 
 `src/content.js` loads the JSON and fills in the `labels` defaults; nothing else needs touching.
-Where each card pins and when it shows is `ANCHORS` in `src/scene/walk.js`, keyed by the same ids.
+Where each card pins and when it shows is `ANCHORS` in `src/scene/walk.js`, keyed by the same ids;
+the cards inside the halls pin over their tables (`TABLES` there).
 
 - **`public/images/bhavatarini.png`** (or `.jpg` / `.webp`) — the picture of Ma Kali in the sanctum, seen through the
   open door at the end of the walk (a photo or painting, portrait, any size; it is shown at its
@@ -151,9 +155,10 @@ src/
     life.js          ← the runtime layer: diyas, string lights, lamps, fireflies, birds, flag, bells,
                         drape and tree wind, river ripples, alpona decals, the shrine picture and lamp
     decor.js         ← the wedding decoration: garlands, torans, the gate, column wraps, carpets
+    tables.js        ← the tables along the halls' back walls and everything on them
     fx.js            ← petals, the agni (flames, sparks, smoke, light), incense
     util.js          ← shared: the swag curve, walk order, the scroll-reveal shader hook
-    walk.js          ← the camera path and the card anchors, in the model's frame
+    walk.js          ← the camera path (named nodes), the tables and the card anchors, in the model's frame
     landmarks.json   ← key positions written by recon/blender/export_web.py
     model.js         ← glTF loader (meshopt), shadow flags, per-material tweaks
   ornament.js        ← generated alpona (canvas) and vine (SVG) shared by the scene and the cards

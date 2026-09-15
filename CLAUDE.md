@@ -33,7 +33,17 @@ bake) and `--only '<regex>'` with `--out` for a test glb the site loads via `?mo
   same with treads). The camera's height comes from it (`eyeAt`), so PATH nodes only say where
   on the ground the guest stands (`on(x, z)`) and the camera climbs a flight where there is one.
   Put a node on a plinth without a flight under the segment and the camera walks up its face.
-  `src/scene/life.js` builds everything that moves or glows (diyas, string lights, doorway
+  Nodes anything refers to are named (`n: 'rIn'`) and indexed by `NODE`, so the schedule, the
+  carpets, the bells and the cards say `at(NODE.rIn + 0.5)`, never a number — inserting a node
+  shifts nothing. `TABLES` (walk.js) places the wedding tables along each hall's back wall, one
+  per card; the walk inside a hall is a U past them, with an approach and an abreast node per
+  table (the short segment between them is the pause), and the card pins over its table.
+  `src/scene/tables.js` builds the tables: a prop kit of low-poly lathes/boxes/cones merged into
+  one mesh per table with per-vertex colour, reveal order (props set out one by one, each from its
+  own spot: `attachReveal`'s `pivot`) and `shine` (brass on the same material); its marigold work
+  goes to decor's bloom instancing (`tableBlooms`), the lamp table's diyas and the aarti flames to
+  life.js (`tableDiyaSpots`, lit by the celebration transition — flame `aOrder` ≥ 1), the dhunuchi
+  smoke to fx.js (`tableSmokeSources`). `src/scene/life.js` builds everything that moves or glows (diyas, string lights, doorway
   light, lamp posts, fireflies, birds, flag, bells, drape and tree wind, river ripples, alpona
   decals), `src/scene/decor.js` the wedding decoration (garlands, torans, the gate, the
   mandap's wraps and strands, carpets) and `src/scene/fx.js` the atmosphere (petals, the agni,
@@ -110,7 +120,8 @@ day and night and a phone portrait (`VW=390 VH=844`). Card ranges and anchors ar
 simply not converged yet in the slow loop. `#debug` in the URL exposes `window.templeScene`
 (`.debug.scene`, `.debug.life`, `.debug.decor`, `.debug.fx`, `.debug.bloom`, `.stage`) for
 poking from the console and mounts a panel (`src/debug.js`) with the stage and its transitions,
-draw calls and jump-to-stage buttons. Shoot at PATH-node fractions (`at(i)` = i/34) rather than
+draw calls and jump-to-stage buttons. Shoot at PATH-node fractions (`at(i)` = i/46, `NODE.end` is the
+last; `window.templeScene.debug.nodes`) rather than
 round numbers when checking a transition. The dev server logs a harmless 404 for `/favicon.ico`.
 
 Time-based transitions must use wall-clock dt (the headless frame loop runs at a few fps).
@@ -119,8 +130,12 @@ Time-based transitions must use wall-clock dt (the headless frame loop runs at a
 
 - No human figures in the scene ("trying to add human meshes is going to look ugly"); Ma Kali
   in the sanctum is a picture, not a mesh.
-- The walk's order: ghat → left (north) into the Radhakanta at its northmost door → mandap →
-  nat-mandir by its west stair, out of its northmost door → temple stair → the sanctum door.
+- The walk's order: ghat → left (north) into the Radhakanta at its northmost door, a U past
+  the four tables along its east wall, out of its southmost door → mandap → nat-mandir by its
+  west stair, a U past the five tables along its east wall, out of its northmost door → temple
+  stair → the sanctum door. Every card stop is a table (decided Sep 2026: tables, not booths or
+  signboards, each different — welcome, puja, bhog, shringar; malakar, music, lamps, tattva,
+  paan & mishti); the pairing with the cards is loose, by walk order.
 - No mixing polygon fallbacks into the future splat scene; when splats arrive they replace the
   glb in `scene.js` wholesale, and the walk/life layers keep reading `landmarks.json`.
 - Geometry only for silhouette-level detail; fine relief lives in maps/shaders. Closed,

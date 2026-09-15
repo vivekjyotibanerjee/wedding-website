@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import L from './landmarks.json';
-import { PATH } from './walk.js';
+import { PATH, NODE } from './walk.js';
+import { tableDiyaSpots } from './tables.js';
 import { alponaCanvas } from '../ornament.js';
 import { GROUP, attachReveal, revealAttributes, revealUniforms, setReveal, swag, walkOrder, chunkBy, boundChunk, cullChunks, roomOf } from './util.js';
 
@@ -40,6 +41,7 @@ const DEITY_URLS = ['png', 'jpg', 'webp'].map((ext) => `${import.meta.env.BASE_U
 const FLAME_VERT = /* glsl */ `
   uniform float time;
   uniform float lit;        // the illumination transition; each flame has its turn (aOrder)
+  uniform float full;       // the celebration transition: a flame with aOrder >= 1 catches at aOrder - 1 of it
   attribute float phase;
   attribute float aOrder;
   varying vec2 vUv;
@@ -48,10 +50,11 @@ const FLAME_VERT = /* glsl */ `
     vUv = uv;
     float f = 0.8 + 0.2 * sin(time * 9.0 + phase * 6.2832) * sin(time * 4.3 + phase * 12.0) + 0.1 * sin(time * 17.0 + phase * 40.0);
     vFlick = f;
-    float on = aOrder < 0.0 ? 1.0 : smoothstep(aOrder, aOrder + 0.08, lit);
+    float on = aOrder < 0.0 ? 1.0 : aOrder >= 1.0 ? smoothstep(aOrder - 1.0, aOrder - 0.94, full) : smoothstep(aOrder, aOrder + 0.08, lit);
     vec4 c = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
     float lean = 0.15 * sin(time * 2.1 + phase * 9.0);
-    vec2 p = position.xy * vec2(0.85 + 0.15 * f, 0.9 + 0.35 * f) * on * (0.6 + 0.4 * on);
+    float sc = length(instanceMatrix[0].xyz);   // the instance's scale: the little flames on the aarti lamp's cups
+    vec2 p = position.xy * sc * vec2(0.85 + 0.15 * f, 0.9 + 0.35 * f) * on * (0.6 + 0.4 * on);
     p.x += lean * position.y;
     gl_Position = projectionMatrix * (c + vec4(p, 0.0, 0.0));
   }
@@ -183,18 +186,18 @@ function ghatY(x) {
 export function buildLife(scene, model, { reducedMotion = false, onBell = null, quality = 'high' } = {}) {
   const root = new THREE.Group();
   root.name = 'life';
-  const uniforms = { time: { value: 0 }, night: { value: 0 }, lit: { value: 0 } };
+  const uniforms = { time: { value: 0 }, night: { value: 0 }, lit: { value: 0 }, full: { value: 0 } };
   const reveal = revealUniforms(uniforms.time);
   const lights = [];          // PointLights on at night: { light, intensity }
   const disposables = [];
-  const diyaChunks = [];      // util.chunkBy chunks of the diyas: { mesh: bowls, flames, minLit, alwaysLit }
+  const diyaChunks = [];      // util.chunkBy chunks of the diyas: { mesh: bowls, flames, minLit, minFull, alwaysLit }
   const bulbChunks = [];      // and of the string lights' bulbs
 
   // ── diyas ──────────────────────────────────────────────────────────────────
   // Every spot is tagged: `always` for the shrine (a living temple, lit before the wedding), else
   // the bowl is set out during the preparations in walk order and lit in the illumination wave
   // that spreads outward from the mandap.
-  const diyaSpots = [];   // [x, y, z, always?]
+  const diyaSpots = [];   // [x, y, z, always?] — or, from the tables, { p, group, order, lit, bowl, s }
   {
     // the temple stair: two either side of every tread, then along the rail tops round the platform
     const { stair_foot, stair_top, stair_width: sw, stair_steps: ns, stair_tread: tr } = L.navaratna;
@@ -260,14 +263,17 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
     flameGeo.translate(0, 0.075 + 0.03, 0);
     const flameMat = new THREE.ShaderMaterial({
       vertexShader: FLAME_VERT, fragmentShader: FLAME_FRAG, transparent: true, depthWrite: false,
-      blending: THREE.AdditiveBlending, uniforms: { time: uniforms.time, lit: uniforms.lit, bright: { value: 1.6 } },
+      blending: THREE.AdditiveBlending, uniforms: { time: uniforms.time, lit: uniforms.lit, full: uniforms.full, bright: { value: 1.6 } },
     });
     const rdN = rz - rd / 2;
+    // the lamp table's rows and stands (tables.js): set out with its hall, lit as the guest reaches them
+    diyaSpots.push(...tableDiyaSpots());
     const items = diyaSpots.map((p) => {
+      if (!Array.isArray(p)) return { ...p, phase: Math.random() };
       const inR = p[0] > rx && Math.abs(p[2] - rz) < rd / 2;                                  // inside the Radhakanta: first, as the walk goes through
       const d = Math.hypot(p[0] - mx, p[2] - mz);
       return {
-        p, phase: Math.random(),
+        p, phase: Math.random(), bowl: true, s: 1,
         order: p[3] ? -1 : 0.86 * walkOrder(_p.set(p[0], p[1], p[2])), group: GROUP.prep,   // the bowl is set out in walk order
         lit: p[3] ? -1 : inR ? 0.02 + 0.1 * (p[2] - rdN) / rd : 0.22 + 0.68 * Math.pow(Math.min(1, d / 62), 0.8),   // and lit in the wave
       };
@@ -285,15 +291,17 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
       const flames = new THREE.InstancedMesh(fGeo, flameMat, n);
       bowls.castShadow = false;
       c.items.forEach((it, i) => {
-        _m.compose(_p.set(it.p[0], it.p[1], it.p[2]), _q.identity(), _s.set(1, 1, 1));
-        bowls.setMatrixAt(i, _m);
+        _m.compose(_p.set(it.p[0], it.p[1], it.p[2]), _q.identity(), _s.set(it.s, it.s, it.s));
         flames.setMatrixAt(i, _m);
+        if (!it.bowl) _m.scale(_s.set(0, 0, 0));   // a flame on a stand modelled elsewhere: no bowl
+        bowls.setMatrixAt(i, _m);
       });
       boundChunk(bowls);
       boundChunk(flames);
       c.mesh = bowls;
       c.flames = flames;
-      c.minLit = Math.min(...c.items.map((it) => (it.lit < 0 ? Infinity : it.lit)));
+      c.minLit = Math.min(...c.items.map((it) => (it.lit < 0 || it.lit >= 1 ? Infinity : it.lit)));
+      c.minFull = Math.min(...c.items.map((it) => (it.lit >= 1 ? it.lit - 1 : Infinity)));
       c.alwaysLit = c.items.some((it) => it.lit < 0);
       diyaChunks.push(c);
       root.add(bowls, flames);
@@ -625,7 +633,7 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
   // view (the Radhakanta's front sliding by; the foot of the nat-mandir's stair); `onBell` lets the
   // ambience ring with it.
   const bells = [];   // { pivot, theta, omega, node, rung }
-  if (model) for (const [name, node] of [['bell_vishnu', 6.1], ['bell_nat', 22.3]]) {
+  if (model) for (const [name, node] of [['bell_vishnu', NODE.strip + 0.1], ['bell_nat', NODE.nFoot + 0.3]]) {
     const grp = model.getObjectByName(name);
     if (!grp) continue;
     const box = new THREE.Box3().setFromObject(grp);
@@ -727,12 +735,13 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
     uniforms.night.value = night;
     const lit = Math.max(stage.lights, night);
     uniforms.lit.value = lit;
+    uniforms.full.value = stage.full;
     uniforms.flameBright.value = 1.2 + 1.6 * night;
     setReveal(reveal, stage);
     reveal.reveal.value[GROUP.prep] = Math.max(stage.prep, night);
     const camRoom = eye ? roomOf(eye.x, eye.z) : null;
     cullChunks(diyaChunks, reveal.reveal.value, camRoom);
-    for (const c of diyaChunks) c.flames.visible = c.mesh.visible && (c.alwaysLit || lit > c.minLit);
+    for (const c of diyaChunks) c.flames.visible = c.mesh.visible && (c.alwaysLit || lit > c.minLit || stage.full > c.minFull);
     for (const c of bulbChunks) c.mesh.visible = !(camRoom && c.room && c.room !== camRoom);
     for (const a of alponas) if (a.group) a.u.reveal.value = THREE.MathUtils.smoothstep(stage[a.group], a.o0, a.o1);
     for (const m of spills) {

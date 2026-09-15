@@ -2,7 +2,7 @@ import { content } from './content.js';
 import { createScene } from './scene/scene.js';
 import { createSound } from './audio.js';
 import { mountCards } from './cards.js';
-import { at } from './scene/walk.js';
+import { at, NODE } from './scene/walk.js';
 import { renderSections } from './sections.js';
 import { mountDebug } from './debug.js';
 
@@ -81,7 +81,7 @@ if (!sceneApi) {
       if (pastWalk) sceneApi.stop(); else sceneApi.start();
     }
     hint.classList.toggle('is-hidden', y > 40);
-    sound.setDepth(Math.min(1, Math.max(0, (progressTarget - at(30)) / (at(34) - at(30)))));   // deeper as the temple stair is climbed
+    sound.setDepth(Math.min(1, Math.max(0, (progressTarget - at(NODE.plinthNW)) / (at(NODE.end) - at(NODE.plinthNW)))));   // deeper as the temple stair is climbed
   }
   window.addEventListener('scroll', onScroll, { passive: true });
 

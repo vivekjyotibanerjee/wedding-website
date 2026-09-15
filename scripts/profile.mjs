@@ -32,7 +32,7 @@ await page.goto(url.includes('#debug') ? url : `${url}#debug`, { waitUntil: 'loa
 await page.waitForFunction(() => document.getElementById('veil').classList.contains('is-done'), { timeout: 180000 });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 await wait(1000);
-const nodes = 34, step = +stepArg;
+const nodes = await page.evaluate(() => window.templeScene.debug.nodes), step = +stepArg;   // the last PATH node's index
 console.log('node  progress  calls   ktris  programs  stage');
 let lastPrograms = -1;
 for (let i = 0; i <= nodes; i += step) {

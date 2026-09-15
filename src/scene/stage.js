@@ -1,4 +1,4 @@
-import { at } from './walk.js';
+import { at, NODE } from './walk.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // The wedding's timeline along the walk. The temple starts bare and is dressed as the guest goes
@@ -18,24 +18,25 @@ import { at } from './walk.js';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const span = (a, b) => [at(a), at(b)];
+const N = NODE;
 
 /** [start, end] in walk progress for every transition. */
 export const SCHEDULE = {
-  gate: span(0.4, 1.8),        // the toran gate at the ghat top, seen from the river
-  prep: span(3.4, 7.2),        // carpet along the strip, torans over the doors, diya bowls
-  flowers: span(4.6, 12.5),    // garlands: Shiva fronts first, then the Radhakanta, then inside
-  lights: span(12.5, 19),      // diyas and string lights: the Radhakanta's own first, then a wave out from the mandap
-  mandap: span(16.2, 18.2),    // hanging strands, column wraps, incense at the mandap
-  ceremony: span(17.4, 18.6),  // the agni; petals
-  dusk: span(16, 31),          // golden hour: the sun lowers and warms
-  full: span(21, 27),          // the nat-mandir dressed; petals inside
-  finale: span(30, 33.5),      // the stair: petals thin out, the glow comes up
+  gate: span(0.4, 1.8),                                  // the toran gate at the ghat top, seen from the river
+  prep: span(3.4, 7.2),                                  // carpet along the strip, torans over the doors, diya bowls
+  flowers: span(4.6, N.rPujab),                          // garlands: Shiva fronts first, then the Radhakanta, then inside; the tables laid
+  lights: span(N.rPujab, N.mandapNW),                    // diyas and string lights: the Radhakanta's own first, then a wave out from the mandap
+  mandap: span(N.rLedgeS + 0.2, N.mandapNE + 0.2),       // hanging strands, column wraps, incense at the mandap
+  ceremony: span(N.rFlightS + 0.4, N.mandapNE + 0.6),    // the agni; petals
+  dusk: span(N.rLedgeS, N.northLedge),                   // golden hour: the sun lowers and warms
+  full: span(N.natFront, N.nPaanb),                      // the nat-mandir dressed, its tables laid; petals inside
+  finale: span(N.plinthNW, N.arch + 0.5),                // the stair: petals thin out, the glow comes up
 };
 
 /** Named stages for the debug panel and for jumping about; each starts at a PATH node. */
 export const STAGES = [
-  ['arrival', 0], ['preparation', 3.4], ['flowers', 6], ['illumination', 12.5],
-  ['mandap', 17], ['ceremony', 17.8], ['celebration', 21], ['finale', 30],
+  ['arrival', 0], ['preparation', 3.4], ['flowers', 6], ['illumination', N.rPujab],
+  ['mandap', N.rFlightS], ['ceremony', N.rFlightS + 0.8], ['celebration', N.natFront], ['finale', N.plinthNW],
 ].map(([name, node]) => ({ name, start: at(node) }));
 
 const smooth = (a, b, x) => {

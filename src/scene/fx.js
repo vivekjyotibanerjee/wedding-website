@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import L from './landmarks.json';
+import { tableSmokeSources } from './tables.js';
+import { smooth } from './util.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Atmosphere (plan: layer C) — the parts of the wedding that fall, burn and drift: petals showered
@@ -166,7 +168,7 @@ const SPARK_FRAG = /* glsl */ `
 // sources, each with its own `on`.
 const SMOKE_VERT = /* glsl */ `
   uniform float time;
-  uniform float on[6];
+  uniform float on[NSMOKE];
   attribute vec3 aOrigin;
   attribute vec4 aSeed;     // phase, rise (m), spread (m), size (m)
   attribute float aSrc;
@@ -322,8 +324,10 @@ export function buildFx(scene, { reducedMotion = false, quality = 'high', sunDir
 
   // ── smoke and incense ──────────────────────────────────────────────────────
   // Sources: 0 the agni; 1–2 incense on the mandap stage's front corners; 3–4 incense either side of
-  // the shrine door; 5 incense at the Radhakanta's north door (the first threshold the walk crosses).
-  const smokeU = { time, night, on: { value: [0, 0, 0, 0, 0, 0] } };
+  // the shrine door; 5 incense at the Radhakanta's north door (the first threshold the walk crosses);
+  // then the tables' (tables.js: the puja table's dhunuchi and incense), each with the transition
+  // and window it follows.
+  const tableSmoke = tableSmokeSources();
   const [dx, , dz] = L.sanctum.door;
   const R = L.radhakanta;
   const rDoor0 = R.center[2] - (R.bays_west - 1) / 2 * R.bay_pitch;
@@ -334,7 +338,9 @@ export function buildFx(scene, { reducedMotion = false, quality = 'high', sunDir
     { o: [dx - 1.35, pt + 0.5, dz + 0.55], n: 14, rise: 1.7, spread: 0.22, size: 0.3 },
     { o: [dx + 1.35, pt + 0.5, dz + 0.55], n: 14, rise: 1.7, spread: 0.22, size: 0.3 },
     { o: [R.west_face_x - R.plinth_out + 0.35, R.plinth_top + 0.5, rDoor0 + 1.5], n: 14, rise: 1.6, spread: 0.22, size: 0.3 },
+    ...tableSmoke,
   ];
+  const smokeU = { time, night, on: { value: new Array(sources.length).fill(0) } };
   {
     const items = [];
     sources.forEach((s, k) => { for (let i = 0; i < s.n; i++) items.push({ o: s.o, seed: [Math.random(), s.rise * (0.85 + 0.3 * Math.random()), s.spread * (0.7 + 0.6 * Math.random()), s.size * (0.7 + 0.6 * Math.random())], src: k }); });
@@ -346,7 +352,7 @@ export function buildFx(scene, { reducedMotion = false, quality = 'high', sunDir
     geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(seed, 4));
     geo.setAttribute('aSrc', new THREE.InstancedBufferAttribute(src, 1));
     geo.instanceCount = n;
-    const mat = new THREE.ShaderMaterial({ vertexShader: SMOKE_VERT, fragmentShader: SMOKE_FRAG, uniforms: smokeU, transparent: true, depthWrite: false });
+    const mat = new THREE.ShaderMaterial({ vertexShader: SMOKE_VERT.replace('NSMOKE', sources.length), fragmentShader: SMOKE_FRAG, uniforms: smokeU, transparent: true, depthWrite: false });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.frustumCulled = false;
     root.add(mesh);
@@ -379,6 +385,7 @@ export function buildFx(scene, { reducedMotion = false, quality = 'high', sunDir
     on[1] = on[2] = stage.mandap * motion;
     on[3] = on[4] = motion;
     on[5] = stage.prep * motion;
+    tableSmoke.forEach((s, k) => { on[6 + k] = smooth(s.on[0], s.on[1], stage[s.group]) * motion; });
   }
   function resize(height) { fireU.sparkScale.value = height * 0.5; }
 

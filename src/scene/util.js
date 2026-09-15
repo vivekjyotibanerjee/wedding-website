@@ -41,7 +41,10 @@ export function walkOrder(p) {
 //   aOrder  when, within the transition, this instance/vertex appears (0 → 1; < 0 = always there)
 //   aGroup  which transition drives it (GROUP[name])
 // and the mesh scales in from nothing while dropping the last 15 cm into place. `aHang` (0 → 1,
-// how free the bloom is to swing) and `aPhase` add wind to anything hung.
+// how free the bloom is to swing) and `aPhase` add wind to anything hung. With `pivot`, `aPivot`
+// (a point in object space) is what each vertex scales in from — many props merged into one mesh
+// each grow from their own spot; with `shine`, `aShine` (0 → 1) turns the material's roughness and
+// metalness toward polished metal per vertex, so brass and cloth share one material.
 export const GROUP = Object.fromEntries(Object.keys(SCHEDULE).map((k, i) => [k, i]));
 const NGROUP = Object.keys(SCHEDULE).length;
 export const REVEAL_WIDTH = 0.12;
@@ -56,18 +59,19 @@ export function setReveal(uniforms, stage) {
   for (const [k, i] of Object.entries(GROUP)) r[i] = stage[k];
 }
 
-export function attachReveal(material, uniforms, { sway = 0.035, leaf = false } = {}) {
+export function attachReveal(material, uniforms, { sway = 0.035, leaf = false, pivot = false, shine = false } = {}) {
   material.onBeforeCompile = (sh) => {
     sh.uniforms.reveal = uniforms.reveal;
     sh.uniforms.time = uniforms.time;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', `#include <common>
         uniform float reveal[${NGROUP}]; uniform float time;
-        attribute float aOrder; attribute float aGroup; attribute float aHang; attribute float aPhase;`)
+        attribute float aOrder; attribute float aGroup; attribute float aHang; attribute float aPhase;
+        ${pivot ? 'attribute vec3 aPivot;' : ''}`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         float rT = reveal[int(aGroup + 0.5)];
         float rR = aOrder < 0.0 ? 1.0 : smoothstep(aOrder, aOrder + ${REVEAL_WIDTH.toFixed(3)}, rT);
-        transformed *= rR;`)
+        ${pivot ? 'transformed = aPivot + (transformed - aPivot) * rR;' : 'transformed *= rR;'}`)
       .replace('#include <project_vertex>', `
         vec4 mvPosition = vec4(transformed, 1.0);
         #ifdef USE_INSTANCING
@@ -79,6 +83,15 @@ export function attachReveal(material, uniforms, { sway = 0.035, leaf = false } 
         rWp.z += cos(time * 0.9 + aPhase * 6.2832 + rWp.x * 0.5) * ${sway.toFixed(3)} * aHang;
         mvPosition = viewMatrix * rWp;
         gl_Position = projectionMatrix * mvPosition;`);
+    if (shine) {
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nattribute float aShine; varying float vShine;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvShine = aShine;');
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vShine;')
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.3, vShine);')
+        .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.9, vShine);');
+    }
     if (leaf) {
       // a mango leaf cut from the card: pointed at both ends, widest a third of the way down
       sh.vertexShader = sh.vertexShader
@@ -92,7 +105,7 @@ export function attachReveal(material, uniforms, { sway = 0.035, leaf = false } 
           diffuseColor.rgb *= 0.8 + 0.4 * smoothstep(0.0, 0.05, abs(vLeaf.x - 0.5));   // a pale midrib`);
     }
   };
-  material.customProgramCacheKey = () => `reveal${sway}${leaf}`;
+  material.customProgramCacheKey = () => `reveal${sway}${leaf}${pivot}${shine}`;
   return material;
 }
 
