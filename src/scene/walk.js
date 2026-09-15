@@ -46,6 +46,8 @@ const [, , doorZ] = L.sanctum.door;                   // the shrine door in the 
 const doorMid = pt + L.sanctum.arch[1] / 2;
 
 const gz = L.ghat.top[2];
+const gx = L.ghat.top[0];                             // top of the ghat = the courtyard's west edge
+const gFoot = L.ghat.foot[0];
 
 // ── the walking surface ──────────────────────────────────────────────────────
 // Everything the guest walks on, from the landmarks: the courtyard, the ghat's flight, the halls'
@@ -156,12 +158,12 @@ const top = (k, oz = 0) => [TABLES[k].p[0], TABLES[k].p[1] + 0.85, TABLES[k].p[2
 // between them is the pause at the table. Nodes anything refers to carry a name (`n`), exported as
 // NODE, so the schedule, the carpets and the cards say `NODE.rIn` rather than a number.
 export const PATH = [
-  { p: [-88, 7.5, gz + 6], l: [-8, 10, gz - 4] },                          // 0 over the river: the whole west front
-  { p: [-60, 3.0, gz], l: [-30, 6, gz - 2] },                              // 1 toward the ghat
-  { p: on(-46.5, gz), l: [-30, 5, gz - 4] },                              // 2 foot of the ghat
-  { p: on(-40.5, gz), l: [-27, 5.5, gz - 9] },                            // 3 near the top: the invitation
-  { n: 'ghatTop', p: on(-37, gz), l: [-24, 5, gz - 11] },                 // 4 top of the ghat, the view swinging left
-  { p: on(-28, gz - 0.5), l: [-19, 5.5, gz - 25] },                       // 5 through the gap: the north Shiva group's flank, the Radhakanta's front
+  { p: [gx - 49.5, 7.5, gz + 6], l: [-8, 10, gz - 4] },                    // 0 over the river: the whole west front
+  { p: [gx - 21.5, 3.0, gz], l: [gx + 8.5, 6, gz - 2] },                   // 1 toward the ghat
+  { p: on(gFoot + 1, gz), l: [gx + 8.5, 5, gz - 4] },                     // 2 foot of the ghat
+  { p: on(gx - 2, gz), l: [gx + 11.5, 5.5, gz - 9] },                     // 3 near the top: the invitation
+  { n: 'ghatTop', p: on(gx + 1.5, gz), l: [gx + 14.5, 5, gz - 11] },      // 4 top of the ghat, the view swinging left
+  { p: on(gx + 10.5, gz - 0.5), l: [gx + 19.5, 5.5, gz - 25] },           // 5 through the gap: the north Shiva group's flank, the Radhakanta's front
   { n: 'strip', p: on(-22, gz - 13), l: [-10, 6, rDoor(0) + 2] },         // 6 up the strip
   { p: on(-20, -31), l: [rx, 5, rDoor(0)] },                              // 7 its 8-bay front sliding by on the right (west of the lamp post at z −22)
   { n: 'rFoot', p: on(rFoot - 1.6, rDoor(0) + 0.35), l: [rx + 3, rP + 2.0, rDoor(0)] }, // 8 at the foot of the flight up to the northmost door (a touch south: the spline bends north here)

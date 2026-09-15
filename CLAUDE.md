@@ -78,10 +78,19 @@ bake) and `--only '<regex>'` with `--out` for a test glb the site loads via `?mo
   camera for its whole range (a point behind the camera can't be projected).
 - The Radhakanta has single-bay flights up to its northmost and southmost west doors
   (`hall_block(door_stairs=…)`, `landmarks.radhakanta.door_stairs`) because the walk goes in and
-  out there; the nat-mandir's flight is central and the walk uses it. The temple stair's foot is
-  inside the nat-mandir's plinth (its lowest treads are buried, it meets the plinth's north ledge
-  at ledge height), so the walk leaves the nat-mandir's north door along the west and north
-  ledges and steps onto the stair from there — no drop to the courtyard.
+  out there; the nat-mandir's flight is central and the walk uses it. The navaratna has a flight
+  on every face (`NAV_STAIR`, `landmarks.navaratna.flights`; the aerial photo) but the walk climbs
+  the south one (`stair_*`), whose foot is inside the nat-mandir's plinth (its lowest treads are
+  buried, it meets the plinth's north ledge at ledge height), so the walk leaves the nat-mandir's
+  north door along the west and north ledges and steps onto the stair from there — no drop to the
+  courtyard. The numbers the walk reads (stairs, plinths, arches) are module constants at the top
+  of `build_dakshineswar.py` that `export_web.landmarks()` reads — never retype them there.
+- The SketchUp reference (`recon/data/reference/skp/`, from the owner's `skp_911.zip`; git-ignored)
+  is photo-textured and accurate on layout and relief but flat: use it to *see* detail, never copy
+  its geometry or paste its maps. `recon/blender/ref_views.py --site --view …`, the same `--view`
+  on `build_dakshineswar.py` / `preview_web.py`, and `pair.py` give side-by-sides from one camera
+  string (recon/README, "The SketchUp reference"). Relief goes in as geometry or as bump/normal in
+  the materials (baked to normal maps by the export), never as a painted flat texture.
 - The sanctum: `build_dakshineswar.SANCTUM` hollows a shrine chamber out of the navaratna's
   ground-storey core behind the central south arch (closed boxes + a pierced wall, no boolean);
   `landmarks.sanctum` locates it. The deity is a runtime picture plane in `life.js` reading
@@ -108,6 +117,10 @@ bake) and `--only '<regex>'` with `--out` for a test glb the site loads via `?mo
   it (the bells' pivots) keeps its own auto-update, which pushes down to its children.
 - The `#debug` panel shows fps, draw calls, triangles and programs; the programs count must not
   change while walking.
+- The build's `mesh_audit` prints open edges, the heaviest meshes, z-fights (same-facing coplanar
+  faces of different objects) and embedded solids; only the buried temple stair and bevel-deep
+  contacts are expected. `AUDIT_VERBOSE=1` lists every pair. Parts touch (end-to-face, coplanar
+  with opposite normals), never bite into each other; rings around a solid get `bite=0`.
 
 ## Judging changes
 
@@ -133,7 +146,12 @@ Time-based transitions must use wall-clock dt (the headless frame loop runs at a
 - The walk's order: ghat → left (north) into the Radhakanta at its northmost door, a U past
   the four tables along its east wall, out of its southmost door → mandap → nat-mandir by its
   west stair, a U past the five tables along its east wall, out of its northmost door → temple
-  stair → the sanctum door. Every card stop is a table (decided Sep 2026: tables, not booths or
+  stair → the sanctum door.
+- Sep 2026, against the aerial photo and the SketchUp reference: four flights on the navaratna,
+  short doorways under a tall panelled wall with a deep Bengal curve, plastered arcaded platform,
+  bulbous ribbed ratnas (gold finials kept), the courtyard 64 m wide to fit the flights, the mandap's
+  bushes are urn bouquets. Untextured parts of the reference are ignored; where the reference and
+  the photo disagree, the photo wins. Every card stop is a table (decided Sep 2026: tables, not booths or
   signboards, each different — welcome, puja, bhog, shringar; malakar, music, lamps, tattva,
   paan & mishti); the pairing with the cards is loose, by walk order.
 - No mixing polygon fallbacks into the future splat scene; when splats arrive they replace the
@@ -161,6 +179,11 @@ Time-based transitions must use wall-clock dt (the headless frame loop runs at a
 - `IcosahedronGeometry` (any `PolyhedronGeometry`) is non-indexed: detail 1 is 80 faces = 240
   vertices per instance, not 42.
 - `pkill -f` on a pattern that appears in your own shell's command line kills your shell.
+- Headless Blender does not evaluate `matrix_world` until `view_layer.update()`; `BVHTree.FromObject`
+  is in the object's local space; ray-parity inside tests miscount on the seams of touching parts
+  (use the winding number, as `mesh_audit` does).
+- `ring_prism` on an outline that starts and ends on its base line must leave the base open
+  (foot caps): the closed version laid a face across every threshold, z-fighting the floor.
 - GLSL `smoothstep(a, b, x)` with `a > b` is undefined by the spec (it happens to work on most
   GPUs); write `1.0 - smoothstep(b, a, x)`. The glb's positions are quantised (int16 + node
   scale), so vertex displacement of model meshes must be done in world space after

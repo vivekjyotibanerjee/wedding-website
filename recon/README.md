@@ -80,9 +80,10 @@ nat-mandir, Radhakanta temple, boundary arcades, ghat — as parametric geometry
 headless, in the same metre frame as `configs/layout.geojson` (origin = navaratna centre, x east,
 y north). Look is the real temple (cream stucco, rose bands, salmon chala roofs, fluted spires); the
 CG reference videos only settled the arrangement, the footprint comes from
-`data/reference/satellite.png` (58 × 107 m walled complex; the halls are ≈ 18 m blocks on the
-east side, nearly touching the navaratna platform and a colonnade's width short of the east range,
-so the "courtyard" is the ~18 m strip west of them).
+`data/reference/satellite.png` (58 × 107 m walled complex — built 64 m wide since the sixth pass,
+see below; the halls are ≈ 18 m blocks on the east side, nearly touching the navaratna platform
+and a colonnade's width short of the east range, so the "courtyard" is the ~18 m strip west of
+them).
 `configs/layout.inner.yaml` (from `trace.py`) overrides the default positions when present and
 PyYAML is importable from Blender's python.
 
@@ -114,6 +115,38 @@ Skybox: a CC0 Poly Haven HDRI (`kloofendal_38d_partly_cloudy_puresky`,
 pinned by sha1 in `render.sh`) with a sun lamp aligned to its sun and rotated to an SSW afternoon
 bearing.
 
+Sixth pass (Sep 2026), against the owner's aerial photograph and a photo-textured SketchUp model
+of the complex (3D Warehouse; the `.skp` is only readable as its Collada export, see below): the
+navaratna's ground-storey doorways are short against a tall panelled wall (`S1_ARCH`, rosette and
+framed panel per bay) and the wall's top follows a deep Bengal curve with a rose cornice, a dentil
+course and a string riding it (`curved_band`); the platform is plastered, a blind arcade of
+round-headed niches between pilaster strips runs round it and a flight climbs every face
+(`NAV_STAIR`: south and west broad, north and east narrower — the walk still climbs the south
+one), with the balustrade and the trim broken at the flights; the ratnas are octagonal drums with
+a blind niche per face under a smooth ribbed bulbous dome (`ratna`, gold finials kept), each on a
+pedestal that fills its terrace ledge so nothing stands inside the storey above (the set-backs
+`S2`/`S3` are sized for that); the halls get thin framed panels over the piers; the mandap's flower
+bushes are brass-urn bouquets (`bouquet` material, the blooms as relief). To fit the four flights
+the courtyard is 64 m wide (4 m more on the east, 2 m on the west with the Shiva row, ghat and
+river), the Radhakanta 2.5 m further north and the mandap 0.8 m west of the strip's centre
+(`mandap_dx`). The build's `mesh_audit` now also lists the heaviest meshes, same-facing coplanar
+faces of different objects (z-fights, after discounting faces glued to a third object) and solids
+with a vertex inside another (generalized winding number — ray parity trips on the seams of
+touching parts); `AUDIT_VERBOSE=1` prints every pair. What remains is the temple stair's foot
+buried in the nat-mandir plinth (the walk depends on it) and bevel-deep contacts. `ring_prism`
+leaves an arch outline open at its base (a horseshoe with foot caps) — walling the base edge laid
+a stray face across every threshold, coplanar with the floor.
+
+The SketchUp reference: `data/reference/skp/` (git-ignored) holds the `.dae` + textures exported
+from the `.skp` (SketchUp Free reads the model but not its materials; the zip of Blender 4.2's
+Collada export has both) and `ref.blend`, imported once by `blender/ref_views.py --dae … --save`.
+Then any camera: `blender -b -P blender/ref_views.py -- --site --view name=x,y,z/tx,ty,tz/lens …`
+(`--site` takes cameras in this model's frame and maps them into the reference's, yawed 8.7°
+with its navaratna at 7.98, 8.46); `--elev south|…`, `--plan`, `--orbit N`, `--bounds`.
+`build_dakshineswar.py --view …` and `preview_web.py --view …` take the same camera strings, and
+`blender/pair.py` stitches reference/ours sheets — `data/reference/skp/pairs/`. Its untextured
+faces (the upper storey's west and south, half of each dome) are the model's, not ours to copy.
+
 ```bash
 bash blender/render.sh quick       # iterate: 960x540, 24 samples (~20 s on 22 cores)
 bash blender/render.sh             # .blend + 13 stills at 1280x720, 128 samples (~25 min CPU)
@@ -144,6 +177,8 @@ blender -b -P blender/export_web.py -- --dry                                    
 blender -b -P blender/export_web.py -- --only '^(paving_web|nat)$' --out /tmp/t --bake-dir /tmp/t/bake   # a few meshes only;
 #   npx gltf-transform meshopt /tmp/t/dakshineswar.glb ../public/models/preview.glb  → site with ?model=/models/preview.glb
 blender -b -P blender/preview_web.py -- --glb data/web/dakshineswar.glb          # re-import + render stills to check the bake
+blender -b -P blender/build_dakshineswar.py -- --out data/blender/work --mode massing --render stills \
+        --view front=-34,0,2.9/0,0,10/28                                          # a camera of your own on the Blender scene (~4 s a view)
 ```
 
 The Ubuntu/Debian `blender` package (4.0.2+dfsg) renders fine but its Cycles **bakes black** for

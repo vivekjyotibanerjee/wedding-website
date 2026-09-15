@@ -45,17 +45,29 @@ import textures  # noqa: E402
 # opening between them.
 # ------------------------------------------------------------------------------------------------
 LAYOUT = {
-    "courtyard_w": 58.0, "courtyard_l": 107.0, "courtyard_cx": -9.5, "courtyard_cy": 3.0,
+    # 64 m: the satellite's 58 plus 4 m on the east, so the navaratna's east flight has ground in
+    # front of the east range, and 2 m on the west (Shiva row, ghat and river move out with it),
+    # so the mandap and its alpona sit between the west flight's foot and the Shiva steps
+    "courtyard_w": 64.0, "courtyard_l": 107.0, "courtyard_cx": -8.5, "courtyard_cy": 3.0,
     "courtyard_h": 1.2,                  # raised platform above the river-side ground
     "mandir_center": (0.0, 0.0), "mandir_size": 14.0, "mandir_platform": 22.0, "mandir_platform_h": 2.6,
     # nat-mandir: 7 arched bays on the long (E/W) faces, 3 on the short ones (M36537551, M36512944)
     "natmandir_center": (1.5, -27.0), "natmandir_size": (18.0, 24.5), "natmandir_h": 7.4,
-    "vishnu_center": (1.5, 29.5), "vishnu_size": (18.0, 30.0), "vishnu_h": 10.4,
-    "shiva_x": -32.0, "shiva_size": 6.2, "shiva_gap": 7.9, "shiva_ghat_gap": 9.0,
+    "vishnu_center": (1.5, 32.0), "vishnu_size": (18.0, 30.0), "vishnu_h": 10.4,   # 2.5 m clear of the north flight
+    "mandap_dx": -0.8,                  # the mandap west of the strip's centre, clear of the west flight
+    "shiva_x": -34.0, "shiva_size": 6.2, "shiva_gap": 7.9, "shiva_ghat_gap": 9.0,
     # boundary ranges are single-storey colonnades (M69552267 inside, M69552273/4 outside)
     "arcade_depth": 6.5, "arcade_h": 5.2,
-    "river_x": -41.0,
+    "river_x": -43.0,
 }
+# What the walk reads (export_web.landmarks() writes these; keep the two in step): the navaratna's
+# four flights (S/W the broad ones, N/E narrower, per the aerial photo), the halls' three-bay
+# central flights, the halls' plinth, the arch sizes of the pierced walls.
+NAV_STAIR = {"steps": 9, "tread": 0.4, "width": {"S": 0.7, "W": 0.7, "N": 0.45, "E": 0.45}}   # width × mandir_size
+HALL_STAIR = {"steps": 6, "tread": 0.36, "bays": 3}
+HALL_PLINTH = {"h": 1.2, "out": 1.5}
+S1_H, S1_ARCH = 10.0, (1.7, 4.2)      # ground storey: the doorways are short against the tall wall (ref Tan_1 map)
+NAT_ARCH, VIS_ARCH = (2.0, 4.3), (1.9, 3.8)
 ROOT = Path(__file__).resolve().parents[1]
 TEX_DIR = ROOT / "data" / "blender" / "textures"
 SUN_BEARING = 205.0          # compass bearing the sun shines FROM (SSW afternoon at 22°N)
@@ -337,25 +349,27 @@ def drape_material() -> bpy.types.Material:
     return m
 
 
-def garland_material() -> bpy.types.Material:
-    """Rose garland: red and white blooms as thresholded noise over dark foliage, bumpy."""
-    m = bpy.data.materials.new("garland")
+def garland_material(name="garland", scale=9.0, palette=((0.54, (0.55, 0.02, 0.08)), (0.64, (0.9, 0.86, 0.8))),
+                     foliage=(0.07, 0.18, 0.05)) -> bpy.types.Material:
+    """Rose garland: red and white blooms as thresholded noise over dark foliage, bumpy. The
+    'bouquet' variant is nearly all bloom (marigold, rose, white) with little foliage showing."""
+    m = bpy.data.materials.new(name)
     m.use_nodes = True
     nt = m.node_tree
     p = nt.nodes["Principled BSDF"]
     p.inputs["Roughness"].default_value = 0.9
     tc = nt.nodes.new("ShaderNodeTexCoord")
     blooms = nt.nodes.new("ShaderNodeTexNoise")
-    blooms.inputs["Scale"].default_value, blooms.inputs["Detail"].default_value = 9.0, 3.0
+    blooms.inputs["Scale"].default_value, blooms.inputs["Detail"].default_value = scale, 3.0
     nt.links.new(tc.outputs["Object"], blooms.inputs["Vector"])
     leaf = nt.nodes.new("ShaderNodeTexNoise")
     leaf.inputs["Scale"].default_value, leaf.inputs["Detail"].default_value = 60.0, 5.0
     nt.links.new(tc.outputs["Object"], leaf.inputs["Vector"])
     colour = None
-    for thresh, rgb in ((0.54, (0.55, 0.02, 0.08)), (0.64, (0.9, 0.86, 0.8))):
+    for thresh, rgb in palette:
         mask = _math(nt, "GREATER_THAN", blooms.outputs["Fac"], thresh)
         mix = nt.nodes.new("ShaderNodeMixRGB")
-        mix.inputs["Color1"].default_value = (0.07, 0.18, 0.05, 1.0)
+        mix.inputs["Color1"].default_value = (*foliage, 1.0)
         if colour is not None:
             nt.links.new(colour, mix.inputs["Color1"])
         mix.inputs["Color2"].default_value = (*rgb, 1.0)
@@ -366,7 +380,7 @@ def garland_material() -> bpy.types.Material:
     b.inputs["Strength"].default_value = 0.7
     nt.links.new(_math(nt, "ADD", leaf.outputs["Fac"], blooms.outputs["Fac"]), b.inputs["Height"])
     nt.links.new(b.outputs["Normal"], p.inputs["Normal"])
-    MATS["garland"] = m
+    MATS[name] = m
     return m
 
 
@@ -439,7 +453,7 @@ def make_materials() -> None:
     pbr("rose", "stucco", tint=ROSE, rough=0.75, normal=0.5, period=1.5, grime=0.2)
     # aat-chala roofs are red-painted plaster (refs M131868947, M130391230), not tiles: bump only
     pbr("red_plaster", "stucco", tint=(0.62, 0.16, 0.10), rough=0.8, normal=0.7, period=2.0, grime=0.25)
-    pbr("stone", "brick", tint=(0.85, 0.85, 0.85), rough=0.9, normal=1.0)
+    pbr("stone", "stucco", tint=(0.74, 0.72, 0.67), rough=0.9, normal=0.8, period=1.5, grime=0.3)   # grey plastered stone stairs (the aerial photo)
     pbr("laterite", "brick", tint=(0.9, 0.75, 0.7), rough=0.95, normal=1.0)
     pbr("paving", "paving", rough=0.85, normal=1.0, displace=True)      # adaptive-subdivision objects only
     pbr("path", "stucco", tint=(0.78, 0.74, 0.66), rough=0.9, normal=0.4, period=2.0, grime=0.25)
@@ -453,8 +467,7 @@ def make_materials() -> None:
     #   column  – colonnade columns of the boundary ranges, red-painted lower 1.6 m (M69552267)
     # The ratnas are stepped rings in geometry; the beading along each ring is a bump.
     pbr("spire", "stucco", rough=0.85, normal=0.6, period=1.5, grime=0.25, disp_scale=0.02,
-        stripes=dict(colour=ROSE, coord="generated_z", period=0.11, duty=0.18, offset=0.05, zmax=0.72, bump=0.3),
-        checker=dict(n=48, bump=-0.8, tex=0.3))
+        checker=dict(n=40, period=0.045, bump=-0.7, tex=0.3))
     pbr("colonette", "stucco", rough=0.8, normal=0.5, period=1.5, grime=0.2,
         stripes=dict(colour=ROSE, coord="uv_u", period=0.14, duty=0.5, bump=0.5))
     pbr("column", "stucco", tint=(0.95, 0.94, 0.9), rough=0.75, normal=0.4, period=1.0, grime=0.2, damp=0.5,
@@ -476,6 +489,8 @@ def make_materials() -> None:
     pbr("mandap_stone", "stucco", tint=(0.84, 0.76, 0.62), rough=0.7, normal=0.5, period=1.0, grime=0.3)
     drape_material()
     garland_material()
+    garland_material("bouquet", scale=16.0, foliage=(0.10, 0.22, 0.06),
+                     palette=((0.40, MARIGOLD), (0.52, (0.62, 0.03, 0.09)), (0.63, (0.93, 0.9, 0.84))))
     mat("dark", (0.20, 0.14, 0.10), 0.8)
     water_material()
     mat("earth", (0.30, 0.25, 0.17), 0.95, bump=0.25, bump_scale=8)
@@ -655,9 +670,11 @@ def rect_ring(w, d, t, h, cx=0.0, cy=0.0, z0=0.0):
     return place(sheet(polys, h, "z"), (cx, cy, z0))
 
 
-def moulding(w, d, cx, cy, z0, steps):
-    """Stacked rings: steps = [(outset, height), …] from the bottom up (plinth/cornice profiles)."""
-    return merge(*[rect_ring(w + 2 * o, d + 2 * o, 0.3 + o, h, cx, cy, z0 + sum(hh for _, hh in steps[:i]))
+def moulding(w, d, cx, cy, z0, steps, bite=0.3):
+    """Stacked rings: steps = [(outset, height), …] from the bottom up (plinth/cornice profiles).
+    `bite` is how far the rings reach in past the w × d line (0 when they wrap a solid body:
+    touching, not embedded)."""
+    return merge(*[rect_ring(w + 2 * o, d + 2 * o, bite + o, h, cx, cy, z0 + sum(hh for _, hh in steps[:i]))
                    for i, (o, h) in enumerate(steps)])
 
 
@@ -725,21 +742,29 @@ def lathe(profile, segments=48, cx=0.0, cy=0.0, z0=0.0, rib=0, rib_amp=0.0, rib_
 
 
 def ring_prism(outer, inner, depth, axis="y", cx=0.0, cz=0.0, y0=0.0):
-    """Extruded ring between two same-length outlines (arch surrounds that leave the opening open)."""
+    """Extruded ring between two same-length outlines (arch surrounds that leave the opening open).
+    An outline that starts and ends on one base line (an arch standing on its sill) is open there:
+    the ring is a horseshoe closed by two foot caps — walling the base edge would lay a stray face
+    across the threshold, coplanar with the floor."""
     n = len(outer)
     assert len(inner) == n
+    open_base = abs(outer[0][1] - outer[-1][1]) < 1e-9 and abs(inner[0][1] - inner[-1][1]) < 1e-9 \
+        and abs(outer[0][1] - inner[0][1]) < 1e-9
 
     def P(u, v, y):
         return (cx + u, y, cz + v) if axis == "y" else (y, cx + u, cz + v)
     verts = [P(u, v, y0) for (u, v) in outer] + [P(u, v, y0) for (u, v) in inner] + \
             [P(u, v, y0 + depth) for (u, v) in outer] + [P(u, v, y0 + depth) for (u, v) in inner]
     faces = []
-    for i in range(n):
+    for i in range(n - 1 if open_base else n):
         j = (i + 1) % n
         faces.append((i, n + i, n + j, j))                          # front ring (y0 side)
         faces.append((2 * n + i, 2 * n + j, 3 * n + j, 3 * n + i))  # back ring
         faces.append((i, j, 2 * n + j, 2 * n + i))                  # outer wall
         faces.append((n + i, 3 * n + i, 3 * n + j, n + j))          # inner wall
+    if open_base:
+        faces.append((0, 2 * n, 3 * n, n))                          # foot caps
+        faces.append((n - 1, 2 * n - 1, 4 * n - 1, 3 * n - 1))
     return verts, faces
 
 
@@ -919,6 +944,19 @@ def arched_parapet(length, full, z_low, amp, t, samples=16):
     return sheet([poly], t, "y")
 
 
+def curved_band(length, full, z_low, amp, thick, t, samples=16):
+    """A course `thick` high whose top and bottom edges both follow arched_parapet's curve (the
+    cornice bands and dentil course that ride the Bengal curve), local frame as arched_parapet;
+    the curve is clamped at the `full` corners so a band that overhangs them stays level."""
+    s2, l2 = full / 2, length / 2
+
+    def zc(a):
+        return z_low + amp * max(0.0, 1 - (a / s2) ** 2)
+    xs = [-l2 + length * i / samples for i in range(samples + 1)]
+    poly = [(a, zc(a)) for a in xs] + [(a, zc(a) + thick) for a in reversed(xs)]
+    return sheet([poly], t, "y")
+
+
 def four_faces(part, size, z0=0.0, cx=0.0, cy=0.0):
     """Place a part built in the local frame of a face (along x, front at y=0 looking −Y) on the
     four faces of a square of `size` (S, N, E, W)."""
@@ -943,11 +981,12 @@ def disc(r, depth, cx, cz, segs=16):
 
 def jambs(xs, hw, spring, z0=0.0, proud=0.2, wj=0.42):
     """Bundled-shaft jambs either side of each arch (a proud box each, the shafts are painted by
-    the 'colonette' stripes) with a slightly wider capital block under the springing line."""
+    the 'colonette' stripes) with a slightly wider capital block under the springing line. They
+    stand 1 cm off the opening so their reveal is not coplanar with the surround ring's."""
     parts = []
     for xc in xs:
         for s in (-1, 1):
-            x = xc + s * (hw + wj / 2)
+            x = xc + s * (hw + 0.01 + wj / 2)
             parts.append(box(wj, proud, spring - 0.25, x, -proud / 2, z0))
             parts.append(box(wj + 0.14, proud + 0.04, 0.25, x, -(proud + 0.04) / 2, z0 + spring - 0.25))
     return merge(*parts)
@@ -1000,11 +1039,18 @@ def build_ground(L):
     sx_e, bx_w, strip_cx = strip_extent(L)
     long_walks = [(strip_cx - 1.2, strip_cx + 1.2), (sx_e + 0.1, sx_e + 1.7)]
     zp = ch + 0.01
-    parts = [box(b - a, cl - 2 * d - 1, 0.03, (a + b) / 2, cy, zp) for a, b in long_walks]
-    cross = [(sx_e - 0.5, bx_w + 0.5, cy), (cx - cw / 2 + d + 0.5, cx + cw / 2 - d - 0.5, cy + cl / 2 - d - 2.0),
-             (cx - cw / 2 + d + 0.5, cx + cw / 2 - d - 0.5, cy - cl / 2 + d + 2.0)]
+    mx = strip_cx + L["mandap_dx"]                          # the mandap stands on the walks: slabs stop at its steps
+    my0, my1 = cy - 2.9 - 1.0 - 0.3, cy + 2.9 + 1.0 + 0.3
+    parts = []
+    for a, b in long_walks:
+        for y0, y1 in split_x(cy - (cl - 2 * d - 1) / 2, cy + (cl - 2 * d - 1) / 2, [(my0, my1)]):
+            parts.append(box(b - a, y1 - y0, 0.03, (a + b) / 2, (y0 + y1) / 2, zp))
+    P_foot = L["mandir_center"][0] - L["mandir_platform"] / 2 - NAV_STAIR["steps"] * NAV_STAIR["tread"]   # the west flight
+    cross = [(sx_e + 0.05, P_foot - 0.3, cy), (sx_e + 0.05, cx + cw / 2 - d - 0.5, cy + cl / 2 - d - 2.0),
+             (sx_e + 0.05, cx + cw / 2 - d - 0.5, cy - cl / 2 + d + 2.0)]            # from the foot of the Shiva steps
     for x0, x1, yc in cross:
-        for a, b in split_x(x0, x1, long_walks):
+        blocked = long_walks + ([(mx - 2.9 - 1.0 - 0.3, mx + 2.9 + 0.3)] if yc == cy else [])
+        for a, b in split_x(x0, x1, blocked):
             parts.append(box(b - a, 2.4, 0.03, (a + b) / 2, yc, zp))
     new_object("paths", *merge(*parts), "path")
 
@@ -1033,7 +1079,8 @@ def colonnade_block(name, length, depth, height, bays, cx, cy, z0, rot_z, walk=3
     if cap:
         body = merge(body, box(t, walk, height - 0.12, cap * (length / 2 - t / 2), -depth / 2 + walk / 2, 0.12))
     new_object(name, *body, "stucco", loc=(cx, cy, z0), rot_z=rot_z)
-    cols = merge(*[column(0.26, height - 0.12, x, -depth / 2 + 0.5, 0.0, segs=12) for x in xb])
+    cols = merge(*[column(0.26, height - 0.12, x, -depth / 2 + 0.5, 0.0, segs=12)
+                   for x in xb if not (cap and x * cap > 0 and abs(x) > length / 2 - 1)])   # the end wall stands there
     new_object(name + "_columns", *cols, "column", smooth=True, auto_smooth=30, loc=(cx, cy, z0 + 0.12), rot_z=rot_z)
     trim = merge(rect_ring(length + 0.6, depth + 0.6, 0.45, 0.3, 0, 0, height + 0.35),
                  rect_ring(length + 0.4, depth + 0.4, 0.4, 0.12, 0, 0, height + 1.55))
@@ -1083,7 +1130,7 @@ def shiva_temple_mesh():
     full = pierced_wall(s, wall_h, t, [(0.0, 2.4, win)])
     body = merge(place(full, (0, -s / 2, 0), 0.0), place(full, (0, s / 2, 0), math.pi),       # S, N
                  place(east, (s / 2, 0, 0), math.pi / 2), place(side, (-s / 2, 0, 0), -math.pi / 2),  # E, W
-                 box(s * 0.55, s * 0.55, 1.1, 0, 0, wall_h + 2.2),                             # upper storey base
+                 box(s * 0.55, s * 0.55, 0.85, 0, 0, wall_h + 2.45),                           # upper storey base, on the lower roof's ridge
                  pilasters(s, s, wall_h - 0.9))
     ob = new_object("shiva_body", *body, "dado")
     # curved red-plaster roofs (smooth-shaded, coarse; grain comes from the normal map)
@@ -1091,7 +1138,7 @@ def shiva_temple_mesh():
     upper = chala_roof(s * 0.55, s * 0.55, 1.9, overhang=0.45, rise=0.32, n=6, m=6, z0=wall_h + 3.3)
     roof = new_object("shiva_roof", *merge(lower, upper), "red_plaster", smooth=True, auto_smooth=60)
     roof.parent = ob
-    fv, ff = finial(0.35, 1.6, 0, 0, wall_h + 3.3 + 1.9 - 0.1)
+    fv, ff = finial(0.35, 1.6, 0, 0, wall_h + 3.3 + 1.9 + 0.03)
     fin = new_object("shiva_finial", fv, ff, "gold", smooth=True)
     fin.parent = ob
     # rose surrounds on the door and the three windows, wall bands; white portal frame round the door
@@ -1099,9 +1146,9 @@ def shiva_temple_mesh():
     wsur = ring_prism(cusped_arch_poly(1.4, 1.85, cusps=3), win, 0.08, "y", 0.0, 2.4, -0.08)
     trim = merge(place(dsur, (s / 2, 0, 0), math.pi / 2),
                  place(wsur, (0, -s / 2, 0), 0.0), place(wsur, (0, s / 2, 0), math.pi), place(wsur, (-s / 2, 0, 0), -math.pi / 2),
-                 rect_ring(s + 0.12, s + 0.12, 0.25, 0.35, 0, 0, wall_h - 0.8),
-                 rect_ring(s + 0.3, s + 0.3, 0.35, 0.25, 0, 0, wall_h - 0.05),
-                 rect_ring(s * 0.55 + 0.2, s * 0.55 + 0.2, 0.25, 0.2, 0, 0, wall_h + 3.1))
+                 rect_ring(s + 0.12, s + 0.12, 0.06, 0.35, 0, 0, wall_h - 0.8),                 # bands touch the walls
+                 rect_ring(s + 0.3, s + 0.3, 0.15, 0.25, 0, 0, wall_h - 0.25),                 # under the eave
+                 rect_ring(s * 0.55 + 0.2, s * 0.55 + 0.2, 0.1, 0.2, 0, 0, wall_h + 3.1))
     tr = new_object("shiva_trim", *trim, "rose")
     tr.parent = ob
     portal = place(frame_ring(3.2, 4.4, 0.3, 0.18, 0.0, 0.0, -0.18), (s / 2, 0, 0), math.pi / 2)
@@ -1128,8 +1175,10 @@ def build_shiva_row(L):
         yc = cy + sgn * (half + seg / 2 - 0.5)
         pw = L["shiva_size"] + 4.0
         new_object(f"shiva_plinth_{sgn}", *box(pw, seg, plinth_h, L["shiva_x"], yc, ch), "laterite", bevel=0.04)
-        new_object(f"shiva_steps_{sgn}", *stairs(3, seg, 1.0, plinth_h / 3, "y"), "laterite",
-                   loc=(L["shiva_x"] + pw / 2 + 3.0, yc + seg / 2, ch), rot_z=math.pi)
+        # the plinth reaches the corner behind the arcade's end wall; the steps stop at the arcade
+        seg_s = L["courtyard_l"] / 2 - L["arcade_depth"] - (half - 0.5)
+        new_object(f"shiva_steps_{sgn}", *stairs(3, seg_s, 1.0, plinth_h / 3, "y"), "laterite",
+                   loc=(L["shiva_x"] + pw / 2 + 3.0, cy + sgn * (half - 0.5) + (seg_s if sgn > 0 else 0.0), ch), rot_z=math.pi)
     for i, y in enumerate(ys):
         inst = instance(f"shiva_{i:02d}", proto, (L["shiva_x"], y, ch + plinth_h))
         for child in proto.children:
@@ -1177,39 +1226,72 @@ def storey(name, size, h, z, n, arch_w, arch_h, core_inset, cx=0.0, cy=0.0, amp=
     body = merge(four_faces(wall, size), posts, core,
                  box(size + 0.2, size + 0.2, 0.4, 0, 0, h))                            # roof slab / terrace
     new_object(name, *body, "stucco", loc=(cx, cy, z))
-    new_object(name + "_pilasters", *pilasters(size, size, h - 1.4, t=0.7, proud=0.16), "striped", loc=(cx, cy, z))
-    sw = min(arch_w + 0.5, pitch - 0.08)          # never touch the next bay's surround
+    pt = 0.7
+    new_object(name + "_pilasters", *pilasters(size, size, h - 1.4, t=pt, proud=0.16), "striped", loc=(cx, cy, z))
+    room = (xs[0] - arch_w / 2) + (size / 2 - pt + 0.16) - 0.02   # between the end bay's arch and the corner pilaster
+    sw = min(arch_w + 0.5, pitch - 0.08, arch_w + 2 * room)       # never touch the next bay's surround or the pilaster
     sur = merge(*[ring_prism(cusped_arch_poly(sw, arch_h + 0.3, cusps=9, steps=3), poly, 0.08, "y", x, 0.0, -0.08) for x in xs])
+    # a rosette over every arch and, on the tall wall above, a thin framed panel per bay (the
+    # Tan_1 reference map: the doorways stop at a third of the face, the rest is panelled wall)
+    rr = min(0.38, pitch * 0.14)
+    sur = merge(sur, *[disc(rr, 0.12, x, arch_h + 0.45 + rr) for x in xs])
+    pz0, pz1 = arch_h + 0.45 + 2 * rr + 0.35, h - 1.55
+    if pz1 - pz0 > 0.8:
+        sur = merge(sur, *[frame_ring(pitch - 0.55, pz1 - pz0, 0.1, 0.06, x, pz0, -0.06) for x in xs])
     new_object(name + "_surrounds", *four_faces(sur, size), "rose", loc=(cx, cy, z))
-    wj = min(0.42, (pitch - arch_w) / 2 - 0.04)       # bundled shafts either side of every bay
+    wj = min(0.42, (pitch - arch_w) / 2 - 0.04, room - 0.07)   # bundled shafts either side of every bay (capital +7 cm)
     new_object(name + "_jambs", *four_faces(jambs(xs, arch_w / 2, poly[1][1], wj=wj), size), "colonette", loc=(cx, cy, z))
-    rings = merge(rect_ring(size + 0.3, size + 0.3, 0.2, 0.45, 0, 0, h - 1.4),
-                  rect_ring(size + 0.6, size + 0.6, 0.35, 0.4, 0, 0, h - 0.4))
+    rings = merge(rect_ring(size + 0.3, size + 0.3, 0.15, 0.45, 0, 0, h - 1.4),
+                  rect_ring(size + 0.6, size + 0.6, 0.3, 0.4, 0, 0, h - 0.4))
     new_object(name + "_cornice", *rings, "rose", loc=(cx, cy, z))
     new_object(name + "_dentil", *rect_ring(size + 0.5, size + 0.5, 0.25, 0.3, 0, 0, h - 0.85), "dentil", loc=(cx, cy, z))
-    full, tp = size + 0.2, 0.35
-    ns = arched_parapet(full, full, 0.45, amp, tp)
-    ew = arched_parapet(full - 2 * tp, full, 0.45, amp, tp)         # ends hide behind the N/S bands
+    # the Bengal curve: the wall's top rises `amp` over the terrace mid-face, and three courses
+    # ride the curve on its outside — a rose cornice, a dentil course and a thin rose string —
+    # each a closed prism touching the parapet's face, N/S over the ends of E/W (never embedded)
+    full, tp, zl = size + 0.2, 0.35, 0.8
+    ns = arched_parapet(full, full, zl, amp, tp)
+    ew = arched_parapet(full - 2 * tp, full, zl, amp, tp)           # ends hide behind the N/S bands
     par = merge(place(ns, (0, -full / 2, 0), 0.0), place(ns, (0, full / 2, 0), math.pi),
                 place(ew, (full / 2, 0, 0), math.pi / 2), place(ew, (-full / 2, 0, 0), -math.pi / 2))
     new_object(name + "_parapet", *par, "stucco", loc=(cx, cy, z + h + 0.4))
+    for mname, (dz, th, pr) in {"rose": (zl - 0.3, 0.3, 0.12), "dentil": (zl - 0.58, 0.24, 0.10), "rose_s": (zl - 0.78, 0.14, 0.08)}.items():
+        bns = curved_band(full + 2 * pr, full, dz, amp, th, pr)
+        bew = curved_band(full, full, dz, amp, th, pr)
+        band = merge(place(bns, (0, -full / 2 - pr, 0), 0.0), place(bns, (0, full / 2 + pr, 0), math.pi),
+                     place(bew, (full / 2 + pr, 0, 0), math.pi / 2), place(bew, (-full / 2 - pr, 0, 0), -math.pi / 2))
+        new_object(f"{name}_band_{mname}", *band, "rose" if mname.startswith("rose") else mname, loc=(cx, cy, z + h + 0.4))
     return z + h + 0.4
 
 
 def ratna(name, r, h):
-    """Stepped bulbous spire (a stair of corbelled rings) on an octagonal drum with a cornice; the
-    beading along the rings and the maroon bands are painted by the 'spire' material (normalised
-    height), the finial is gold. Returns the body object (drum and finial are
-    its children) — instance it with place_ratna."""
-    drum = lathe([(0, 0), (r * 1.15, 0), (r * 1.15, h * 0.19), (r * 1.28, h * 0.19), (r * 1.28, h * 0.22),
-                  (r * 1.0, h * 0.22), (0, h * 0.22)], 8)
+    """Ratna as the aerial photo and the SketchUp reference show it: an octagonal drum, a tall
+    blind niche on every face under a two-course cornice, then a smooth bulbous dome — gently
+    ribbed, beaded by the 'spire' material — closing to the gold finial. Returns the body object
+    (drum, niches and finial are its children) — instance it with place_ratna."""
+    dh = h * 0.30                                                       # drum height
+    rd = r * 1.12
+    drum = lathe([(0, 0), (rd, 0), (rd, dh - 0.36), (r * 1.24, dh - 0.36), (r * 1.24, dh - 0.2),
+                  (r * 1.32, dh - 0.2), (r * 1.32, dh), (0, dh)], 8)
     dob = new_object(name + "_drum", *drum, "stucco_fine", bevel=0.03)
-    courses = max(14, int(round(h * 0.78 / 0.2)))                       # ≈ 20 cm corbelled rings
-    body = lathe(stepped_profile(spire_profile(r, h * 0.78), courses), 32, 0, 0, h * 0.22)
+    # niches: a proud round-arched surround on each of the eight faces, the wall inside reads as
+    # the recess (AO grime); the face centre is at 22.5° + k·45°, `d` from the axis
+    nw, nh = 0.36 * r, 0.62 * (dh - 0.36)
+    outer, inner = round_arch_poly(nw + 0.14, nh + 0.08, steps=8), round_arch_poly(nw, nh, steps=8)
+    ring = ring_prism(outer, inner, 0.06, "y", 0.0, 0.0, -0.06)
+    d = rd * math.cos(math.pi / 8)
+    niches = []
+    for k in range(8):
+        th = math.pi / 8 + k * math.pi / 4
+        niches.append(place(ring, (d * math.cos(th), d * math.sin(th), 0.22), th + math.pi / 2))
+    nob = new_object(name + "_niches", *merge(*niches), "rose")
+    H = h * 0.68
+    prof = [(r * 1.0, 0), (r * 1.10, H * 0.12), (r * 1.12, H * 0.30), (r * 1.04, H * 0.45), (r * 0.86, H * 0.58),
+            (r * 0.62, H * 0.70), (r * 0.40, H * 0.80), (r * 0.22, H * 0.89), (r * 0.09, H * 0.96), (0, H)]
+    body = lathe([(0, 0)] + prof, 48, 0, 0, dh, rib=12, rib_amp=0.03)
     bob = new_object(name, *body, "spire", smooth=True, auto_smooth=40)
     fv, ff = finial(r * 0.35, h * 0.16, 0, 0, h * 0.99)
     fob = new_object(name + "_finial", fv, ff, "gold", smooth=True)
-    dob.parent = fob.parent = bob
+    dob.parent = nob.parent = fob.parent = bob
     return bob
 
 
@@ -1226,47 +1308,88 @@ def build_navaratna(L):
     S, ph, P = L["mandir_size"], L["mandir_platform_h"], L["mandir_platform"]
     ch = L["courtyard_h"]
     z0 = ch
-    # platform with a broad stair on the south face, toward the nat-mandir
-    new_object("mandir_platform", *box(P, P, ph, cx, cy, z0), "laterite", bevel=0.06)
-    new_object("mandir_platform_trim", *moulding(P, P, cx, cy, z0 + ph - 0.45, [(0.15, 0.25), (0.3, 0.2)]), "white")
-    n_st, tread = 9, 0.4
-    new_object("mandir_stairs", *stairs(n_st, S * 0.7, tread, ph / n_st, "x"), "stone",
-               loc=(cx - S * 0.35, cy - P / 2 - n_st * tread, z0))
-    # balustrade on the platform edge (pieces meet end-to-face, never overlapping)
-    sw = P / 2 - 0.15 - S * 0.35                         # south pieces either side of the stair
-    rail = merge(box(P + 0.4, 0.3, 1.0, cx, cy + P / 2, z0 + ph),
-                 box(0.3, P + 0.05, 1.0, cx - P / 2, cy - 0.175, z0 + ph),
-                 box(0.3, P + 0.05, 1.0, cx + P / 2, cy - 0.175, z0 + ph),
-                 box(sw, 0.3, 1.0, cx - S * 0.35 - sw / 2, cy - P / 2, z0 + ph),
-                 box(sw, 0.3, 1.0, cx + S * 0.35 + sw / 2, cy - P / 2, z0 + ph))
-    new_object("mandir_rail", *rail, "white")
+    # platform: a flight on every face (the aerial photo — the walk climbs the south one), the
+    # faces a blind arcade between the flights (round-headed niches between pilaster strips,
+    # as the reference's plinth map), a two-step trim and a balustrade broken at the flights
+    new_object("mandir_platform", *box(P, P, ph, cx, cy, z0), "white", bevel=0.06)
+    n_st, tread = NAV_STAIR["steps"], NAV_STAIR["tread"]
+    run = n_st * tread
+    flights, niches, rail, trim = [], [], [], []
+    courses = [(0.15, 0.25, z0 + ph - 0.45), (0.3, 0.2, z0 + ph - 0.2)]   # (outset, height, z) of the two trim courses
+    nh, npitch = 1.45, 1.2
+    outer, inner = round_arch_poly(0.86, nh + 0.08, steps=10), round_arch_poly(0.7, nh, steps=10)
+    niche = ring_prism(outer, inner, 0.08, "y", 0.0, 0.0, -0.08)
+    panel = place(sheet([round_arch_poly(0.62, nh - 0.05, steps=10)], 0.03, "y"), (0.0, -0.03, 0.0))   # the recess, in rose
+    panels = []
+    for face, (Lf, (fx, fy), rz) in rect_faces(P, P).items():
+        width = S * NAV_STAIR["width"][face]
+
+        def F(part):
+            return place(part, (cx + fx, cy + fy, 0.0), rz)
+        flights.append(F(place(stairs(n_st, width, tread, ph / n_st, "x"), (-width / 2, -run, z0))))
+        # niches from the flight's edge to the corner, an even pitch that leaves a pier at both ends
+        span = P / 2 - 0.45 - (width / 2 + 0.35)
+        n = max(1, int(span // npitch))
+        pitch = span / n
+        for sgn in (-1, 1):
+            for i in range(n):
+                x = sgn * (width / 2 + 0.35 + pitch * (i + 0.5))
+                niches.append(F(place(niche, (x, 0.0, z0 + 0.5), 0.0)))
+                panels.append(F(place(panel, (x, 0.0, z0 + 0.5), 0.0)))
+                niches.append(F(box(0.24, 0.1, ph - 0.45 - 0.15, x + pitch / 2 if sgn > 0 else x - pitch / 2, -0.05, z0 + 0.15)))
+        # balustrade either side of the flight: N/S pieces run to the corner, E/W ones stop at them
+        end = P / 2 + 0.15 if face in "NS" else P / 2 - 0.15
+        sw = end - width / 2
+        for sgn in (-1, 1):
+            rail.append(F(box(sw, 0.3, 1.0, sgn * (width / 2 + sw / 2), 0.0, z0 + ph)))
+            # trim courses between the flight and the corner (N/S pieces wrap the corner, E/W stop at them)
+            for o, hh, zc in courses:
+                tend = P / 2 + o if face in "NS" else P / 2
+                tw = tend - width / 2
+                trim.append(F(box(tw, o, hh, sgn * (width / 2 + tw / 2), -o / 2, zc)))
+    new_object("mandir_platform_trim", *merge(*trim), "white")
+    new_object("mandir_stairs", *merge(*flights), "stone")
+    new_object("mandir_niches", *merge(*niches), "white")
+    new_object("mandir_niche_panels", *merge(*panels), "rose")
+    new_object("mandir_rail", *merge(*rail), "white")
     # three storeys: a dominant ground storey, two much shorter set-back storeys (refs M28784710,
     # M131870345); 5 / 3 / 3 cusped bays per face, corridors open at the corners
     zb = z0 + ph
-    h1, S2, h2, S3, h3 = 10.0, S * 0.6, 5.2, S * 0.36, 4.4
-    z2 = storey("mandir_s1", S, h1, zb, 5, 1.7, 5.6, 3.0, cx, cy, amp=1.2, sanctum=SANCTUM)
-    z3 = storey("mandir_s2", S2, h2, z2, 3, 1.5, 3.4, 2.0, cx, cy, amp=0.8)
-    zt = storey("mandir_s3", S3, h3, z3, 3, 0.9, 2.8, 1.3, cx, cy, amp=0.55)
+    # the set-backs leave each terrace a ledge (inside its parapet and the bands of the storey
+    # above) that a ratna's pedestal fits on: nothing stands inside anything (mesh_audit)
+    h1, S2, h2, S3, h3 = S1_H, S * 0.56, 5.2, 3.2, 4.4
+    z2 = storey("mandir_s1", S, h1, zb, 5, *S1_ARCH, 3.0, cx, cy, amp=2.4, sanctum=SANCTUM)
+    z3 = storey("mandir_s2", S2, h2, z2, 3, 1.5, 2.6, 2.0, cx, cy, amp=1.3)
+    zt = storey("mandir_s3", S3, h3, z3, 2, 0.7, 2.0, 1.0, cx, cy, amp=0.9)
     # spires: 4 on the s1 terrace corners, 4 on the s2 terrace corners, 1 central on top
-    pa = ratna("ratna_a", 1.35, 6.5)
-    pb = ratna("ratna_b", 1.05, 5.4)
+    pa = ratna("ratna_a", 0.95, 6.5)
+    pb = ratna("ratna_b", 0.72, 5.0)
     for p in (pa, pb):
         p.location = (0, 0, -100)
         p.hide_render = True
         for c in p.children:
             c.hide_render = True
-    c1 = S / 2 - 1.7
-    for i, (dx, dy) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
-        place_ratna(f"ratna_a{i}", pa, cx + dx * c1, cy + dy * c1, z2)
-    c2 = S2 / 2 - 1.3
-    for i, (dx, dy) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
-        place_ratna(f"ratna_b{i}", pb, cx + dx * c2, cy + dy * c2, z3)
-    ratna("ratna_c", 2.0, 9.0).location = (cx, cy, zt)
+    # each terrace ratna on a square pedestal at the terrace corner, where the curve is lowest,
+    # so its drum and niches stand clear of the parapet (the aerial photo)
+    ped = 0.7
+    pedestals = []
+    for proto, tag, Sb, Sa, z in ((pa, "a", S, S2, z2), (pb, "b", S2, S3, z3)):
+        inner = Sa / 2 + 0.1 + 0.12                       # the upper storey's slab edge + its bands
+        outer = Sb / 2 + 0.1 - 0.35                       # this terrace's parapet, inside face
+        side = outer - inner - 0.02                       # the pedestal fills the ledge
+        c = (inner + outer) / 2
+        for i, (dx, dy) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
+            pedestals.append(box(side, side, ped, cx + dx * c, cy + dy * c, z))
+            place_ratna(f"ratna_{tag}{i}", proto, cx + dx * c, cy + dy * c, z + ped)
+    top_in = S3 / 2 + 0.1 - 0.35                          # inside the s3 parapet
+    pedestals.append(box(2 * top_in - 0.02, 2 * top_in - 0.02, 0.9, cx, cy, zt))
+    new_object("ratna_pedestals", *merge(*pedestals), "stucco_fine", bevel=0.03)
+    ratna("ratna_c", 1.1, 9.0).location = (cx, cy, zt + 0.9)
 
 
 def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pediments=("W", "E"),
-               stair_faces=("W",), sills=None, plinth_h=1.2, plinth_out=1.5, arch=(2.0, 4.3), rosettes=True,
-               door_stairs=None):
+               stair_faces=("W",), sills=None, plinth_h=HALL_PLINTH["h"], plinth_out=HALL_PLINTH["out"], arch=NAT_ARCH,
+               rosettes=True, door_stairs=None):
     """Closed pilastered hall on a plinth — the nat-mandir (refs M36537551, M36512944, M27969301)
     and, with storeys=2, the Radhakanta block (M69552273). Every face is a pierced wall of 9-foil
     arches (real openings into one room) with striped bundled jambs, a rosette over each arch, red
@@ -1310,14 +1433,24 @@ def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pedi
         for k in range(1, storeys):
             rose.append(P(merge(*[ring_prism(upsur, up, 0.1, "y", x, 1.0, -0.1) for x in xs]), k * hs))
         rose.append(P(merge(*[box(0.16, 0.06, h - 0.05, x, -0.03, 0.0) for x in xb])))
+        # thin framed panel over every arch, between the rosette and the dentil course (the
+        # nat-mandir's front photo: the wall above the arcade is panelled, not blank)
+        pz0, pz1 = sill + ah + 1.45, hs - 1.0
+        if pz1 - pz0 > 0.5:
+            rose.append(P(merge(*[frame_ring(pitch - 0.7, pz1 - pz0, 0.08, 0.05, x, pz0, -0.05) for x in xs])))
         if c > 1.8:
             rose.append(P(merge(*[frame_ring(c - 0.6, hs - 1.9, 0.12, 0.06, s * (wl / 2 - c / 2), 0.5, -0.06) for s in (-1, 1)])))
         # parapet panels (one per bay + corners) and dado panels on the plinth (two per bay)
         pan = [box(pitch - 0.7, 0.03, 0.55, x, -0.65 - 0.015, zpar + 0.3) for x in xs]
         if c > 1.4:
             pan += [box(c - 0.6, 0.03, 0.55, s * (wl / 2 - c / 2), -0.65 - 0.015, zpar + 0.3) for s in (-1, 1)]
+        covered = []                                  # x-spans of the flights on this face: no dado behind them
+        if face in stair_faces:
+            covered.append((-(pitch * min(HALL_STAIR["bays"], n) - 0.4) / 2, (pitch * min(HALL_STAIR["bays"], n) - 0.4) / 2))
+        covered += [(xs[i] - (pitch - 0.4) / 2, xs[i] + (pitch - 0.4) / 2) for i in (door_stairs or {}).get(face, ())]
         dado = [box(pitch / 2 - 0.45, 0.03, plinth_h - 0.55, x + s * pitch / 4, -plinth_out - 0.015, -plinth_h + 0.28)
-                for x in xs for s in (-1, 1)]
+                for x in xs for s in (-1, 1)
+                if not any(a - 0.05 < x + s * pitch / 4 + (pitch / 2 - 0.45) / 2 and x + s * pitch / 4 - (pitch / 2 - 0.45) / 2 < b + 0.05 for a, b in covered)]
         if c > 1.4:
             dado += [box(c - 0.5, 0.03, plinth_h - 0.55, s * (wl / 2 - c / 2), -plinth_out - 0.015, -plinth_h + 0.28) for s in (-1, 1)]
         rose.append(P(merge(*pan, *dado)))
@@ -1325,13 +1458,13 @@ def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pedi
             white.append(P(merge(box(4.4, 0.5, 0.3, 0, -0.5, zpar + 1.22), box(3.4, 0.5, 1.3, 0, -0.5, zpar + 1.52))))
             rose.append(P(place(disc(0.45, 0.12, 0, zpar + 2.15), (0, -0.75, 0))))
             rose.append(P(finial(0.22, 0.9, 0, -0.5, zpar + 2.82)))
-        ns = 6
+        ns, tr = HALL_STAIR["steps"], HALL_STAIR["tread"]
         if face in stair_faces:
-            width = pitch * min(3, n) - 0.4
-            stone.append(P(place(stairs(ns, width, 0.36, plinth_h / ns, "x"), (-width / 2, -plinth_out - ns * 0.36, -plinth_h))))
+            width = pitch * min(HALL_STAIR["bays"], n) - 0.4
+            stone.append(P(place(stairs(ns, width, tr, plinth_h / ns, "x"), (-width / 2, -plinth_out - 0.05 - ns * tr, -plinth_h))))
         for i in (door_stairs or {}).get(face, ()):
             dw = pitch - 0.4
-            stone.append(P(place(stairs(ns, dw, 0.36, plinth_h / ns, "x"), (xs[i] - dw / 2, -plinth_out - ns * 0.36, -plinth_h))))
+            stone.append(P(place(stairs(ns, dw, tr, plinth_h / ns, "x"), (xs[i] - dw / 2, -plinth_out - 0.05 - ns * tr, -plinth_h))))
     posts = merge(*[box(t, t, h, sx * (w - t) / 2, sy * (d - t) / 2, 0) for sx in (-1, 1) for sy in (-1, 1)])
     body = merge(*walls, posts, box(w + 0.4, d + 0.4, 0.35, 0, 0, h))
     for k in range(1, storeys):
@@ -1369,7 +1502,7 @@ def build_halls(L):
     (vx, vy), (vw, vd), vh = L["vishnu_center"], L["vishnu_size"], L["vishnu_h"]
     # the walk goes in at its northmost west door and out at the southmost: a flight up to each
     top = hall_block("vishnu", vw, vd, vh, 5, 8, 3.0, vx, vy, ch, storeys=2, pediments=("W",), stair_faces=("W",),
-                     sills={"N": 0.9, "S": 0.9, "E": 0.9}, arch=(1.9, 3.8), rosettes=False, door_stairs={"W": (0, 7)})
+                     sills={"N": 0.9, "S": 0.9, "E": 0.9}, arch=VIS_ARCH, rosettes=False, door_stairs={"W": (0, 7)})
     sx, sy = vx, vy - vd / 2 + 6.0
     new_object("vishnu_spire_base", *box(5.0, 5.0, 0.6, 0, 0, 0), "stucco", bevel=0.04, loc=(sx, sy, top))
     ratna("vishnu_spire", 1.8, 6.5).location = (sx, sy, top + 0.6)
@@ -1430,6 +1563,7 @@ def build_mandap(L):
     red/cream umbrella dome on the roof and the havan kund in the middle."""
     ch = L["courtyard_h"]
     _, _, mx = strip_extent(L)
+    mx += L["mandap_dx"]
     my = L["courtyard_cy"]
     W, H = 5.8, 0.62                                  # stage footprint and height
     ztop = ch + H
@@ -1463,7 +1597,7 @@ def build_mandap(L):
         instance(f"mandap_column_{k}", col, (mx + sx * c, my + sy * c, ztop + 0.09))
     zc = ztop + 0.09 + hc - 0.01                       # canopy underside (columns sink 1 cm into it)
     new_object("mandap_canopy", *box(W - 0.2, W - 0.2, 0.16, mx, my, zc), "cloth", bevel=0.02)
-    new_object("mandap_garland", *rect_ring(W + 0.4, W + 0.4, 0.35, 0.34, mx, my, zc - 0.09), "garland", bevel=0.08)
+    new_object("mandap_garland", *rect_ring(W + 0.4, W + 0.4, 0.3, 0.34, mx, my, zc - 0.09), "garland", bevel=0.08)
     new_object("mandap_valance", *rect_ring(W + 0.2, W + 0.2, 0.04, 0.22, mx, my, zc - 0.31), "marigold")
     urn = [(0, 0), (0.17, 0), (0.17, 0.04), (0.09, 0.07), (0.11, 0.14), (0.2, 0.28), (0.2, 0.4), (0.13, 0.48),
            (0.07, 0.53), (0.1, 0.58), (0.04, 0.64), (0, 0.7)]
@@ -1474,7 +1608,7 @@ def build_mandap(L):
         instance(f"mandap_urn_{k}", u0, (mx + sx * cu, my + sy * cu, zt - 0.01))
     # umbrella dome on the roof: red valance skirt, cream drum, gold plate, eight-gored dome
     new_object("mandap_skirt", *lathe([(0, -0.01), (1.75, -0.01), (1.35, 0.5), (0, 0.5)], 8, mx, my, zt), "red_cloth")
-    new_object("mandap_drum", *lathe([(0, 0.45), (1.3, 0.45), (1.3, 0.9), (0, 0.9)], 8, mx, my, zt), "cloth")
+    new_object("mandap_drum", *lathe([(0, 0.5), (1.3, 0.5), (1.3, 0.9), (0, 0.9)], 8, mx, my, zt), "cloth")
     new_object("mandap_plate", *lathe([(0, 0.9), (1.5, 0.9), (1.5, 1.0), (0, 1.0)], 8, mx, my, zt), "gold")
     dome = new_object("mandap_dome", *lathe([(0, 1.0), (1.28, 1.0), (1.27, 1.2), (1.18, 1.42), (1.0, 1.62),
                                              (0.72, 1.78), (0.38, 1.88), (0, 1.92)], 8, mx, my, zt), "cloth")
@@ -1484,7 +1618,7 @@ def build_mandap(L):
     for k in range(1, 8):
         t = 2 * math.pi * k / 8
         instance(f"mandap_post_{k}", p0, (mx + 1.4 * math.cos(t), my + 1.4 * math.sin(t), zt + 0.99))
-    new_object("mandap_top", *finial(0.2, 0.55, mx, my, zt + 1.86), "mandap_stone", smooth=True)
+    new_object("mandap_top", *finial(0.2, 0.55, mx, my, zt + 1.90), "mandap_stone", smooth=True)
     # drapes: two per column, spread along each beam and tied back to the shaft
     dv, df, duv = drape_sheet(hc + 0.09)
     for (sx, sy) in corners:
@@ -1494,22 +1628,34 @@ def build_mandap(L):
         new_object(f"mandap_drape_{sx}{sy}y_sheet", along_y, df, "drape", smooth=True, auto_smooth=80, uvs=duv)
     # havan kund on a marigold-ringed round, two brass lamps
     new_object("mandap_round", *lathe([(0, -0.01), (0.95, -0.01), (0.95, 0.08), (0, 0.08)], 24, mx, my, ztop), "marigold")
-    new_object("mandap_round_top", *lathe([(0, 0.02), (0.72, 0.02), (0.72, 0.11), (0, 0.11)], 24, mx, my, ztop), "cloth")
-    new_object("mandap_kund", *box(0.55, 0.55, 0.3, mx, my, ztop + 0.10), "copper")
-    new_object("mandap_kund_rim", *rect_ring(0.68, 0.68, 0.08, 0.05, mx, my, ztop + 0.39), "copper")
-    new_object("mandap_kund_ash", *box(0.5, 0.5, 0.02, mx, my, ztop + 0.39), "dark")
-    new_object("mandap_lamps", *merge(finial(0.07, 0.4, mx - 0.5, my + 0.45, ztop + 0.10),
-                                      finial(0.07, 0.4, mx + 0.5, my + 0.45, ztop + 0.10)), "gold", smooth=True)
-    # flower clusters at the foot of the stage and flanking the front steps
+    new_object("mandap_round_top", *lathe([(0, 0.08), (0.72, 0.08), (0.72, 0.14), (0, 0.14)], 24, mx, my, ztop), "cloth")
+    new_object("mandap_kund", *box(0.55, 0.55, 0.3, mx, my, ztop + 0.13), "copper")
+    new_object("mandap_kund_rim", *rect_ring(0.68, 0.68, 0.08, 0.05, mx, my, ztop + 0.42), "copper")
+    new_object("mandap_kund_ash", *box(0.5, 0.5, 0.02, mx, my, ztop + 0.42), "dark")
+    new_object("mandap_lamps", *merge(finial(0.07, 0.4, mx - 0.5, my + 0.45, ztop + 0.13),
+                                      finial(0.07, 0.4, mx + 0.5, my + 0.45, ztop + 0.13)), "gold", smooth=True)
+    # flower arrangements at the stage corners and flanking the front steps: a brass urn, a
+    # collar of foliage and a full lobed dome of blooms (marigold, rose, white) with a few sprays
+    # trailing over the rim — the blooms are relief in the 'bouquet' material, baked to a normal map
     zf = ch + 0.03
-    balls = []
+    urns, collars, domes = [], [], []
+
+    def arrangement(bx, by, k):
+        urns.append(lathe([(0, 0), (0.22 * k, 0), (0.22 * k, 0.05 * k), (0.09 * k, 0.09 * k), (0.07 * k, 0.30 * k),
+                           (0.16 * k, 0.36 * k), (0.24 * k, 0.55 * k), (0.28 * k, 0.60 * k), (0.25 * k, 0.62 * k),
+                           (0.20 * k, 0.62 * k), (0.20 * k, 0.5 * k), (0, 0.5 * k)], 20, bx, by, zf))
+        collars.append(lathe([(0, 0), (0.26 * k, 0), (0.36 * k, 0.06 * k), (0.34 * k, 0.14 * k), (0, 0.14 * k)], 16, bx, by, zf + 0.62 * k))
+        domes.append(lathe([(0, 0), (0.30 * k, 0), (0.40 * k, 0.16 * k), (0.42 * k, 0.32 * k), (0.34 * k, 0.48 * k),
+                            (0.18 * k, 0.58 * k), (0, 0.62 * k)], 20, bx, by, zf + 0.76 * k, rib=10, rib_amp=0.07))
+        for j, (dx, dy) in enumerate(((0.44, 0.12), (-0.24, 0.40), (-0.18, -0.43))):   # sprays hang outside the dome
+            domes.append(sphere(0.10 * k, bx + dx * k, by + dy * k, zf + (0.80 - 0.05 * j) * k))
     for (sx, sy) in corners:
-        bx, by = mx + sx * (e + 0.15), my + sy * (e + 0.15)
-        balls += [sphere(0.38, bx, by, zf + 0.30), sphere(0.30, bx + sx * 0.4, by, zf + 0.24),
-                  sphere(0.28, bx, by + sy * 0.4, zf + 0.22)]
+        arrangement(mx + sx * (e + 0.45), my + sy * (e + 0.45), 1.0)
     for sy in (-1, 1):
-        balls += [sphere(0.34, mx - e - 0.35, my + sy * 1.6, zf + 0.27), sphere(0.27, mx - e - 0.85, my + sy * 1.5, zf + 0.21)]
-    new_object("mandap_flowers", *merge(*balls), "garland", smooth=True)
+        arrangement(mx - e - run - 0.45, my + sy * 1.55, 0.8)
+    new_object("mandap_urns", *merge(*urns), "gold", smooth=True)
+    new_object("mandap_collars", *merge(*collars), "garland", smooth=True)
+    new_object("mandap_flowers", *merge(*domes), "bouquet", smooth=True)
 
 
 def quad(c, ax, ay):
@@ -1652,13 +1798,13 @@ def build_trees(L):
     (nx, ny), (nw, nd) = L["natmandir_center"], L["natmandir_size"]
     mcx, mcy = L["mandir_center"]
     P = L["mandir_platform"]
-    pairs = [((wx + 1.3, cy + 5.0), (wx + 1.3, cy - 5.0)),
+    pairs = [((wx + 1.3, cy + 3.2), (wx + 1.3, cy - 3.2)),          # inside the ghat gap, clear of the plinths
              ((nx - nw / 2 - 2.6, ny + 5.4), (nx - nw / 2 - 2.6, ny - 5.4)),
              ((mcx + P / 2 + 1.6, mcy - P / 2 - 1.4), (mcx - P / 2 - 1.6, mcy - P / 2 - 1.4))]
     for i, pair in enumerate(pairs):
         for j, (x, y) in enumerate(pair):
             kola(f"kola_{i}_{j}", x, y, ch, 1.0 + 0.1 * j)
-            potted(f"kola_pot_{i}_{j}", x + 0.9, y + (0.6 if j else -0.6), ch)
+            potted(f"kola_pot_{i}_{j}", x + 0.5, y + (0.6 if j else -0.6), ch)
     # ── potted shrubs along the nat-mandir's west plinth (the Shiva row's foot is the walk's sightline: none there)
     px = nx - nw / 2 - 1.5 - 0.5
     for k, dy in enumerate((-7.0, 7.0)):                    # the walk passes the north-west corner: keep it clear
@@ -1686,11 +1832,11 @@ def build_furniture(L):
         PROPS["lamps"].append((x, y, z + 3.7))
 
     _, _, strip_cx = strip_extent(L)
-    for k, dy in enumerate((-41, -27, -13, 19, 33, 47)):
+    for k, dy in enumerate((-41, -27, -13, 19, 33, 46)):
         lamp(f"lamp_{k}", strip_cx - 2.1, cy + dy)
     wx = cx - cw / 2
     for k, dy in enumerate((-8.5, 8.5)):
-        lamp(f"lamp_ghat_{k}", wx + 1.5, cy + dy)
+        lamp(f"lamp_ghat_{k}", wx + 1.05, cy + dy)                # in the slot between the west wall and the Shiva plinth
 
     def hang(name, x, y, z_top):
         b = instance(name, bell, (x, y, z_top - 1.0 - 0.52))
@@ -1698,9 +1844,9 @@ def build_furniture(L):
         PROPS["bells"].append((x, y, z_top - 1.0 - 0.26))
 
     (nx, ny), (nw, nd) = L["natmandir_center"], L["natmandir_size"]
-    hang("bell_nat", nx - nw / 2 - 0.3, ny, ch + 1.2 + 4.3 - 0.15)
+    hang("bell_nat", nx - nw / 2 - 0.3, ny, ch + HALL_PLINTH["h"] + NAT_ARCH[1] - 0.15)
     (vx, vy), (vw, vd) = L["vishnu_center"], L["vishnu_size"]
-    hang("bell_vishnu", vx - vw / 2 - 0.3, vy, ch + 1.2 + 3.8 - 0.15)
+    hang("bell_vishnu", vx - vw / 2 - 0.3, vy + 1.5, ch + HALL_PLINTH["h"] + VIS_ARCH[1] - 0.15)   # in a bay (8 bays: the centre is a pier)
 
 
 # ------------------------------------------------------------------------------------------------
@@ -1856,16 +2002,22 @@ def render_turntable(out: Path, res, samples, frames):
     print(f"  turntable frames → {out / 'turntable'}")
 
 
-def mesh_audit() -> None:
+def mesh_audit(verbose=None) -> None:
     """Every solid must be closed: report boundary (open) edges per mesh, skipping the intentional
-    sheets (ground planes, water, palm fronds). Printed in the build log so a regression is visible."""
+    sheets (ground planes, water, palm fronds). Then the things that cost frames or flicker:
+    the heaviest meshes, coplanar same-facing faces of different objects (z-fighting) and
+    solids whose bounding boxes overlap by a real volume (embedded parts). Printed in the build
+    log so a regression is visible; `verbose` lists every pair."""
     import bmesh
+    import os
+    verbose = bool(int(os.environ.get("AUDIT_VERBOSE", "0"))) if verbose is None else verbose
     open_sheets = {"ground", "river", "bank", "far_bank", "paving", "palm_crown"}
-    bad, faces = [], 0
+    bad, faces, heavy = [], 0, []
     for me in bpy.data.meshes:
         if me.users == 0:
             continue
         faces += len(me.polygons) * me.users
+        heavy.append((len(me.vertices) * me.users, me.name, me.users))
         if me.name in open_sheets or me.name.endswith(("_floor", "_sheet")):
             continue
         bm = bmesh.new()
@@ -1875,6 +2027,114 @@ def mesh_audit() -> None:
         if n:
             bad.append(f"{me.name}:{n}")
     print(f"  mesh audit: {faces} stored faces across instances; open edges: {', '.join(bad) or 'none'}")
+    heavy.sort(reverse=True)
+    print("  heaviest (vertices × instances): " + ", ".join(f"{n}:{v}{'×' + str(u) if u > 1 else ''}" for v, n, u in heavy[:8]))
+    # axis-aligned faces in world space, keyed by (axis, plane): same-facing overlaps of two
+    # objects on one plane are a z-fight; opposite-facing ones are parts touching (fine)
+    bpy.context.view_layer.update()                  # matrix_world is stale until the depsgraph runs (headless)
+    planes: dict = {}
+    boxes = []
+    for ob in bpy.data.objects:
+        if ob.type != "MESH" or ob.hide_render or ob.location.z < -50:
+            continue
+        me = ob.data
+        if me.name in open_sheets or me.name.endswith(("_floor", "_sheet")):
+            continue
+        M = np.array(ob.matrix_world)
+        V = np.array([v.co[:] + (1.0,) for v in me.vertices]) @ M.T
+        V = V[:, :3]
+        lo, hi = V.min(0), V.max(0)
+        boxes.append((ob.name, lo, hi))
+        N = np.array([p.normal[:] for p in me.polygons]) @ np.array(ob.matrix_world.to_3x3()).T
+        for p, n in zip(me.polygons, N):
+            ax = int(np.argmax(np.abs(n)))
+            if abs(n[ax]) < 0.999:
+                continue
+            pts = V[list(p.vertices)]
+            c = round(float(pts[:, ax].mean()), 3)
+            if ax == 2 and n[2] < 0 and c <= LAYOUT["courtyard_h"] + 0.01:
+                continue                                          # undersides standing on the courtyard
+            o = [k for k in range(3) if k != ax]
+            # (object, bbox lo, bbox hi, is a quad): only quads are tested against each other (their
+            # bbox is exact); every polygon serves as something to be glued to
+            planes.setdefault((ax, c, int(np.sign(n[ax]))), []).append((ob.name, pts[:, o].min(0), pts[:, o].max(0), len(p.vertices) <= 4))
+    fights = []
+    for (ax, c, sg), fs in planes.items():
+        glued = planes.get((ax, c, -sg), [])         # faces of other objects looking back at this plane
+        for i in range(len(fs)):
+            for j in range(i + 1, len(fs)):
+                a, b = fs[i], fs[j]
+                if a[0] == b[0] or not (a[3] and b[3]):
+                    continue
+                lo, hi = np.maximum(a[1], b[1]), np.minimum(a[2], b[2])
+                w = hi - lo
+                if w[0] > 0.02 and w[1] > 0.02:
+                    # both sitting against a third object's face (jambs and surrounds on one wall,
+                    # undersides on a slab): hidden, not a flicker
+                    if any(g[0] not in (a[0], b[0]) and (g[1] <= lo + 0.01).all() and (g[2] >= hi - 0.01).all() for g in glued):
+                        continue
+                    fights.append((float(w[0] * w[1]), a[0], b[0], "xyz"[ax], c))
+    fights.sort(reverse=True)
+    seen, top = set(), []
+    for area, a, b, ax, c in fights:
+        if (a, b) in seen:
+            continue
+        seen.add((a, b))
+        top.append(f"{a}~{b} ({ax}={c}, {area:.2f} m²)")
+    print(f"  z-fights (same-facing coplanar faces of different objects): {len(fights)}; " + ("; ".join(top if verbose else top[:8]) or "none"))
+    # embedded parts: a vertex of one closed solid more than 2 cm inside another. Inside = the
+    # generalized winding number (sum of the signed solid angles of the triangles) > ½: exact for
+    # closed, consistently wound meshes and immune to the seams of touching parts that a ray
+    # parity trips on; the depth is the distance to the nearest surface. Bounding boxes only pick
+    # the candidate pairs.
+    from mathutils.bvhtree import BVHTree
+    dg = bpy.context.evaluated_depsgraph_get()
+    cache = {}
+    leaky = {b.split(":")[0] for b in bad}           # open meshes have no inside
+
+    def solid(name):
+        if name not in cache:
+            ob = bpy.data.objects[name]
+            me = ob.data
+            me.calc_loop_triangles()
+            M = np.array(ob.matrix_world)
+            V = (np.array([v.co[:] + (1.0,) for v in me.vertices]) @ M.T)[:, :3]
+            T = V[np.array([t.vertices[:] for t in me.loop_triangles])]          # (F, 3, 3) world
+            cache[name] = (T, V, BVHTree.FromObject(ob, dg), ob.matrix_world.inverted())
+        return cache[name]
+
+    def winding(T, p):
+        a, b, c = T[:, 0] - p, T[:, 1] - p, T[:, 2] - p
+        la, lb, lc = np.linalg.norm(a, axis=1), np.linalg.norm(b, axis=1), np.linalg.norm(c, axis=1)
+        num = np.einsum("ij,ij->i", a, np.cross(b, c))
+        den = la * lb * lc + np.einsum("ij,ij->i", a, b) * lc + np.einsum("ij,ij->i", b, c) * la + np.einsum("ij,ij->i", c, a) * lb
+        return float(np.sum(2.0 * np.arctan2(num, den))) / (4 * math.pi)
+
+    def inside(name_a, name_b):
+        T, _, tree, Minv = solid(name_a)
+        _, pts, _, _ = solid(name_b)
+        deep = 0.0
+        for q in pts[::max(1, len(pts) // 200)]:
+            if winding(T, q) < 0.5:
+                continue
+            _, _, _, dist = tree.find_nearest(Minv @ Vector(q))
+            if dist is not None and dist > deep:
+                deep = dist
+        return deep
+    embedded = []
+    for i in range(len(boxes)):
+        for j in range(i + 1, len(boxes)):
+            (na, la, ha), (nb, lb, hb) = boxes[i], boxes[j]
+            if bpy.data.objects[na].data.name in leaky or bpy.data.objects[nb].data.name in leaky:
+                continue
+            w = np.minimum(ha, hb) - np.maximum(la, lb)
+            if (w > 0.01).all():
+                d = max(inside(na, nb), inside(nb, na))
+                if d > 0.02:
+                    embedded.append((float(d), na, nb))
+    embedded.sort(reverse=True)
+    print(f"  embedded solids (a vertex > 2 cm inside another object): {len(embedded)}; " +
+          ("; ".join(f"{a}~{b} ({v * 100:.0f} cm)" for v, a, b in (embedded if verbose else embedded[:12])) or "none"))
 
 
 # ------------------------------------------------------------------------------------------------
@@ -1888,6 +2148,8 @@ def main():
     ap.add_argument("--samples", type=int, default=64)
     ap.add_argument("--frames", type=int, default=48)
     ap.add_argument("--only", help="comma list of stills to render (names from STILLS)")
+    ap.add_argument("--view", action="append", default=[],
+                    help="extra still: name=cam_x,cam_y,cam_z/target_x,target_y,target_z[/lens] (this frame)")
     a = ap.parse_args(argv)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -1913,11 +2175,16 @@ def main():
     blend = out / "dakshineswar.blend"
     bpy.ops.wm.save_as_mainfile(filepath=str(blend))
     print(f"  saved {blend}")
-    if a.only:
-        keep = set(a.only.split(","))
+    if a.only or a.view:
+        keep = set(a.only.split(",")) if a.only else set()
         for k in list(STILLS):
             if k not in keep:
                 del STILLS[k]
+    for spec in a.view:
+        vname, rest = spec.split("=", 1)
+        parts = rest.split("/")
+        STILLS[vname] = (tuple(float(v) for v in parts[0].split(",")), tuple(float(v) for v in parts[1].split(",")),
+                         float(parts[2]) if len(parts) > 2 else 35.0)
     if a.render in ("stills", "both"):
         render_stills(out, res, a.samples)
     if a.render in ("turntable", "both"):

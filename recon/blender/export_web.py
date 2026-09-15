@@ -411,7 +411,10 @@ def landmarks() -> dict:
     ccx, ccy, cw, cl = L["courtyard_cx"], L["courtyard_cy"], L["courtyard_w"], L["courtyard_l"]
     wx = ccx - cw / 2                                    # west edge of the courtyard platform
     gap, half = L["shiva_gap"], L["shiva_ghat_gap"] / 2
-    s1_arch_h, nat_arch, vis_arch = 5.6, (2.0, 4.3), (1.9, 3.8)   # build_navaratna / build_halls arch sizes
+    nat_arch, vis_arch = B.NAT_ARCH, B.VIS_ARCH
+    ns, nt = B.NAV_STAIR["steps"], B.NAV_STAIR["tread"]
+    hs, ht, hb = B.HALL_STAIR["steps"], B.HALL_STAIR["tread"], B.HALL_STAIR["bays"]
+    ph_top = ch + B.HALL_PLINTH["h"]
     sanc = B.SANCTUM
 
     def T(x, y, z):                                      # Blender (x, y, z) → Three (x, z, -y)
@@ -431,22 +434,27 @@ def landmarks() -> dict:
                   "first_south": T(L["shiva_x"], ccy - half - gap * 0.5, ch + 1.0),
                   "steps_foot_x": round(sx_e, 3)},
         "strip": {"west_x": round(sx_e, 3), "east_x": round(bx_w, 3), "center_x": round(mx, 3)},
-        "mandap": {"center": T(mx, ccy, ch), "width": 5.8, "stage_top": round(ch + 0.62, 3), "canopy": round(ch + 0.62 + 0.09 + 3.0, 3),
+        "mandap": {"center": T(mx + L["mandap_dx"], ccy, ch), "width": 5.8, "stage_top": round(ch + 0.62, 3), "canopy": round(ch + 0.62 + 0.09 + 3.0, 3),
                    "finial": round(ch + 0.62 + 0.09 + 3.0 + 0.16 + 1.92 + 0.55, 3)},
+        # the south flight is the walk's (stair_*); `flights` lists all four (S/W broad, N/E narrower)
         "navaratna": {"center": T(cx, cy, ch), "size": S, "platform": P, "platform_top": round(ch + ph, 3),
-                      "stair_foot": T(cx, cy - P / 2 - 9 * 0.4, ch), "stair_top": T(cx, cy - P / 2, ch + ph),
+                      "stair_foot": T(cx, cy - P / 2 - ns * nt, ch), "stair_top": T(cx, cy - P / 2, ch + ph),
                       "wall_x": round(S / 2, 3), "core_x": round(S / 2 - 3.0, 3), "bay_pitch": round((S - 1.0) / 5, 3),
-                      "stair_width": round(S * 0.7, 3), "stair_steps": 9, "stair_tread": 0.4,
-                      "s1_h": 10.0, "arch": [1.7, s1_arch_h], "arch_spring": spring(1.7, s1_arch_h),
-                      "top": round(ch + ph + 10.4 + 5.6 + 4.8 + 9.0, 3)},
+                      "stair_width": round(S * B.NAV_STAIR["width"]["S"], 3), "stair_steps": ns, "stair_tread": nt,
+                      "flights": {f: {"width": round(S * w, 3), "foot": T(cx + dx * (P / 2 + ns * nt), cy + dy * (P / 2 + ns * nt), ch),
+                                      "top": T(cx + dx * P / 2, cy + dy * P / 2, ch + ph)}
+                                  for f, w in B.NAV_STAIR["width"].items()
+                                  for dx, dy in [{"S": (0, -1), "N": (0, 1), "E": (1, 0), "W": (-1, 0)}[f]]},
+                      "s1_h": B.S1_H, "arch": list(B.S1_ARCH), "arch_spring": spring(*B.S1_ARCH),
+                      "top": round(ch + ph + B.S1_H + 0.4 + 5.6 + 4.8 + 0.9 + 9.0, 3)},
         "natmandir": {"center": T(nx, ny, ch), "size": [nw, nd], "height": nh, "west_face_x": round(nx - nw / 2, 3),
-                      "plinth_top": round(ch + 1.2, 3), "plinth_out": 1.5, "bays_west": 7, "bay_pitch": 3.0,
+                      "plinth_top": round(ph_top, 3), "plinth_out": B.HALL_PLINTH["out"], "bays_west": 7, "bay_pitch": 3.0,
                       "arch": list(nat_arch), "arch_spring": spring(*nat_arch),
-                      "stair_width": round(3 * 3.0 - 0.4, 3), "stair_steps": 6, "stair_tread": 0.36},
+                      "stair_width": round(hb * 3.0 - 0.4, 3), "stair_steps": hs, "stair_tread": ht},
         "radhakanta": {"center": T(vx, vy, ch), "size": [vw, vd], "height": vh, "west_face_x": round(vx - vw / 2, 3),
-                       "plinth_top": round(ch + 1.2, 3), "plinth_out": 1.5, "bays_west": 8, "bay_pitch": 3.0,
+                       "plinth_top": round(ph_top, 3), "plinth_out": B.HALL_PLINTH["out"], "bays_west": 8, "bay_pitch": 3.0,
                        "arch": list(vis_arch), "arch_spring": spring(*vis_arch), "storey_h": round(vh / 2, 3),
-                       "stair_width": round(3 * 3.0 - 0.4, 3), "stair_steps": 6, "stair_tread": 0.36,
+                       "stair_width": round(hb * 3.0 - 0.4, 3), "stair_steps": hs, "stair_tread": ht,
                        "door_stairs": [0, 7], "door_stair_width": round(3.0 - 0.4, 3)},   # single-bay flights up to the end doors
         # the shrine chamber in the navaratna's core, behind the central south arch (build_dakshineswar.SANCTUM)
         "sanctum": {"door": T(cx, cy - (S / 2 - 3.0), ch + ph), "arch": list(sanc["door"]),
