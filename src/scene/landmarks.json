@@ -170,7 +170,19 @@
     "arch_spring": 3.45,
     "stair_width": 8.6,
     "stair_steps": 6,
-    "stair_tread": 0.36
+    "stair_tread": 0.36,
+    "stair_gap": 0.05,
+    "north_columns": {
+      "x": [
+        -4.167,
+        -1.333,
+        1.5,
+        4.333,
+        7.167
+      ],
+      "z": 15.0,
+      "r": 0.34
+    }
   },
   "radhakanta": {
     "center": [
@@ -197,6 +209,7 @@
     "stair_width": 8.6,
     "stair_steps": 6,
     "stair_tread": 0.36,
+    "stair_gap": 0.05,
     "door_stairs": [
       0,
       7

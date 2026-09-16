@@ -81,7 +81,7 @@ if (!sceneApi) {
       if (pastWalk) sceneApi.stop(); else sceneApi.start();
     }
     hint.classList.toggle('is-hidden', y > 40);
-    sound.setDepth(Math.min(1, Math.max(0, (progressTarget - at(NODE.plinthNW)) / (at(NODE.end) - at(NODE.plinthNW)))));   // deeper as the temple stair is climbed
+    sound.setDepth(Math.min(1, Math.max(0, (progressTarget - at(NODE.nNorth)) / (at(NODE.end) - at(NODE.nNorth)))));   // deeper as the temple stair is climbed
   }
   window.addEventListener('scroll', onScroll, { passive: true });
 

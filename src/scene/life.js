@@ -211,9 +211,10 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
     for (let u = -P / 2 + 0.6; u < P / 2 - 0.3; u += 0.7) diyaSpots.push([-P / 2 + 0.2, pt + 1.0, u], [P / 2 - 0.2, pt + 1.0, u], [u, pt + 1.0, -P / 2 + 0.2]);   // west, east and north rails
     // along the verandah, both sides of the central arch
     for (let x = -wall + 0.6; x <= wall - 0.5; x += 0.75) if (Math.abs(x) > 1.4) diyaSpots.push([x, pt, wall + 0.35]);
-    // the halls' west stairs and plinth ledges, leaving the doorways the walk uses clear
+    // the halls' west stairs and plinth ledges, leaving the doorways the walk uses clear (the
+    // nat-mandir's is the central one, over its stair; the walk leaves it through the north colonnade)
     for (const [H, hx, hz, hd, top, clear] of [
-      [L.natmandir, nx, nz, nd, nPlinth, (z) => z < nz - 3 * L.natmandir.bay_pitch + 1.5],              // the northmost door and the ledge north of it
+      [L.natmandir, nx, nz, nd, nPlinth, () => false],
       [L.radhakanta, rx, rz, rd, rPlinth, (z) => Math.abs(Math.abs(z - rz) - (L.radhakanta.bays_west - 1) / 2 * L.radhakanta.bay_pitch) < 1.6], // its northmost and southmost doors
     ]) {
       const { stair_width: hw, stair_steps: hn, stair_tread: ht, plinth_out } = H;
@@ -340,9 +341,9 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
     const line = [];
     for (let i = 0; i <= bays; i++) line.push([nx - 0.12, y, nz + (i - bays / 2) * pitch]);
     addString(line);
-    // its north face, seen from the plinth walk
-    const zN = nz - nd / 2;
-    addString([-1.5, 0, 1.5].map((k) => [ncx + k * 3.0, y, zN - 0.12]));
+    // its north front, the open colonnade the walk leaves through: column to column under the capitals
+    const NC = L.natmandir.north_columns, yN = nPlinth + L.natmandir.height - 2.6;   // just under the capitals
+    addString([nx, ...NC.x, nx + nw].map((x) => [x, yN, NC.z - 0.25]));
     // the Radhakanta's west face the same way
     const yr = rPlinth + L.radhakanta.arch_spring + 0.35;
     const rl = [];

@@ -241,6 +241,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     return root;
   });
 
+  let view = null;   // debug: { p, l } pins the camera somewhere off the walk
   const state = {
     target: 0, progress: 0, velocity: 0, walkPhase: 0,
     pointer: new THREE.Vector2(), pointerSmooth: new THREE.Vector2(),
@@ -329,6 +330,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     state.pointerSmooth.lerp(state.pointer, reducedMotion ? 1 : 0.06);
     tmpLook.x += state.pointerSmooth.x * 1.2;
     tmpLook.y += state.pointerSmooth.y * 0.7;
+    if (view) { tmpPos.set(...view.p); tmpLook.set(...view.l); }   // a debug camera, off the walk
     camera.position.copy(tmpPos);
     camera.lookAt(tmpLook);
     sky.position.copy(camera.position);
@@ -384,6 +386,10 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
       get triangles() { return renderer.info.render.triangles; },
       get programs() { return renderer.info.programs.length; },
       relightShadows() { renderer.shadowMap.needsUpdate = true; },
+      /** Jump the walk to progress t at once (no easing) — for screenshots. */
+      snap(t) { state.target = state.progress = THREE.MathUtils.clamp(t, 0, 1); },
+      /** Pin the camera at p looking at l (world), or null to follow the walk again. */
+      look(p = null, l = null) { view = p ? { p, l } : null; },
     },
     renderOnce() { resize(); step(0); if (bloom.enabled) composer.render(); else renderer.render(scene, camera); },
     dispose() { state.running = false; for (const l of [life, decor, fx, tables]) if (l) l.dispose(); for (const t of envMaps.values()) t.dispose(); composer.dispose(); pmrem.dispose(); renderer.dispose(); },

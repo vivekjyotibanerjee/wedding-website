@@ -21,7 +21,7 @@ export default defineConfig({
   base: './',
   plugins: [contentHtml()],
   build: { target: 'es2020', chunkSizeWarningLimit: 700 }, // three.js alone is ~550 kB minified
-  // recon/ is the reconstruction package; its data/ holds GBs of local-only images, videos and
-  // COLMAP output that the dev server must not crawl.
+  // recon/ is the model package; its data/ holds hundreds of MB of local-only bakes, reference
+  // images and .blend snapshots that the dev server must not crawl.
   server: { watch: { ignored: ['**/recon/**'] } },
 });

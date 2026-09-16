@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import L from './landmarks.json';
-import { GROUP, attachReveal, revealAttributes, revealMesh, revealUniforms, setReveal, swag, smooth, chunkBy, boundChunk, cullChunks, roomOf } from './util.js';
-import { posCurve, at, NODE, floorY, onStair, onLedge, stairSnap } from './walk.js';
+import { GROUP, attachReveal, revealAttributes, revealMesh, revealUniforms, setReveal, swag, chunkBy, boundChunk, cullChunks, roomOf } from './util.js';
+import { posCurve, at, NODE, floorY, stairAt, riserAt, stairSnap } from './walk.js';
 import { tableBlooms } from './tables.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -14,8 +14,9 @@ import { tableBlooms } from './tables.js';
 // The blooms are InstancedMeshes in spatial chunks (util.chunkBy: culled when behind the camera
 // or not yet begun), the leaves likewise; the reveal is in the vertex shader (util.attachReveal),
 // keyed to the stage transitions. The carpets are sampled from the camera's own curve (walk.js)
-// on the walking surface, so they lie exactly where the guest walks, up the flights and through
-// the doors, and stop at the alpona before the mandap.
+// on the walking surface, so they lie exactly where the guest walks — rounded at the turns like
+// a runner laid by hand, straight up the flights tread by tread with a fold down every riser,
+// through the doors — and stop at the alpona before the mandap.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const g = L.ground;
@@ -52,7 +53,7 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
   const time = { value: 0 };
   const uniforms = revealUniforms(time);
   const disposables = [];
-  const carpets = [];   // { u, group, o0, o1 }
+  const carpets = [];   // { u, group, keys: [[transition value, fraction of the length]] }
   const chunks = [];    // util.chunkBy chunks, each with its mesh (and `lod`, the near version, on the fast tier)
   const CELL = 14, LOD_NEAR = 5;
 
@@ -299,33 +300,108 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
   // itself (the camera's curve between two PATH nodes, on the floor: up the flights tread by tread
   // and through the doors): from the toran gate up the strip and the flight to the Radhakanta's
   // north door; through the hall, down the flight at its south door and to the mandap's alpona;
-  // from beyond the alpona to the nat-mandir's stair; and up that stair, through the hall, along
-  // the plinth ledges and up the temple stair to the central arch.
+  // from beyond the alpona to the nat-mandir's stair; and up that stair, through the hall, out
+  // between the columns of its north front and up the temple stair to the central arch.
   {
     const tex = carpetTexture();
     disposables.push(tex);
-    const runner = ({ from, to, start = null, stop = null, group, o0, o1 }) => {
-      // sample the walk between node fractions, every 40 cm and every 5 cm on a stair, on the floor;
-      // 1.4 m wide, 1 m along a plinth ledge (which is 1.5 m wide)
-      const pts = [], widths = [];
-      const p = new THREE.Vector3(), last = new THREE.Vector3(), snap = [0, 0];
-      const n = Math.ceil((to - from) * NODE.end * 200);
+    const WIDTH = 1.4, STEP = 0.1, RADIUS = 1.2, LIFT = 0.045;   // width; sample spacing; the tightest bend of the centre line; the pile's thickness
+    /**
+     * A runner from walk progress `from` to `to` (`start`/`stop` trim it where a predicate on the
+     * raw curve point first holds). `keys` say how far along its length the roll has reached at
+     * given values of the `group` transition: [[value, PATH node]] — the front is at that node when
+     * the transition is there (0 → the runner's start, 1 → its end are implied).
+     */
+    const runner = ({ from, to, start = null, stop = null, group, keys = [] }) => {
+      // 1. the walk between the node fractions, every 10 cm, snapped onto a flight's axis wherever
+      //    it comes at one; each sample keeps its walk progress `t`
+      const raw = [];
+      const p = new THREE.Vector3(), snap = [0, 0];
+      const n = Math.ceil((to - from) * NODE.end * 100);
       let begun = !start;
       for (let i = 0; i <= n; i++) {
-        posCurve.getPoint(from + (to - from) * (i / n), p);
+        const t = from + (to - from) * (i / n);
+        posCurve.getPoint(t, p);
         if (!begun) { if (!start(p)) continue; begun = true; }
         if (stop && stop(p)) break;
-        stairSnap(p.x, p.z, snap);        // straight up a flight, whichever way the walk comes at it
-        p.x = snap[0]; p.z = snap[1];
-        const stair = onStair(p.x, p.z) || (pts.length && onStair(last.x, last.z));
-        if (pts.length && i < n && p.distanceTo(last) < (stair ? 0.05 : 0.4)) continue;
-        const y = floorY(p.x, p.z);
-        pts.push(new THREE.Vector3(p.x, (y === null ? g : y) + 0.045, p.z));
-        widths.push(onLedge(p.x, p.z) ? 1.0 : 1.4);
-        last.copy(p);
+        stairSnap(p.x, p.z, snap);
+        raw.push({ x: snap[0], z: snap[1], t });
       }
-      const geo = ribbon(pts, widths);
+      // 2. resampled every STEP along it, then the bends eased out to RADIUS: a point turning
+      //    faster than that is drawn toward its neighbours' midpoint, pass after pass, so a corner
+      //    becomes an elbow; the ends and every point on a flight stay put (a flight is straight
+      //    and the elbow into it finishes at its foot)
+      const pts = [];
+      let acc = 0;
+      pts.push({ ...raw[0] });
+      for (let i = 1; i < raw.length; i++) {
+        const a = raw[i - 1], b = raw[i], d = Math.hypot(b.x - a.x, b.z - a.z);
+        while (acc + d >= STEP) {
+          const k = (STEP - acc) / d;
+          pts.push({ x: a.x + (b.x - a.x) * k, z: a.z + (b.z - a.z) * k, t: a.t + (b.t - a.t) * k });
+          acc -= STEP;
+        }
+        acc += d;
+      }
+      pts.push({ ...raw[raw.length - 1] });
+      const pinned = pts.map((q, i) => i === 0 || i === pts.length - 1 || stairAt(q.x, q.z) !== null);
+      const maxTurn = STEP / RADIUS;
+      for (let pass = 0; pass < 120; pass++) {
+        let moved = 0;
+        for (let i = 1; i < pts.length - 1; i++) {
+          if (pinned[i]) continue;
+          const a = pts[i - 1], q = pts[i], b = pts[i + 1];
+          const turn = Math.abs(Math.atan2((q.x - a.x) * (b.z - q.z) - (q.z - a.z) * (b.x - q.x), (q.x - a.x) * (b.x - q.x) + (q.z - a.z) * (b.z - q.z)));
+          if (turn <= maxTurn) continue;
+          const mx_ = (a.x + b.x) / 2, mz_ = (a.z + b.z) / 2;
+          moved += Math.hypot(mx_ - q.x, mz_ - q.z);
+          q.x += (mx_ - q.x) * 0.5; q.z += (mz_ - q.z) * 0.5;
+        }
+        if (moved < 1e-4) break;
+      }
+      // 3. onto the floor, with a fold at every riser: where a segment crosses a riser's plane
+      //    (moved a pile's thickness toward the foot, so the fold wraps the step's nose) it gets a
+      //    point at the riser's foot and one at its top; a riser under a flat (the temple stair's
+      //    buried treads under the nat-mandir's ledge) is no riser, and a shallow dip in the floor
+      //    (that stair's top buried tread, just under the ledge) is bridged
+      const out = [];
+      const lay = (x, z, t, y = null) => out.push({ x, z, t, y: (y ?? floorY(x, z) ?? g) + LIFT });
+      lay(pts[0].x, pts[0].z, pts[0].t);
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1], b = pts[i];
+        const s = stairAt(b.x, b.z) || stairAt(a.x, a.z);
+        if (s) {
+          const alongX = s.along === 'x', toFoot = s.dir > 0 ? -1 : 1;
+          const ca = alongX ? a.x : a.z, cb = alongX ? b.x : b.z;
+          const crossed = [];
+          for (let k = 1; k <= s.n; k++) {
+            const r = riserAt(s, k) + toFoot * LIFT;
+            if ((r > ca && r <= cb) || (r < ca && r >= cb)) crossed.push(r);
+          }
+          crossed.sort((p_, q_) => Math.abs(p_ - ca) - Math.abs(q_ - ca));
+          for (const r of crossed) {
+            const f = (r - ca) / (cb - ca);
+            const x = alongX ? r : a.x + (b.x - a.x) * f, z = alongX ? a.z + (b.z - a.z) * f : r, t = a.t + (b.t - a.t) * f;
+            const d = toFoot * 0.01;                                        // just below and just above the riser
+            const lo = floorY(alongX ? x + d : x, alongX ? z : z + d), hi = floorY(alongX ? x - d : x, alongX ? z : z - d);
+            if (hi - lo < 0.02) continue;
+            if (cb - ca > 0 ? s.dir > 0 : s.dir < 0) { lay(x, z, t, lo); lay(x, z, t, hi); } else { lay(x, z, t, hi); lay(x, z, t, lo); }
+          }
+        }
+        lay(b.x, b.z, b.t);
+      }
+      for (let i = 1; i < out.length - 1; i++) {
+        let j = i;
+        while (j < out.length - 1 && Math.abs(out[j].y - out[i].y) < 1e-3) j++;
+        const drop = Math.min(out[i - 1].y, out[j].y) - out[i].y;
+        if (drop > 1e-3 && drop < 0.1) for (let k = i; k < j; k++) out[k].y += drop;
+        i = j - 1;
+      }
+      const geo = ribbon(out, WIDTH);
       const len = geo.userData.length;
+      // the roll: transition value → fraction of the length reached, through the keys
+      const alongAt = (node) => { const q = out.find((o) => o.t >= at(node)) || out[out.length - 1]; return q.along / len; };
+      const k = [[0, 0], ...keys.map(([v, node]) => [v, alongAt(node)]), [1, 1]];
       const map = tex.clone();
       map.repeat.set(len / 2.2, 1);
       map.needsUpdate = true;
@@ -343,14 +419,18 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
       const m = new THREE.Mesh(geo, mat);
       m.receiveShadow = true;
       root.add(m);
-      carpets.push({ u, group, o0, o1 });
+      carpets.push({ u, group, keys: k });
       disposables.push(geo, mat, map);
     };
     const ax = mx - L.mandap.width / 2 - 1.0 - 1.9, ar = 1.6;   // the alpona before the mandap's west steps (life.js)
-    runner({ from: at(NODE.ghatTop), to: at(NODE.rLedgeN), group: 'prep', o0: 0.05, o1: 1.0 });
-    runner({ from: at(NODE.rLedgeN), to: at(NODE.mandapW), stop: (p) => p.z > mz - ar - 1.6 && Math.abs(p.x - ax) < ar + 1.5, group: 'flowers', o0: 0.42, o1: 1.0 });
-    runner({ from: at(NODE.mandapNW), to: at(NODE.nFoot), start: (p) => p.z > mz + ar + 0.9, group: 'ceremony', o0: 0.5, o1: 1.0 });
-    runner({ from: at(NODE.nFoot), to: at(NODE.end), stop: (p) => p.z < wall + 0.4, group: 'full', o0: 0.0, o1: 0.6 });
+    // from under the gate: out to the corner by the time the guest tops the ghat, up the strip
+    // ahead of them, and at the Radhakanta's flight before they are (stage.js: prep runs from
+    // node 3.4 to 7.2, so the values are where prep stands as the guest reaches each node)
+    runner({ from: at(NODE.ghatTop - 0.2), to: at(NODE.rLedgeN), group: 'prep', keys: [[0.06, NODE.ghatTop + 1.5], [0.2, NODE.strip], [0.38, NODE.strip + 1], [0.85, NODE.rFoot]] });
+    runner({ from: at(NODE.rLedgeN), to: at(NODE.mandapW), stop: (p) => p.z > mz - ar - 1.6 && Math.abs(p.x - ax) < ar + 1.5, group: 'flowers', keys: [[0.42, NODE.rLedgeN]] });
+    runner({ from: at(NODE.mandapNW), to: at(NODE.nFoot), start: (p) => p.z > mz + ar + 0.9, group: 'ceremony', keys: [[0.5, NODE.mandapNW]] });
+    // up the nat-mandir's stair and ahead through the hall as the guest comes in (full runs from natFront to nPaanb)
+    runner({ from: at(NODE.nFoot), to: at(NODE.end), stop: (p) => p.z < wall + 0.4, group: 'full', keys: [[0.06, NODE.nMalakar], [0.14, NODE.nMusic], [0.3, NODE.nTattva], [0.6, NODE.end]] });
   }
 
   scene.add(root);
@@ -366,7 +446,13 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
       c.mesh.visible = on && !near;
       c.lod.visible = on && near;
     }
-    for (const c of carpets) c.u.reveal.value = smooth(c.o0, c.o1, stage[c.group]);
+    for (const c of carpets) {
+      const v = stage[c.group], k = c.keys;
+      let i = 1;
+      while (i < k.length - 1 && k[i][0] < v) i++;
+      const f = Math.min(1, Math.max(0, (v - k[i - 1][0]) / Math.max(1e-6, k[i][0] - k[i - 1][0])));
+      c.u.reveal.value = k[i - 1][1] + (k[i][1] - k[i - 1][1]) * f;
+    }
   }
 
   return {
@@ -376,23 +462,33 @@ export function buildDecor(scene, { reducedMotion = false, quality = 'high' } = 
   };
 }
 
-/** A flat ribbon through a run of points, `widths[i]` wide at each: uv.x runs 0 → 1 along it (by length), uv.y across. */
-function ribbon(pts, widths) {
+/**
+ * A ribbon `width` wide through a run of points ({ x, y, z }), flat on the floor and folded down
+ * a riser wherever two points share a place at different heights: uv.x runs 0 → 1 along it (by
+ * length; each point gets its `along`), uv.y across; the normals follow the surface.
+ */
+function ribbon(pts, width) {
   const pos = [], nrm = [], uv = [], idx = [];
-  const up = new THREE.Vector3(0, 1, 0), side = new THREE.Vector3(), t = new THREE.Vector3();
-  const along = [0];
-  for (let i = 1; i < pts.length; i++) along.push(along[i - 1] + pts[i].distanceTo(pts[i - 1]));
-  const len = along[along.length - 1] || 1;
-  for (let i = 0; i < pts.length; i++) {
+  const n = pts.length;
+  const up = new THREE.Vector3(0, 1, 0), side = new THREE.Vector3(), dir = new THREE.Vector3(), t3 = new THREE.Vector3(), nv = new THREE.Vector3();
+  let len = 0;
+  for (let i = 0; i < n; i++) { if (i) len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y, pts[i].z - pts[i - 1].z); pts[i].along = len; }
+  len = len || 1;
+  for (let i = 0; i < n; i++) {
     const p = pts[i];
-    t.subVectors(pts[Math.min(i + 1, pts.length - 1)], pts[Math.max(i - 1, 0)]).setY(0);
-    // the width eases over a couple of points either side of a change
-    const w = (widths[Math.max(i - 2, 0)] + widths[Math.max(i - 1, 0)] + widths[i] + widths[Math.min(i + 1, pts.length - 1)] + widths[Math.min(i + 2, pts.length - 1)]) / 5;
-    side.crossVectors(up, t).normalize().multiplyScalar(w / 2);
+    // the direction across the floor from the nearest points not at this place (a fold shares its place)
+    let a = i, b = i;
+    while (a > 0 && Math.hypot(pts[a].x - p.x, pts[a].z - p.z) < 1e-4) a--;
+    while (b < n - 1 && Math.hypot(pts[b].x - p.x, pts[b].z - p.z) < 1e-4) b++;
+    dir.set(pts[b].x - pts[a].x, 0, pts[b].z - pts[a].z).normalize();
+    side.crossVectors(up, dir).multiplyScalar(width / 2);
+    t3.set(pts[Math.min(i + 1, n - 1)].x - pts[Math.max(i - 1, 0)].x, pts[Math.min(i + 1, n - 1)].y - pts[Math.max(i - 1, 0)].y, pts[Math.min(i + 1, n - 1)].z - pts[Math.max(i - 1, 0)].z);
+    nv.crossVectors(side, t3).normalize();
+    if (nv.y < 0) nv.negate();
     pos.push(p.x - side.x, p.y, p.z - side.z, p.x + side.x, p.y, p.z + side.z);
-    nrm.push(0, 1, 0, 0, 1, 0);
-    uv.push(along[i] / len, 0, along[i] / len, 1);
-    if (i) { const b = i * 2; idx.push(b - 2, b, b - 1, b - 1, b, b + 1); }
+    nrm.push(nv.x, nv.y, nv.z, nv.x, nv.y, nv.z);
+    uv.push(p.along / len, 0, p.along / len, 1);
+    if (i) { const c = i * 2; idx.push(c - 2, c, c - 1, c - 1, c, c + 1); }
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));

@@ -7,6 +7,7 @@ Sets (period = metres covered by one tile):
   tiles    half-round terracotta pantiles in overlapping courses (chala roofs)  period 1 m
   brick    laterite/brick courses with recessed mortar (plinths, ghat)          period 1 m
   paving   45 × 22 cm brick paving, per-brick tilt and colour                   period 1.8 m
+  marble   60 cm chequer of veined ivory and charcoal marble, hairline joints    period 1.2 m
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ import numpy as np
 
 SETS = {
     "stucco": {"period": 3.0}, "tiles": {"period": 1.0}, "brick": {"period": 1.0}, "paving": {"period": 1.8},
+    "marble": {"period": 1.2},
 }
 N = 1024
 
@@ -136,8 +138,33 @@ def gen_paving(rng):
     return alb, h, 0.012
 
 
-BOOST = {"stucco": 3.0, "tiles": 1.0, "brick": 1.5, "paving": 1.5}
-GEN = {"stucco": gen_stucco, "tiles": gen_tiles, "brick": gen_brick, "paving": gen_paving}
+def gen_marble(rng):
+    """The halls' floors: a chequer of 60 cm tiles, ivory with grey veins and charcoal with pale
+    veins, 4 mm joints; nearly flat (polished), the joints and a per-tile lean in the height."""
+    v, u = np.mgrid[0:N, 0:N] / N
+    col, row = np.floor(u * 2).astype(int), np.floor(v * 2).astype(int)
+    fu, fv = u * 2 - col, v * 2 - row
+    m = 0.004 / 0.6
+    joint = (fu < m) | (fu > 1 - m) | (fv < m) | (fv > 1 - m)
+    dark = ((col + row) % 2) == 1
+    veins = _fbm(rng, N, 6, 5, gain=0.6)
+    vein = np.exp(-((veins - 0.5) ** 2) / 0.0012) * 0.8 + np.exp(-((_fbm(rng, N, 14, 4) - 0.55) ** 2) / 0.0006) * 0.5
+    cloud = _fbm(rng, N, 3, 4)
+    ivory = np.array([0.86, 0.83, 0.76])[None, None, :] * (0.92 + 0.12 * cloud)[..., None]
+    ivory = ivory * (1 - 0.35 * vein)[..., None] + np.array([0.45, 0.45, 0.48])[None, None, :] * (0.35 * vein)[..., None]
+    charcoal = np.array([0.16, 0.16, 0.17])[None, None, :] * (0.85 + 0.3 * cloud)[..., None]
+    charcoal = charcoal * (1 - 0.5 * vein)[..., None] + np.array([0.55, 0.55, 0.55])[None, None, :] * (0.5 * vein)[..., None]
+    alb = np.where(dark[..., None], charcoal, ivory)
+    alb = np.where(joint[..., None], np.array([0.30, 0.28, 0.26])[None, None, :], alb)
+    tilt = (0.5 - _hash(col, row, 21)) * (fu - 0.5) + (0.5 - _hash(col, row, 22)) * (fv - 0.5)
+    h = 0.8 + 0.15 * tilt + 0.02 * _fbm(rng, N, 40, 2)
+    h = np.where(joint, 0.0, h)
+    h = (h - h.min()) / (h.max() - h.min())
+    return alb, h, 0.004
+
+
+BOOST = {"stucco": 3.0, "tiles": 1.0, "brick": 1.5, "paving": 1.5, "marble": 1.0}
+GEN = {"stucco": gen_stucco, "tiles": gen_tiles, "brick": gen_brick, "paving": gen_paving, "marble": gen_marble}
 
 
 def _save(path: Path, arr, is_data: bool, exr: bool):
@@ -165,7 +192,8 @@ def ensure_textures(out_dir: Path, force=False) -> dict[str, dict]:
             _save(paths["normal"], _normal_map(h, disp, SETS[name]["period"], BOOST[name]), True, False)
             _save(paths["height"], h.astype(np.float32), True, True)
             print(f"  textures: wrote {name} ({N}²)")
-        info[name] = {"period": SETS[name]["period"], "disp": {"stucco": 0.006, "tiles": 0.045, "brick": 0.02, "paving": 0.012}[name], **paths}
+        info[name] = {"period": SETS[name]["period"],
+                      "disp": {"stucco": 0.006, "tiles": 0.045, "brick": 0.02, "paving": 0.012, "marble": 0.004}[name], **paths}
     return info
 
 

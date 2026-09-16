@@ -6,13 +6,16 @@
 #   bash recon/blender/render.sh quick           # 960x540, 24 samples — for iterating on the script
 #   bash recon/blender/render.sh web             # bake + export the model the website loads → public/models/dakshineswar.glb
 #                                                #   (BLENDER=path/to/official/blender — the Ubuntu package's Cycles cannot bake)
+#   bash recon/blender/render.sh blend           # just build + audit + save data/blender/dakshineswar.blend (to edit by hand)
+#   bash recon/blender/render.sh web --blend F   # export a hand-edited .blend instead of rebuilding (README, "Edit the model by hand")
+#   bash recon/blender/render.sh diff F          # what a hand-edited .blend changed against the script, to port back (--keep-added, --json)
 #
 # Output: recon/data/blender/  (git-ignored; everything is reproducible from build_dakshineswar.py)
 # Textures: data/blender/textures/ — the albedo/normal/height maps are generated on first run by
 # blender/textures.py; the skybox is a CC0 Poly Haven HDRI fetched once here (pinned by sha1).
 set -euo pipefail
-cd "$(dirname "$0")/.."
-OUT=data/blender
+R="$(cd "$(dirname "$0")/.." && pwd)"     # recon/ — no cd, so a path you pass (--blend, diff FILE, --json) is taken from where you run this
+OUT=$R/data/blender
 MODE=${1:-stills}
 BLENDER=${BLENDER:-blender}
 
@@ -27,16 +30,18 @@ if [ ! -f "$OUT/textures/sky.hdr" ] || ! echo "$SKY_SHA1  $OUT/textures/sky.hdr"
 fi
 
 case "$MODE" in
-  web)       "$BLENDER" -b -P blender/export_web.py -- "${@:2}"
+  web)       "$BLENDER" -b -P "$R/blender/export_web.py" -- "${@:2}"
              case " ${*:2} " in *" --dry "*|*" --landmarks-only "*|*" --only "*|*" --out "*) exit 0 ;; esac   # no full glb written
              # geometry → EXT_meshopt_compression (three.js decodes it with its bundled decoder, no extra files to host)
-             (cd .. && npx gltf-transform meshopt recon/data/web/dakshineswar.glb public/models/dakshineswar.glb --level medium)
-             ls -la ../public/models/dakshineswar.glb; exit 0 ;;
-  quick)     "$BLENDER" -b -P blender/build_dakshineswar.py -- --out "$OUT" --render stills --res 960x540 --samples 24 ;;
-  stills)    "$BLENDER" -b -P blender/build_dakshineswar.py -- --out "$OUT" --render stills --res 1280x720 --samples 128 ;;
-  turntable) "$BLENDER" -b -P blender/build_dakshineswar.py -- --out "$OUT" --render turntable --res 960x540 --samples 48 --frames 48
+             (cd "$R/.." && npx gltf-transform meshopt recon/data/web/dakshineswar.glb public/models/dakshineswar.glb --level medium)
+             ls -la "$R/../public/models/dakshineswar.glb"; exit 0 ;;
+  blend)     "$BLENDER" -b -P "$R/blender/build_dakshineswar.py" -- --out "$OUT" --render none ;;
+  diff)      "$BLENDER" -b -P "$R/blender/diff_blend.py" -- "${@:2}"; exit 0 ;;
+  quick)     "$BLENDER" -b -P "$R/blender/build_dakshineswar.py" -- --out "$OUT" --render stills --res 960x540 --samples 24 ;;
+  stills)    "$BLENDER" -b -P "$R/blender/build_dakshineswar.py" -- --out "$OUT" --render stills --res 1280x720 --samples 128 ;;
+  turntable) "$BLENDER" -b -P "$R/blender/build_dakshineswar.py" -- --out "$OUT" --render turntable --res 960x540 --samples 48 --frames 48
              ffmpeg -loglevel error -y -framerate 12 -i "$OUT/turntable/frame_%04d.png" -c:v libx264 -pix_fmt yuv420p -crf 20 "$OUT/turntable.mp4"
              echo "→ $OUT/turntable.mp4" ;;
-  *) echo "usage: $0 [quick|stills|turntable]"; exit 1 ;;
+  *) echo "usage: $0 [quick|stills|turntable|blend|diff FILE|web]"; exit 1 ;;
 esac
 ls -la "$OUT"/*.png "$OUT"/*.blend 2>/dev/null | sed 's|^.* data/|data/|'

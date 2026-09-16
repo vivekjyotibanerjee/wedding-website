@@ -13,9 +13,11 @@ import L from './landmarks.json';
 //                                         southward: how to get here and the day before (train, air,
 //                                         hotels, haldi), out and down the flight at its southmost door
 //   out to the mandap                   the ceremony itself, then round the mandap's west side
-//   the nat-mandir                      up its west stair, north through the hall: the wedding day
-//   out of its northmost door           along the plinth's west and north ledges to the temple stair,
-//                                         which meets the north ledge (its foot is inside the plinth)
+//   the nat-mandir                      up its west stair, across to the south-east corner and north
+//                                         past the tables along its east wall: the wedding day
+//   out through its north colonnade     the hall is open toward the temple on columns; the temple
+//                                         stair's foot is inside the plinth, so the walk steps from
+//                                         the north ledge straight onto its treads
 //   up onto the temple platform         and into the central arch: the sanctum door, Ma Kali, the RSVP
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -27,17 +29,18 @@ const rx = R.west_face_x;                             // Radhakanta west wall
 const rz = R.center[2];
 const rP = R.plinth_top;
 const rLedge = rx - R.plinth_out / 2;                 // walking on its plinth ledge
-const rFoot = rx - R.plinth_out - R.stair_steps * R.stair_tread;   // the foot of its west flights
+const rFoot = rx - R.plinth_out - R.stair_gap - R.stair_steps * R.stair_tread;   // the foot of its west flights
 /** z of the Radhakanta's west doorways, north (0) to south. */
 const rDoor = (i) => rz + (i - (R.bays_west - 1) / 2) * R.bay_pitch;
 const N = L.natmandir;
 const nx = N.west_face_x;                             // nat-mandir west wall
 const nz = N.center[2];                               // nat-mandir centre, z
 const nP = N.plinth_top;
-const nLedge = nx - N.plinth_out / 2 + 0.2;           // its ledge (the spline bulges toward the lip at the corner)
-const nFoot = nx - N.plinth_out - N.stair_steps * N.stair_tread;
-const nNorth = nz - N.size[1] / 2 - N.plinth_out;     // north edge of its plinth
+const nFoot = nx - N.plinth_out - N.stair_gap - N.stair_steps * N.stair_tread;
+const nWallN = nz - N.size[1] / 2;                    // its north face (the open colonnade), outer plane
 const nDoor = (i) => nz + (i - (N.bays_west - 1) / 2) * N.bay_pitch;
+/** The middle of the colonnade's opening astride the temple stair's axis (x = 0). */
+const nGapX = (() => { const xs = N.north_columns.x; const i = xs.findIndex((x) => x > 0); return (xs[i - 1] + xs[i]) / 2; })();
 const pt = L.navaratna.platform_top;
 const P = L.navaratna.platform;
 const { stair_foot, stair_steps, stair_width } = L.navaratna;
@@ -63,7 +66,7 @@ FLATS.push({ x0: -1e4, x1: L.river_x, z0: -1e4, z1: 1e4, y: -1.6 });   // the ri
 FLATS.push({ x0: L.courtyard.center[0] - L.courtyard.size[0] / 2, x1: L.courtyard.center[0] + L.courtyard.size[0] / 2, z0: L.courtyard.center[2] - L.courtyard.size[1] / 2, z1: L.courtyard.center[2] + L.courtyard.size[1] / 2, y: g });
 STAIRS.push({ x0: L.ghat.foot[0], x1: L.ghat.top[0], z0: gz - L.ghat.width / 2, z1: gz + L.ghat.width / 2, y0: L.ghat.foot[1], y1: L.ghat.top[1], along: 'x', dir: 1, n: 9 });
 for (const H of [R, N]) {
-  const [cx, , cz] = H.center, [w, d] = H.size, o = H.plinth_out;
+  const [cx, , cz] = H.center, [w, d] = H.size, o = H.plinth_out + H.stair_gap;   // the plinth's top course is a lip, the gap the flights stand off it
   FLATS.push({ x0: cx - w / 2 - o, x1: cx + w / 2 + o, z0: cz - d / 2 - o, z1: cz + d / 2 + o, y: H.plinth_top });
   const foot = H.west_face_x - o - H.stair_steps * H.stair_tread, top = H.west_face_x - o;
   const flight = (zc, width) => STAIRS.push({ x0: foot, x1: top, z0: zc - width / 2, z1: zc + width / 2, y0: g, y1: H.plinth_top, along: 'x', dir: 1, n: H.stair_steps });
@@ -73,6 +76,8 @@ for (const H of [R, N]) {
 FLATS.push({ x0: -P / 2, x1: P / 2, z0: -P / 2, z1: P / 2, y: pt });
 STAIRS.push({ x0: -stair_width / 2, x1: stair_width / 2, z0: L.navaratna.stair_top[2], z1: stair_foot[2], y0: g, y1: pt, along: 'z', dir: -1, n: stair_steps });
 const inside = (s, x, z, m = 0) => x >= s.x0 - m && x <= s.x1 + m && z >= s.z0 - m && z <= s.z1 + m;
+/** How far up flight `s` (x, z) is: 0 at its foot, 1 at its top. */
+const alongU = (s, x, z) => (s.along === 'x' ? (s.dir > 0 ? (x - s.x0) / (s.x1 - s.x0) : (s.x1 - x) / (s.x1 - s.x0)) : (s.dir > 0 ? (z - s.z0) / (s.z1 - s.z0) : (s.z1 - z) / (s.z1 - s.z0)));
 
 /**
  * The walking surface under (x, z), stairs as ramps; null over the river. The eye is allowed half
@@ -84,7 +89,7 @@ export function surfaceY(x, z, stepped = false) {
   for (const f of FLATS) if (inside(f, x, z, stepped ? 0 : 0.5) && (y === null || f.y > y)) y = f.y;
   for (const s of STAIRS) {
     if (!inside(s, x, z)) continue;
-    const u = s.along === 'x' ? (s.dir > 0 ? (x - s.x0) / (s.x1 - s.x0) : (s.x1 - x) / (s.x1 - s.x0)) : (s.dir > 0 ? (z - s.z0) / (s.z1 - s.z0) : (s.z1 - z) / (s.z1 - s.z0));
+    const u = alongU(s, x, z);
     const k = stepped ? Math.min(s.n, Math.max(1, Math.ceil(u * s.n - 1e-6))) / s.n : u;
     const sy = s.y0 + (s.y1 - s.y0) * k;
     if (y === null || sy > y) y = sy;
@@ -93,32 +98,30 @@ export function surfaceY(x, z, stepped = false) {
 }
 /** The floor under (x, z) with the stairs as treads (for things laid on it); null over the river. */
 export const floorY = (x, z) => surfaceY(x, z, true);
-/** Is (x, z) on a stair? (the carpets are sampled finely there) */
-export function onStair(x, z) { return STAIRS.some((s) => inside(s, x, z)); }
+/** The flight under (x, z), or null (the carpets are laid tread by tread on it). */
+export function stairAt(x, z) { for (const s of STAIRS) if (inside(s, x, z)) return s; return null; }
+/** Where along the flight's axis (an x for a flight along x, a z along z) the riser at the foot of tread k stands. */
+export function riserAt(s, k) {
+  const u = (k - 1) / s.n;
+  return s.along === 'x' ? (s.dir > 0 ? s.x0 + u * (s.x1 - s.x0) : s.x1 - u * (s.x1 - s.x0)) : (s.dir > 0 ? s.z0 + u * (s.z1 - s.z0) : s.z1 - u * (s.z1 - s.z0));
+}
 /**
- * Pull (x, z) onto the axis of the flight it is on or about to reach (within a metre), for things
- * that should run straight up a stair however the walk approaches it (the carpets).
+ * Pull (x, z) onto the axis of the flight it is on or about to reach, for things that should run
+ * straight up a stair however the walk approaches it (the carpets): fully on the axis on the
+ * flight, easing off over the 2.5 m before its foot (a smoothstep, so the pull is already level
+ * with the axis at the foot — no kink at the first riser).
  */
 export function stairSnap(x, z, out = [0, 0]) {
   out[0] = x; out[1] = z;
   for (const s of STAIRS) {
-    if (s.n > 6) continue;   // the ghat and the temple stair are broad: the walk goes up them as it likes
     const dx = Math.max(s.x0 - x, 0, x - s.x1), dz = Math.max(s.z0 - z, 0, z - s.z1);
-    const k = 1 - Math.min(1, Math.hypot(dx, dz) / 1.0);
+    const d = Math.min(1, Math.hypot(dx, dz) / 2.5);
+    const k = 1 - d * d * (3 - 2 * d);
     if (k <= 0) continue;
     if (s.along === 'x') out[1] = z + ((s.z0 + s.z1) / 2 - z) * k; else out[0] = x + ((s.x0 + s.x1) / 2 - x) * k;
     return out;
   }
   return out;
-}
-/** Is (x, z) on a hall's plinth ledge (outside its walls, not on a flight)? The carpet is narrower there. */
-export function onLedge(x, z) {
-  if (onStair(x, z)) return false;
-  for (const H of [R, N]) {
-    const [cx, , cz] = H.center, [w, d] = H.size, o = H.plinth_out;
-    if (x >= cx - w / 2 - o && x <= cx + w / 2 + o && z >= cz - d / 2 - o && z <= cz + d / 2 + o && !(x > cx - w / 2 && x < cx + w / 2 && z > cz - d / 2 && z < cz + d / 2)) return true;
-  }
-  return false;
 }
 /** A path node standing on the surface at (x, z), eye height up. */
 const on = (x, z) => [x, surfaceY(x, z) + EYE, z];
@@ -126,8 +129,9 @@ const on = (x, z) => [x, surfaceY(x, z) + EYE, z];
 // ── the tables ───────────────────────────────────────────────────────────────
 // Each hall is laid out for the wedding along its back (east) wall: a table per stop, with what a
 // temple hall would hold the day before a Bengali wedding (tables.js builds them from this). The
-// walk inside each hall is a U — in at a west door, across to the east wall, along it past the
-// tables, out at another west door — and every card pins to its table. `p` is the table's centre
+// walk inside each hall goes in at a west door, across to the east wall and along it past the
+// tables — a U back out of another west door in the Radhakanta, an L out through the open north
+// colonnade in the nat-mandir — and every card pins to its table. `p` is the table's centre
 // on the floor, its front facing west into the hall; `card` is the content.json id that stops here.
 const rEastX = rx + R.size[0] - 0.5, nEastX = nx + N.size[0] - 0.5;   // the inner faces (walls 0.5 thick)
 const TABLE = { len: 1.8, dep: 0.8, h: 0.78 };
@@ -162,7 +166,7 @@ export const PATH = [
   { p: [gx - 21.5, 3.0, gz], l: [gx + 8.5, 6, gz - 2] },                   // 1 toward the ghat
   { p: on(gFoot + 1, gz), l: [gx + 8.5, 5, gz - 4] },                     // 2 foot of the ghat
   { p: on(gx - 2, gz), l: [gx + 11.5, 5.5, gz - 9] },                     // 3 near the top: the invitation
-  { n: 'ghatTop', p: on(gx + 1.5, gz), l: [gx + 14.5, 5, gz - 11] },      // 4 top of the ghat, the view swinging left
+  { n: 'ghatTop', p: on(gx + 1.5, gz), l: [gx + 15, 4.3, gz - 7] },       // 4 top of the ghat, the view swinging left; the carpet rolling out ahead, bottom right (in frame on a phone too)
   { p: on(gx + 10.5, gz - 0.5), l: [gx + 19.5, 5.5, gz - 25] },           // 5 through the gap: the north Shiva group's flank, the Radhakanta's front
   { n: 'strip', p: on(-22, gz - 13), l: [-10, 6, rDoor(0) + 2] },         // 6 up the strip
   { p: on(-20, -31), l: [rx, 5, rDoor(0)] },                              // 7 its 8-bay front sliding by on the right (west of the lamp post at z −22)
@@ -198,13 +202,11 @@ export const PATH = [
   { n: 'nTattvab', p: on(nx + 14.5, nDoor(1.8) + 1.2), l: top('tattva', -0.7) }, // 37
   { n: 'nPaan', p: on(nx + 14.5, nDoor(0.6) + 2.6), l: top('paan') },     // 38 the paan & mishti table (reception)
   { n: 'nPaanb', p: on(nx + 14.2, nDoor(0.6) + 1.2), l: top('paan', -0.7) }, // 39
-  { n: 'nOut', p: on(nx + 1.3, nDoor(0)), l: [nx - 8, nP + 2.2, nDoor(0) - 3] }, // 40 back along the north wall to the northmost door, on its axis
-  { n: 'nLedge', p: on(nLedge, nDoor(0) - 2.2), l: [-7, pt + 4, 4] },     // 41 out on the ledge, turning north: the navaratna's platform ahead
-  { n: 'plinthNW', p: on(nLedge, nNorth + 0.7), l: [-1, pt + 3, 6] },     // 42 the plinth's north-west corner
-  { n: 'northLedge', p: on(-2.2, nNorth + 0.5), l: [0, pt + 2.8, doorZ] }, // 43 along the north ledge to the temple stair, which meets it here
-  { n: 'stair', p: on(0, 11.9), l: [0, pt + 2.8, doorZ] },                // 44 up the stair on its axis
-  { n: 'arch', p: on(0, 9.6), l: [0, doorMid + 0.9, doorZ] },             // 45 the central arch framing the shrine door
-  { n: 'end', p: on(0, wall + 0.6), l: [0, doorMid + 0.25, doorZ - 0.4] }, // 46 in the central arch, looking into the sanctum
+  { n: 'nNorth', p: on(nGapX + 0.45, nWallN + 2.6), l: [0, pt + 4, 4] },   // 40 turning north-west to the colonnade: the navaratna through the columns (a touch east: the spline bulges west here)
+  { n: 'nColonnade', p: on(nGapX + 0.25, nWallN - 1.0), l: [0, pt + 2.8, doorZ] }, // 41 between the columns, on the north ledge, which the temple stair meets
+  { n: 'stair', p: on(0, 11.9), l: [0, pt + 2.8, doorZ] },                // 42 up the stair on its axis
+  { n: 'arch', p: on(0, 9.6), l: [0, doorMid + 0.9, doorZ] },             // 43 the central arch framing the shrine door
+  { n: 'end', p: on(0, wall + 0.6), l: [0, doorMid + 0.25, doorZ - 0.4] }, // 44 in the central arch, looking into the sanctum
 ];
 const last = PATH.length - 1;
 /** Walk progress of PATH node i. */

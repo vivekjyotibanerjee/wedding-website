@@ -6,8 +6,7 @@ temple, boundary arcades, ghat) in Blender 4.0 headlessly, save a .blend and ren
           [--samples 64] [--frames 48] [--only still,still]
 
 Frame: metres, +X east, +Y north, +Z up, origin at the navaratna's centre — the same frame as
-configs/layout.geojson and the landmarks traced with scripts/laptop/trace.py. If
-configs/layout.inner.yaml exists, its point landmarks override the LAYOUT defaults below.
+configs/layout.geojson (the OSM footprint the boundary, scale and orientation were fixed against).
 
 Look: the real temple (cream stucco, maroon bands, red-plastered chala roofs, ribbed spires) — the CG
 videos only settle how the buildings sit. Geometry rules:
@@ -24,7 +23,9 @@ Sky is an HDRI (data/blender/textures/sky.hdr, fetched by render.sh) with a matc
 from __future__ import annotations
 
 import argparse
+import hashlib
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -64,31 +65,15 @@ LAYOUT = {
 # four flights (S/W the broad ones, N/E narrower, per the aerial photo), the halls' three-bay
 # central flights, the halls' plinth, the arch sizes of the pierced walls.
 NAV_STAIR = {"steps": 9, "tread": 0.4, "width": {"S": 0.7, "W": 0.7, "N": 0.45, "E": 0.45}}   # width × mandir_size
-HALL_STAIR = {"steps": 6, "tread": 0.36, "bays": 3}
+HALL_STAIR = {"steps": 6, "tread": 0.36, "bays": 3, "gap": 0.05}   # gap: a flight stands off the plinth's proud lip
 HALL_PLINTH = {"h": 1.2, "out": 1.5}
+# the nat-mandir's north front, toward the temple, is open: round columns under a deep entablature
+NAT_COLONNADE = {"columns": 5, "r": 0.34, "band": 1.9}
 S1_H, S1_ARCH = 10.0, (1.7, 4.2)      # ground storey: the doorways are short against the tall wall (ref Tan_1 map)
 NAT_ARCH, VIS_ARCH = (2.0, 4.3), (1.9, 3.8)
 ROOT = Path(__file__).resolve().parents[1]
 TEX_DIR = ROOT / "data" / "blender" / "textures"
 SUN_BEARING = 205.0          # compass bearing the sun shines FROM (SSW afternoon at 22°N)
-
-
-def load_trace() -> None:
-    p = ROOT / "configs" / "layout.inner.yaml"
-    if not p.exists():
-        return
-    try:
-        import yaml  # not bundled with Blender; only used if available
-    except ImportError:
-        print("  layout.inner.yaml present but PyYAML missing in Blender's python — using defaults")
-        return
-    lm = (yaml.safe_load(p.read_text()) or {}).get("landmarks") or {}
-    for k in ("mandir_center", "natmandir_center"):
-        if k in lm and len(lm[k]) == 2:
-            LAYOUT[k] = tuple(lm[k])
-    if "shiva_row_north" in lm and "shiva_row_south" in lm:
-        LAYOUT["shiva_x"] = (lm["shiva_row_north"][0] + lm["shiva_row_south"][0]) / 2
-    print(f"  layout.inner.yaml applied: {sorted(k for k in lm)}")
 
 
 # ------------------------------------------------------------------------------------------------
@@ -456,6 +441,7 @@ def make_materials() -> None:
     pbr("stone", "stucco", tint=(0.74, 0.72, 0.67), rough=0.9, normal=0.8, period=1.5, grime=0.3)   # grey plastered stone stairs (the aerial photo)
     pbr("laterite", "brick", tint=(0.9, 0.75, 0.7), rough=0.95, normal=1.0)
     pbr("paving", "paving", rough=0.85, normal=1.0, displace=True)      # adaptive-subdivision objects only
+    pbr("marble", "marble", rough=0.3, normal=0.6, grime=0.15)          # the halls' chequered floors
     pbr("path", "stucco", tint=(0.78, 0.74, 0.66), rough=0.9, normal=0.4, period=2.0, grime=0.25)
     pbr("white", "stucco", tint=(0.95, 0.94, 0.9), rough=0.6, normal=0.4, period=1.0, grime=0.2, damp=0.5)
     # painted detail instead of geometry:
@@ -1387,9 +1373,46 @@ def build_navaratna(L):
     ratna("ratna_c", 1.1, 9.0).location = (cx, cy, zt + 0.9)
 
 
+def _hall_face(P, wl, hs, t, h, xs, xb, sill, poly, sur, spring, hw, ah, pitch, c, storeys, up, upsur,
+               rosettes, zc, bd, cd, walls, rose, colon, inner_rose):
+    """One walled face of a hall_block — the pierced wall and everything on it, appended to the part
+    lists (hall_block adds the parapet, dado, pediment and flights on every face, open or walled)."""
+    rows = [pierced_wall(wl, hs, t, [(x, sill, poly) for x in xs])]
+    for k in range(1, storeys):
+        rows.append(place(pierced_wall(wl, hs, t, [(x, 1.0, up) for x in xs]), (0, 0, k * hs)))
+    walls.append(P(merge(*rows)))
+    rose.append(P(merge(*[ring_prism(sur, poly, 0.12, "y", x, sill, -0.12) for x in xs])))
+    if rosettes:
+        rose.append(P(merge(*[disc(0.42, 0.14, x, sill + ah + 0.75) for x in xs])))
+    colon.append(P(jambs(xs, hw, spring, sill)))
+    for k in range(1, storeys):
+        rose.append(P(merge(*[ring_prism(upsur, up, 0.1, "y", x, 1.0, -0.1) for x in xs]), k * hs))
+    rose.append(P(merge(*[box(0.16, 0.06, h - 0.05, x, -0.03, 0.0) for x in xb])))
+    # thin framed panel over every arch, between the rosette and the dentil course (the
+    # nat-mandir's front photo: the wall above the arcade is panelled, not blank)
+    pz0, pz1 = sill + ah + 1.45, hs - 1.0
+    if pz1 - pz0 > 0.5:
+        rose.append(P(merge(*[frame_ring(pitch - 0.7, pz1 - pz0, 0.08, 0.05, x, pz0, -0.05) for x in xs])))
+    if c > 1.8:
+        rose.append(P(merge(*[frame_ring(c - 0.6, hs - 1.9, 0.12, 0.06, s * (wl / 2 - c / 2), 0.5, -0.06) for s in (-1, 1)])))
+    # inside this face: rose surrounds on the reveals' inner edge, a maroon skirting along the
+    # piers and corner panels (continuous under windows), a corbel high on every pier that
+    # carries a beam end on the long faces (the tables stand 15 cm off the east wall: no pilasters)
+    surround = sill + ah + 0.3 < zc - bd - cd - 0.02      # a surround that would run into the cornice is left off
+    if surround:
+        inner_rose.append(P(merge(*[ring_prism(sur, poly, 0.08, "y", x, sill, t) for x in xs])))
+    if sill < 0.9:                                # doorways: a length of skirting between each pair, 3 cm
+        foot = hw + (0.25 if surround else 0.0)   # short of the surround's feet and of the corner
+        edges = [-wl / 2] + [x + s * foot for x in xs for s in (-1, 1)] + [wl / 2]
+        skirt = [box(b - a - 0.06, 0.02, 0.9, (a + b) / 2, t + 0.01, 0.0) for a, b in zip(edges[::2], edges[1::2])]
+    else:                                         # windows: continuous under the sills
+        skirt = [box(wl - 0.06, 0.02, 0.9, 0.0, t + 0.01, 0.0)]
+    inner_rose.append(P(merge(*skirt)))
+
+
 def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pediments=("W", "E"),
                stair_faces=("W",), sills=None, plinth_h=HALL_PLINTH["h"], plinth_out=HALL_PLINTH["out"], arch=NAT_ARCH,
-               rosettes=True, door_stairs=None):
+               rosettes=True, door_stairs=None, open=()):
     """Closed pilastered hall on a plinth — the nat-mandir (refs M36537551, M36512944, M27969301)
     and, with storeys=2, the Radhakanta block (M69552273). Every face is a pierced wall of 9-foil
     arches (real openings into one room) with striped bundled jambs, a rosette over each arch, red
@@ -1398,7 +1421,11 @@ def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pedi
     `pediments` faces. Plinth with framed dado panels and a stair on the `stair_faces`.
     bays_x = arches on the N/S faces, bays_y on the E/W faces; sills = {face: sill height} for
     faces whose arches are windows rather than doorways; door_stairs = {face: (bay, …)} for
-    single-bay flights up to particular doorways (the walk enters the Radhakanta at its end doors)."""
+    single-bay flights up to particular doorways (the walk enters the Radhakanta at its end doors);
+    open = faces that are colonnades instead of walls (NAT_COLONNADE: round columns evenly spaced
+    between the corner posts under an entablature band; roof, cornice, parapet, dado and pediment
+    as on any face) — the nat-mandir's north front, which the walk leaves through toward the
+    temple stair."""
     t = 0.5
     hs = h / storeys
     aw, ah = arch
@@ -1410,7 +1437,12 @@ def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pedi
     sills = sills or {}
     zb = z0 + plinth_h
     zpar = h + 0.77                                   # parapet base (slab 0.35 + two cornice steps)
-    walls, rose, colon, white, stone = [], [], [], [], []
+    walls, rose, colon, white, stone, columns = [], [], [], [], [], []
+    # the room inside (ground floor): its ceiling is the roof slab or the upper floor's underside
+    iw, idp = w - 2 * t, d - 2 * t
+    zc = h if storeys == 1 else hs - 0.3
+    bd, cd = (0.45, 0.4) if zc >= 6.5 else (0.35, 0.3)   # beam depth, cornice height (a low room gets slimmer ones)
+    inner_rose, inner_white = [], []
     for face, (Lf, (fx, fy), rz) in rect_faces(w, d).items():
         n = bays_x if face in "NS" else bays_y
         wl = Lf - 2 * t
@@ -1422,24 +1454,22 @@ def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pedi
 
         def P(part, dz=0.0):
             return place(part, (fx, fy, dz), rz)
-        rows = [pierced_wall(wl, hs, t, [(x, sill, poly) for x in xs])]
-        for k in range(1, storeys):
-            rows.append(place(pierced_wall(wl, hs, t, [(x, 1.0, up) for x in xs]), (0, 0, k * hs)))
-        walls.append(P(merge(*rows)))
-        rose.append(P(merge(*[ring_prism(sur, poly, 0.12, "y", x, sill, -0.12) for x in xs])))
-        if rosettes:
-            rose.append(P(merge(*[disc(0.42, 0.14, x, sill + ah + 0.75) for x in xs])))
-        colon.append(P(jambs(xs, hw, spring, sill)))
-        for k in range(1, storeys):
-            rose.append(P(merge(*[ring_prism(upsur, up, 0.1, "y", x, 1.0, -0.1) for x in xs]), k * hs))
-        rose.append(P(merge(*[box(0.16, 0.06, h - 0.05, x, -0.03, 0.0) for x in xb])))
-        # thin framed panel over every arch, between the rosette and the dentil course (the
-        # nat-mandir's front photo: the wall above the arcade is panelled, not blank)
-        pz0, pz1 = sill + ah + 1.45, hs - 1.0
-        if pz1 - pz0 > 0.5:
-            rose.append(P(merge(*[frame_ring(pitch - 0.7, pz1 - pz0, 0.08, 0.05, x, pz0, -0.05) for x in xs])))
-        if c > 1.8:
-            rose.append(P(merge(*[frame_ring(c - 0.6, hs - 1.9, 0.12, 0.06, s * (wl / 2 - c / 2), 0.5, -0.06) for s in (-1, 1)])))
+        if face in open:
+            # the entablature band in the wall's plane, the columns on its axis (bases 2 cm up, off the
+            # marble floor plane and the ledge; capitals proud of the band either side), a rose panel
+            # over every opening
+            nc, r, band = NAT_COLONNADE["columns"], NAT_COLONNADE["r"], NAT_COLONNADE["band"]
+            xc = [-wl / 2 + wl / (nc + 1) * (i + 1) for i in range(nc)]
+            walls.append(P(box(wl, t, band, 0.0, t / 2, hs - band)))
+            columns.append(P(merge(*[column(r, hs - band - 0.02, x, t / 2, 0.02) for x in xc])))
+            edges = [-wl / 2] + xc + [wl / 2]
+            rose.append(P(merge(*[box(b - a - 2 * r - 0.5, 0.03, band - 0.8, (a + b) / 2, -0.015, hs - band + 0.4)
+                                  for a, b in zip(edges, edges[1:])])))
+        else:
+            _hall_face(P, wl, hs, t, h, xs, xb, sill, poly, sur, spring, hw, ah, pitch, c, storeys, up, upsur,
+                       rosettes, zc, bd, cd, walls, rose, colon, inner_rose)
+        if face in ("E", "W"):
+            inner_white.append(P(merge(*[box(0.5, 0.3, 0.5, xb_k, t + 0.15, zc - bd - cd - 0.5) for xb_k in xb[1:-1]])))
         # parapet panels (one per bay + corners) and dado panels on the plinth (two per bay)
         pan = [box(pitch - 0.7, 0.03, 0.55, x, -0.65 - 0.015, zpar + 0.3) for x in xs]
         if c > 1.4:
@@ -1461,17 +1491,26 @@ def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pedi
         ns, tr = HALL_STAIR["steps"], HALL_STAIR["tread"]
         if face in stair_faces:
             width = pitch * min(HALL_STAIR["bays"], n) - 0.4
-            stone.append(P(place(stairs(ns, width, tr, plinth_h / ns, "x"), (-width / 2, -plinth_out - 0.05 - ns * tr, -plinth_h))))
+            stone.append(P(place(stairs(ns, width, tr, plinth_h / ns, "x"), (-width / 2, -plinth_out - HALL_STAIR["gap"] - ns * tr, -plinth_h))))
         for i in (door_stairs or {}).get(face, ()):
             dw = pitch - 0.4
-            stone.append(P(place(stairs(ns, dw, tr, plinth_h / ns, "x"), (xs[i] - dw / 2, -plinth_out - 0.05 - ns * tr, -plinth_h))))
+            stone.append(P(place(stairs(ns, dw, tr, plinth_h / ns, "x"), (xs[i] - dw / 2, -plinth_out - HALL_STAIR["gap"] - ns * tr, -plinth_h))))
     posts = merge(*[box(t, t, h, sx * (w - t) / 2, sy * (d - t) / 2, 0) for sx in (-1, 1) for sy in (-1, 1)])
     body = merge(*walls, posts, box(w + 0.4, d + 0.4, 0.35, 0, 0, h))
     for k in range(1, storeys):
         body = merge(body, box(w - 2 * t - 0.1, d - 2 * t - 0.1, 0.3, 0, 0, k * hs - 0.3))     # upper floor
     new_object(name, *body, "stucco", loc=(cx, cy, zb))
     new_object(name + "_rose", *merge(*rose), "rose", loc=(cx, cy, zb))
+    # ceiling: a plaster cornice round the room under a row of beams across the short span, one
+    # per bay of the long faces, their ends on the corbels; all touching, nothing embedded
+    yb = [(i - bays_y / 2) * pitch for i in range(1, bays_y)]
+    beams = merge(*[box(iw, 0.3, bd, 0.0, y, zc - bd) for y in yb])
+    cornice = rect_ring(iw, idp, 0.22, cd, 0, 0, zc - bd - cd)
+    new_object(name + "_ceiling", *merge(beams, cornice, *inner_white), "white", loc=(cx, cy, zb))
+    new_object(name + "_inner", *merge(*inner_rose), "rose", loc=(cx, cy, zb))
     new_object(name + "_jambs", *merge(*colon), "colonette", loc=(cx, cy, zb))
+    if columns:
+        new_object(name + "_columns", *merge(*columns), "column", smooth=True, auto_smooth=30, loc=(cx, cy, zb))
     new_object(name + "_dentil", *rect_ring(w + 0.3, d + 0.3, 0.15, 0.3, 0, 0, h - 0.8), "dentil", loc=(cx, cy, zb))
     bands = [rect_ring(w + 0.24, d + 0.24, 0.12, 0.35, 0, 0, h - 0.4),
              rect_ring(w + 1.4, d + 1.4, 0.4, 0.12, 0, 0, zpar + 1.1)]
@@ -1487,17 +1526,18 @@ def hall_block(name, w, d, h, bays_x, bays_y, pitch, cx, cy, z0, storeys=1, pedi
                                         box(pw - 0.7, pd - 0.7, 0.14, 0, 0, lip)), "stucco", loc=(cx, cy, z0))
     if stone:
         new_object(name + "_stairs", *merge(*stone), "stone", loc=(cx, cy, zb))
-    new_object(name + "_floor", *grid_plane(w - 2 * t - 0.2, d - 2 * t - 0.2, 0, 0, 0.01), "paving", loc=(cx, cy, zb))
+    new_object(name + "_floor", *grid_plane(w - 2 * t - 0.2, d - 2 * t - 0.2, 0, 0, 0.01), "marble", loc=(cx, cy, zb))
     return zb + h + 0.35
 
 
 def build_halls(L):
     ch = L["courtyard_h"]
-    # nat-mandir: closed arcaded hall south of the navaratna, its north (short) side across a
-    # narrow gap from the temple stair; the pedimented 7-bay fronts face the courtyard and the east
+    # nat-mandir: arcaded hall south of the navaratna; the pedimented 7-bay fronts face the courtyard
+    # and the east, and its north (short) front, across a narrow gap from the temple stair, is an
+    # open colonnade under a pediment (the real hall opens toward the temple on columns)
     (nx, ny), (nw, nd), nh = L["natmandir_center"], L["natmandir_size"], L["natmandir_h"]
-    hall_block("nat", nw, nd, nh, 3, 7, 3.0, nx, ny, ch, pediments=("W", "E"), stair_faces=("W",),
-               sills={"N": 0.9, "S": 0.9})
+    hall_block("nat", nw, nd, nh, 3, 7, 3.0, nx, ny, ch, pediments=("W", "E", "N"), stair_faces=("W",),
+               sills={"S": 0.9}, open=("N",))
     # Radhakanta (Vishnu) temple: two-storey block with the shrine's spire on the roof
     (vx, vy), (vw, vd), vh = L["vishnu_center"], L["vishnu_size"], L["vishnu_h"]
     # the walk goes in at its northmost west door and out at the southmost: a flight up to each
@@ -1722,6 +1762,23 @@ def _crown(rnd, n_clumps, radius, size, z, spread_z=1.6):
 
 
 PROPS = {"lamps": [], "bells": []}       # positions the web export writes into landmarks.json (Blender frame)
+LANTERN_Z = 3.7                          # lantern centre above a lamp post's origin
+BELL_DROP, BELL_CENTRE = 0.52, 0.26      # a hung bell's origin below its chain's top; its centre above that
+
+
+def props_from_scene() -> None:
+    """Refill PROPS from the objects of an opened .blend (export_web --blend): a lamp post or bell
+    moved by hand moves its light or its swing with it."""
+    obs = [(base_name(o.name), o) for o in bpy.data.objects if not o.hide_render]   # a duplicate is lamp_3.001 / lamp_3_glass.001
+    PROPS["lamps"] = [(o.location.x, o.location.y, o.location.z + LANTERN_Z)
+                      for n, o in obs if n.startswith("lamp_") and not n.endswith("_glass")]
+    PROPS["bells"] = [(o.location.x, o.location.y, o.location.z + BELL_DROP - BELL_CENTRE)
+                      for n, o in obs if n.startswith("bell_") and not n.endswith("_chain")]
+
+
+def base_name(name: str) -> str:
+    """An object's name without Blender's duplicate suffix (`lamp_3.001` → `lamp_3`)."""
+    return re.sub(r"\.\d{3}$", "", name)
 
 
 def build_trees(L):
@@ -1829,7 +1886,7 @@ def build_furniture(L):
     def lamp(name, x, y, z=ch):
         instance(name, post, (x, y, z), rot_z=math.pi / 4)
         instance(name + "_glass", glass, (0, 0, 0)).parent = bpy.data.objects[name]
-        PROPS["lamps"].append((x, y, z + 3.7))
+        PROPS["lamps"].append((x, y, z + LANTERN_Z))
 
     _, _, strip_cx = strip_extent(L)
     for k, dy in enumerate((-41, -27, -13, 19, 33, 46)):
@@ -1839,14 +1896,86 @@ def build_furniture(L):
         lamp(f"lamp_ghat_{k}", wx + 1.05, cy + dy)                # in the slot between the west wall and the Shiva plinth
 
     def hang(name, x, y, z_top):
-        b = instance(name, bell, (x, y, z_top - 1.0 - 0.52))
-        instance(name + "_chain", chain, (0, 0, 0.52)).parent = b
-        PROPS["bells"].append((x, y, z_top - 1.0 - 0.26))
+        b = instance(name, bell, (x, y, z_top - 1.0 - BELL_DROP))
+        instance(name + "_chain", chain, (0, 0, BELL_DROP)).parent = b
+        PROPS["bells"].append((x, y, z_top - 1.0 - BELL_CENTRE))
 
     (nx, ny), (nw, nd) = L["natmandir_center"], L["natmandir_size"]
     hang("bell_nat", nx - nw / 2 - 0.3, ny, ch + HALL_PLINTH["h"] + NAT_ARCH[1] - 0.15)
     (vx, vy), (vw, vd) = L["vishnu_center"], L["vishnu_size"]
     hang("bell_vishnu", vx - vw / 2 - 0.3, vy + 1.5, ch + HALL_PLINTH["h"] + VIS_ARCH[1] - 0.15)   # in a bay (8 bays: the centre is a pier)
+
+
+# ------------------------------------------------------------------------------------------------
+# Hand-made pieces (README, "Edit the model by hand")
+# ------------------------------------------------------------------------------------------------
+ASSET_DIR = Path(__file__).resolve().parent / "assets"
+# Objects modelled by hand that the script cannot write (a sculpted or imported prop), each in its
+# own small .blend under blender/assets/ — written by `render.sh diff FILE --keep-added` from a
+# snapshot the object was added to. (file stem, object name, location or None for the file's own,
+# rotation about z). Anything the walk stands on is still script geometry: landmarks never see these.
+ASSETS: list[tuple[str, str, tuple[float, float, float] | None, float]] = []
+
+
+def adopt_hand_edits() -> None:
+    """Make what a hand edit added bakeable: a "cube" UV layer on any mesh without one, nodes on
+    any material set up in the viewport panel (Cycles bakes nodes)."""
+    for me in bpy.data.meshes:
+        if me.users and "cube" not in me.uv_layers:
+            cube_uv(me)
+    for m in bpy.data.materials:
+        if m.users and not m.use_nodes:
+            col, rough, metal = tuple(m.diffuse_color[:3]), m.roughness, m.metallic
+            m.use_nodes = True
+            p = m.node_tree.nodes["Principled BSDF"]
+            p.inputs["Base Color"].default_value = (*col, 1.0)
+            p.inputs["Roughness"].default_value = rough
+            p.inputs["Metallic"].default_value = metal
+
+
+def build_assets(L):
+    for stem, obname, loc, rot_z in ASSETS:
+        path = ASSET_DIR / f"{stem}.blend"
+        with bpy.data.libraries.load(str(path)) as (src, dst):
+            if obname not in src.objects:
+                raise SystemExit(f"assets/{stem}.blend has no object {obname!r} (it has {src.objects})")
+            dst.objects = [obname]
+        ob = dst.objects[0]
+        COL.objects.link(ob)
+        for slot in ob.material_slots:              # a prop painted with a script material loads it as gold.001: use ours
+            if slot.material and base_name(slot.material.name) in MATS:
+                slot.material = MATS[base_name(slot.material.name)]
+        if loc is not None:
+            ob.location = loc
+        ob.rotation_euler = (0, 0, rot_z)
+    if ASSETS:
+        adopt_hand_edits()
+
+
+def build_all(L, mode="full") -> None:
+    """The whole scene from the constants: what main(), the web export and diff_blend build."""
+    reset_scene()
+    make_materials()
+    build_ground(L)
+    build_boundary(L)
+    build_shiva_row(L)
+    build_navaratna(L)
+    build_halls(L)
+    build_mandap(L)
+    if mode == "full":
+        build_trees(L)
+        build_furniture(L)
+        build_assets(L)
+    setup_world_and_light()
+
+
+def script_sha1() -> str:
+    return hashlib.sha1(Path(__file__).read_bytes()).hexdigest()
+
+
+def stamp_scene() -> None:
+    """Record which script built the snapshot, so diff_blend can tell an edit from a script change."""
+    bpy.context.scene["script_sha1"] = script_sha1()
 
 
 # ------------------------------------------------------------------------------------------------
@@ -2155,22 +2284,10 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     res = tuple(int(v) for v in a.res.lower().split("x"))
 
-    reset_scene()
-    make_materials()
-    load_trace()
-    L = LAYOUT
-    build_ground(L)
-    build_boundary(L)
-    build_shiva_row(L)
-    build_navaratna(L)
-    build_halls(L)
-    build_mandap(L)
-    if a.mode == "full":
-        build_trees(L)
-        build_furniture(L)
-    setup_world_and_light()
+    build_all(LAYOUT, a.mode)
     configure_render(res, a.samples)
     mesh_audit()
+    stamp_scene()
     print(f"  built {len(COL.objects)} objects")
     blend = out / "dakshineswar.blend"
     bpy.ops.wm.save_as_mainfile(filepath=str(blend))

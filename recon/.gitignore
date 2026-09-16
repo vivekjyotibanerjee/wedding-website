@@ -1,7 +1,4 @@
-# everything under data/ is derived from configs/ and re-creatable
+# everything under data/ is re-creatable from the scripts (bakes, snapshots) or local reference material
 data/
-.venv/
 __pycache__/
 *.pyc
-.env
-outputs/

@@ -6,6 +6,9 @@
 //
 // Needs `npm i -D puppeteer-core` and a Chromium: CHROME=/path/to/chrome (defaults to the
 // Playwright cache). WAIT (ms) is the settle time per shot; raise it if anything else hogs the CPU.
+// SNAP=1 jumps the walk to each position instead of easing there (the stage and the reveals land
+// at once; needs #debug, added to the url); LOOK=x,y,z/tx,ty,tz pins the camera there (world
+// metres) for every shot, so a detail can be checked from any angle at any stage.
 import puppeteer from 'puppeteer-core';
 import { mkdirSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -34,17 +37,20 @@ const logs = [];
 page.on('console', (m) => { const t = m.text(); if (!/useProgram|\[vite\]/.test(t)) logs.push(`${m.type()}: ${t}`); });
 page.on('pageerror', (e) => logs.push(`pageerror: ${e.message}`));
 await page.evaluateOnNewDocument((n) => { try { localStorage.setItem('temple-night', n); } catch (_) { /* ignore */ } }, night === '1' ? '1' : '0');
-await page.goto(url, { waitUntil: 'load', timeout: 120000 });
+const snap = process.env.SNAP === '1', look = process.env.LOOK ? process.env.LOOK.split('/').map((v) => v.split(',').map(Number)) : null;
+await page.goto(snap || look ? url.replace(/#.*$/, '') + '#debug' : url, { waitUntil: 'load', timeout: 120000 });
 // wait for the veil to lift (model loaded) or the no-WebGL fallback
 await page.waitForFunction(() => document.getElementById('veil').classList.contains('is-done') || document.body.classList.contains('no-webgl'), { timeout: 180000 });
 console.log('fallback:', await page.evaluate(() => document.body.classList.contains('no-webgl')));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 await wait(1500);
 for (const t of ts.split(',').map(Number)) {
-  await page.evaluate((t) => {
+  await page.evaluate((t, snap, look) => {
     const walk = document.getElementById('walk');
     window.scrollTo(0, t * Math.max(1, walk.offsetHeight - window.innerHeight));
-  }, t);
+    if (snap) window.templeScene.debug.snap(t);
+    if (look) window.templeScene.debug.look(look[0], look[1]);
+  }, t, snap, look);
   await wait(+(process.env.WAIT || 5000)); // the camera eases toward the target
   const file = `${outdir}/t${t.toFixed(2)}${night === '1' ? '_night' : ''}${vw < vh ? '_portrait' : ''}.png`;
   await page.screenshot({ path: file });
