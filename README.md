@@ -167,8 +167,11 @@ What an edit in the scene can and cannot change:
 Old snapshots and the script era: `render.sh diff FILE` still prints what a `.blend` differs
 from the script by, by object name (`--keep-added` saves added objects to `recon/blender/assets/`),
 which is how hand edits used to be ported back into the script. With the file as the scene that
-is only for the record — the warning it prints about the script hash is expected once
-`scene.blend` has been edited.
+is only for the record. The export's warning that the file "was snapshotted from a different
+build_dakshineswar.py" means the *script* changed since the file was stamped (a constant moved
+to keep the landmarks in step, say), not that the file was edited: re-stamp the file from Blender
+(`import build_dakshineswar as B; B.stamp_scene()`, save) once the two agree, and the warning
+means something again.
 
 Everything that moves, glows or is hung for the wedding is not in the glb but layered over it
 at runtime: `src/scene/life.js` (the diyas, string lights, the light in the doorways and inside

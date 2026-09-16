@@ -150,6 +150,12 @@ running — say so, don't fall back to editing the script.
 - `mesh_audit` works on the live file: `sys.path.insert(0, 'recon/blender'); import
   build_dakshineswar as B; B.mesh_audit()` (it walks `bpy.data.meshes`, not the script's
   collection). Run it on a timer, after any geometry edit.
+- The file carries the hash of the script that built it (`scene["script_sha1"]`) and the
+  export warns when the script has changed since. After changing a constant in
+  `build_dakshineswar.py` to match a scene edit, re-stamp from the tool (`import
+  build_dakshineswar as B; B.stamp_scene()`) and save, so the warning stays meaningful.
+- `--view` on `build_dakshineswar.py` renders the *script's* model, not `scene.blend`; a
+  side-by-side of the current scene is `preview_web.py --glb` on the export.
 - Save when the owner says so, or when a step is done: `bpy.ops.wm.save_mainfile()` writes
   `scene.blend` in place (`relative_remap` keeps the `//../data/blender/textures/…` paths).
   Then `npm run model` from a shell — never a bake through the tool — and `npm run shoot`.
