@@ -39,7 +39,8 @@ def main() -> None:
     B.setup_world_and_light()
     B.configure_render(res, a.samples)
     sc = bpy.context.scene
-    sc.cycles.feature_set = "SUPPORTED"
+    if not B.BL41:
+        sc.cycles.feature_set = "SUPPORTED"
     views = {}
     if not a.view or "--only" in argv:
         views.update({n: B.STILLS[n] for n in a.only.split(",")})

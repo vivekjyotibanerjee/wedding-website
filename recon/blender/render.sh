@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# LAPTOP (or anywhere with Blender 4.0 + CPU). Rebuild the model from the script and render.
+# LAPTOP (or anywhere with a Blender Foundation build, 5.2 — the snap — + CPU). Rebuild the model from the script and render.
 #
 #   bash recon/blender/render.sh                 # .blend + 13 stills (1280x720, 128 samples)
 #   bash recon/blender/render.sh turntable       # 48-frame turntable only (960x540) → data/blender/turntable.mp4
 #   bash recon/blender/render.sh quick           # 960x540, 24 samples — for iterating on the script
 #   bash recon/blender/render.sh web             # bake + export the model the website loads → public/models/dakshineswar.glb
-#                                                #   (BLENDER=path/to/official/blender — the Ubuntu package's Cycles cannot bake)
+#                                                #   (BLENDER=path/to/blender if not on the PATH — the Ubuntu package's Cycles cannot bake)
 #   bash recon/blender/render.sh blend           # just build + audit + save data/blender/dakshineswar.blend (to edit by hand)
 #   bash recon/blender/render.sh web --blend F   # export a hand-edited .blend instead of rebuilding (README, "Edit the model by hand")
 #   bash recon/blender/render.sh diff F          # what a hand-edited .blend changed against the script, to port back (--keep-added, --json)

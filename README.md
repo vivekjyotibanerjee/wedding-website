@@ -93,9 +93,9 @@ npm run model     # = BLENDER=… bash recon/blender/render.sh web --blend recon
 That opens the file, bakes every Cycles material to per-mesh albedo + normal + ambient-occlusion
 maps, exports a glTF, compresses it with `gltf-transform` (meshopt) into `public/models/` and
 rewrites `src/scene/landmarks.json` (the positions the camera path, the cards and the runtime
-props are pinned to — see `src/scene/walk.js` and `life.js`). It needs the official Blender 4.0
-build (`BLENDER=~/opt/blender-4.0.2-linux-x64/blender`): the Ubuntu `blender` package bakes
-black. ~17 min on a 22-core laptop CPU; the result is ≈ 12 MB. Then `npm run shoot` to look, and
+props are pinned to — see `src/scene/walk.js` and `life.js`). It needs a Blender Foundation build
+(the `blender` snap, 5.2 — `render.sh` takes `blender` from the PATH or `BLENDER=…`): the Ubuntu
+`blender` package bakes black. ~17 min on a 22-core laptop CPU; the result is ≈ 12 MB. Then `npm run shoot` to look, and
 commit the glb, `landmarks.json` and `scene.blend` together. Useful while iterating:
 
 ```bash
@@ -115,14 +115,14 @@ that over whatever the `.blend` holds. Keep it for regenerating textures and for
 
 ### Set up a machine
 
-1. Blender 4.0.x — the official build, unpacked to `~/opt/blender-4.0.2-linux-x64` (from a
-   blender.org mirror). Use this one both to export and to open `scene.blend` for editing: 4.1+
-   rewrites the auto-smooth on load and the file will not round-trip. The distro package is fine
+1. Blender 5.2 LTS — the Foundation's build (`snap install blender --classic`, or the tarball
+   from blender.org). Use the same one both to export and to open `scene.blend` for editing: the
+   file is saved by 5.2 and a newer major would rewrite it on save. The distro package is fine
    for looking, never for baking.
 2. Textures and the sky: `scene.blend` references `recon/data/blender/textures/` (git-ignored,
    generated). Once per machine:
    ```bash
-   BLENDER=~/opt/blender-4.0.2-linux-x64/blender bash recon/blender/render.sh blend
+   bash recon/blender/render.sh blend                 # BLENDER=… if blender is not on the PATH
    ```
    generates the tiling maps and leaf atlases, fetches the CC0 sky HDRI, and leaves a disposable
    snapshot in `recon/data/blender/dakshineswar.blend` (not the scene — ignore it or delete it).
@@ -139,7 +139,7 @@ that over whatever the `.blend` holds. Keep it for regenerating textures and for
 
 ### Edit the scene with Claude Code
 
-1. Start Blender (`~/opt/blender-4.0.2-linux-x64/blender recon/blender/scene.blend`), open the
+1. Start Blender (`blender recon/blender/scene.blend`), open the
    sidebar (N) ▸ **MCP for Blender** ▸ *Connect to MCP server* (it listens on `localhost:9876`).
 2. In Claude Code, `/mcp` should show `blender` connected; ask for a change. Claude works on the
    open file through the tool (`get_scene_info`, `execute_blender_code` running `bpy` in the live

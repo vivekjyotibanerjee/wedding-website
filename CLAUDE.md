@@ -16,8 +16,12 @@ npm run shoot -- http://localhost:5173/ shots 0 0,0.34,1     # headless screensh
 npm run profile -- http://localhost:5173/                    # draw calls / triangles / programs at every PATH node
 ```
 
-The model export needs `BLENDER=~/opt/blender-4.0.2-linux-x64/blender` in the environment: the
-Ubuntu `blender` package silently bakes black (every pass but NORMAL) and lacks Draco. Partial
+The scene is a Blender 5.2 file (15 Sep 2026: rebuilt from the script under 5.2.2, the snap —
+`render.sh` finds `blender` on the PATH, or `BLENDER=…`). The scripts carry a few
+`bpy.app.version` guards (`BL41` in `build_dakshineswar.py`: auto-smooth as the `sharp_edge`
+attribute, `Material.displacement_method`, adaptive subdivision on the Subsurf modifier, the glTF
+alpha clip as a node) so the 4.0 branch still runs, but a file saved by 5.2 is not for 4.0. The
+Ubuntu `blender` package silently bakes black (every pass but NORMAL); the snap bakes fine. Partial
 runs while iterating: `bash recon/blender/render.sh web --blend recon/blender/scene.blend
 --landmarks-only` (positions only, no bake) and `--only '<regex>'` with `--out` for a test glb
 the site loads via `?model=…` (README, "Update the model"). `render.sh web` *without* `--blend`
@@ -133,7 +137,7 @@ with (`~/.local/bin`); if the tools answer "Not connected", Blender or its add-o
 running — say so, don't fall back to editing the script.
 
 - Start with `get_scene_info` and `get_addon_status` (Blender version, protocol). The owner's
-  GUI Blender must be 4.0.x like the exporter (4.1+ breaks the file's auto-smooth on load).
+  GUI Blender is the same 5.2 that exports (a save from a newer major is a one-way step).
 - Edit with `execute_blender_code` (`bpy` on the live file), look with
   `get_viewport_screenshot` after every change (the owner judges from pictures), confirm with
   `get_scene_info`. Keep the script's conventions so the export and the audit still read the

@@ -86,9 +86,10 @@ def build_scene(blend: Path | None = None) -> None:
     sc = bpy.context.scene
     sc.render.engine = "CYCLES"
     sc.cycles.device = "CPU"
-    sc.cycles.feature_set = "SUPPORTED"          # no render-time dicing: the web mesh is what is stored
+    if not B.BL41:
+        sc.cycles.feature_set = "SUPPORTED"      # no render-time dicing: the web mesh is what is stored
     for m in bpy.data.materials:
-        m.cycles.displacement_method = "BUMP"    # height maps become bump → baked into the normal map
+        B.set_displacement_method(m, "BUMP")     # height maps become bump → baked into the normal map
 
 
 def drop_prototypes() -> None:
@@ -119,8 +120,8 @@ def apply_modifiers() -> None:
                 done[key] = ob.data
         if ob.data is not done[key]:
             ob.data = done[key]
+        B.set_adaptive_subdivision(ob, False)    # (4.2+: a Subsurf setting, gone with the modifiers)
         ob.modifiers.clear()
-        ob.cycles.use_adaptive_subdivision = False
     # orphaned originals
     for me in [m for m in bpy.data.meshes if m.users == 0]:
         bpy.data.meshes.remove(me)
@@ -364,9 +365,19 @@ def web_material(name: str, base, rough: float, metal: float, albedo: Path | Non
         nt.links.new(t.outputs["Color"], p.inputs["Base Color"])
         if albedo_alpha:
             img.alpha_mode = "STRAIGHT"
-            nt.links.new(t.outputs["Alpha"], p.inputs["Alpha"])
             m.blend_method = "CLIP"
-            m.alpha_threshold = 0.5
+            if B.BL41:
+                # the glTF exporter reads the alpha mode off the node tree since 4.2 (a constant
+                # alpha < 1 is BLEND; MASK needs an explicit clip, alpha > cutoff, in front of the
+                # socket, which it then steps over to find the texture); 4.0's read blend_method
+                clip = nt.nodes.new("ShaderNodeMath")
+                clip.operation = "GREATER_THAN"
+                clip.inputs[1].default_value = 0.5
+                nt.links.new(t.outputs["Alpha"], clip.inputs[0])
+                nt.links.new(clip.outputs["Value"], p.inputs["Alpha"])
+            else:
+                nt.links.new(t.outputs["Alpha"], p.inputs["Alpha"])
+                m.alpha_threshold = 0.5
     if ao is not None:
         path, layer = ao
         img = bpy.data.images.load(str(path))

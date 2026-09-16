@@ -33,6 +33,67 @@ import bpy
 import numpy as np
 from mathutils import Vector
 
+# Blender 4.0 is what built and exports the scene (README, "Set up a machine"); the few places the
+# API moved since are routed through here so the script also runs on a current Blender (5.2 checked).
+BL41 = bpy.app.version >= (4, 1, 0)
+
+
+def set_auto_smooth(me: bpy.types.Mesh, angle_deg: float) -> None:
+    """Smooth shading with a crease where faces meet sharper than angle_deg. 4.0 had this as a mesh
+    flag; from 4.1 it is the "sharp_edge" attribute (no modifier needed, and instances of the mesh
+    share it)."""
+    for poly in me.polygons:
+        poly.use_smooth = True
+    if not BL41:
+        me.use_auto_smooth = True
+        me.auto_smooth_angle = math.radians(angle_deg)
+        return
+    n = len(me.polygons)
+    normals = np.empty(n * 3)
+    me.polygons.foreach_get("normal", normals)
+    normals = normals.reshape(n, 3)
+    # edge → the faces around it, from the loop tables (one pass, numpy)
+    ne = len(me.edges)
+    lcount = len(me.loops)
+    ledge = np.empty(lcount, dtype=np.int32)
+    me.loops.foreach_get("edge_index", ledge)
+    lpoly = np.repeat(np.arange(n, dtype=np.int32), [poly.loop_total for poly in me.polygons])
+    order = np.argsort(ledge, kind="stable")
+    ledge, lpoly = ledge[order], lpoly[order]
+    first = np.searchsorted(ledge, np.arange(ne), side="left")
+    last = np.searchsorted(ledge, np.arange(ne), side="right")
+    two = (last - first) == 2                       # manifold edges only; a border edge is never a crease
+    fa, fb = lpoly[first[two]], lpoly[np.minimum(first[two] + 1, lcount - 1)]
+    cosang = np.einsum("ij,ij->i", normals[fa], normals[fb])
+    sharp = np.zeros(ne, dtype=bool)
+    sharp[np.flatnonzero(two)] = cosang < math.cos(math.radians(angle_deg))
+    attr = me.attributes.get("sharp_edge") or me.attributes.new("sharp_edge", "BOOLEAN", "EDGE")
+    attr.data.foreach_set("value", sharp)
+
+
+def set_displacement_method(m: bpy.types.Material, method: str) -> None:
+    if BL41:
+        m.displacement_method = method
+    else:
+        m.cycles.displacement_method = method
+
+
+def set_adaptive_subdivision(ob: bpy.types.Object, on: bool) -> None:
+    """Render-time dicing (Cycles): an object flag under the EXPERIMENTAL feature set in 4.0, a setting
+    of the (last) Subsurf modifier from 4.2."""
+    if not BL41:
+        ob.cycles.use_adaptive_subdivision = on
+        return
+    for mod in ob.modifiers:
+        if mod.type == "SUBSURF":
+            mod.use_adaptive_subdivision = on
+
+
+def adaptive_subdivision(ob: bpy.types.Object) -> bool:
+    if not BL41:
+        return ob.cycles.use_adaptive_subdivision
+    return any(m.type == "SUBSURF" and m.use_adaptive_subdivision for m in ob.modifiers)
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import textures  # noqa: E402
 
@@ -291,7 +352,7 @@ def pbr(name: str, tex_set: str, tint=(1.0, 1.0, 1.0), rough=0.8, normal=1.0, di
     disp.inputs["Scale"].default_value = disp_scale if disp_scale is not None else t["disp"]
     nt.links.new(height, disp.inputs["Height"])
     nt.links.new(disp.outputs["Displacement"], out.inputs["Displacement"])
-    m.cycles.displacement_method = "BOTH" if displace else "BUMP"
+    set_displacement_method(m, "BOTH" if displace else "BUMP")
     MATS[name] = m
     return m
 
@@ -401,7 +462,8 @@ def foliage_material(name: str, path: Path) -> bpy.types.Material:
     nt.links.new(mix.outputs["Shader"], clip.inputs[2])
     nt.links.new(clip.outputs["Shader"], out.inputs["Surface"])
     m.blend_method = "CLIP"
-    m.shadow_method = "CLIP"
+    if not BL41:
+        m.shadow_method = "CLIP"    # gone with EEVEE Next (4.2): shadows follow the surface's alpha
     m.use_backface_culling = False
     MATS[name] = m
     return m
@@ -536,10 +598,7 @@ def new_object(name: str, verts, faces, material: str | None = None, smooth=Fals
         me.loops.foreach_get("vertex_index", li)
         me.uv_layers.new(name="cube").data.foreach_set("uv", np.asarray(uvs, dtype=np.float32)[li].ravel())
     if smooth:
-        for p in me.polygons:
-            p.use_smooth = True
-        me.use_auto_smooth = True
-        me.auto_smooth_angle = math.radians(auto_smooth)
+        set_auto_smooth(me, auto_smooth)
     if material:
         me.materials.append(MATS[material])
     ob = bpy.data.objects.new(name, me)
@@ -556,7 +615,7 @@ def new_object(name: str, verts, faces, material: str | None = None, smooth=Fals
         s = ob.modifiers.new("subdiv", "SUBSURF")
         s.subdivision_type = "SIMPLE"
         s.levels, s.render_levels = 0, 0
-        ob.cycles.use_adaptive_subdivision = True
+        set_adaptive_subdivision(ob, True)
     return ob
 
 
@@ -573,7 +632,7 @@ def instance(name: str, src: bpy.types.Object, loc, rot_z=0.0, scale=(1, 1, 1)) 
         for attr in MOD_ATTRS:
             if hasattr(m, attr):
                 setattr(n, attr, getattr(m, attr))
-    ob.cycles.use_adaptive_subdivision = src.cycles.use_adaptive_subdivision
+    set_adaptive_subdivision(ob, adaptive_subdivision(src))
     COL.objects.link(ob)
     return ob
 
@@ -2068,7 +2127,8 @@ def configure_render(res, samples):
     sc.cycles.use_denoising = False
     sc.view_layers[0].cycles.use_denoising = False
     # adaptive subdivision: render-time dicing of the displaced paving (nothing dense is stored)
-    sc.cycles.feature_set = "EXPERIMENTAL"
+    if not BL41:
+        sc.cycles.feature_set = "EXPERIMENTAL"   # 4.2+: adaptive subdivision is a Subsurf setting, no feature set
     sc.cycles.dicing_rate = 1.5
     sc.cycles.max_subdivisions = 6              # 2 m base quads → ≈3 cm micro-polygons at most
     sc.render.resolution_x, sc.render.resolution_y = res
