@@ -22,10 +22,12 @@ bowls set out, marigold garlands drawing in along the Shiva fronts and the halls
 string lights coming on in a wave from the mandap as the light turns golden, the mandap's
 columns wrapped and strands hung from its canopy, the agni lit and petals falling for the
 ceremony, and the nat-mandir and the navaratna fully dressed and glowing by the sanctum. The
-schedule is `src/scene/stage.js`. Inside each hall the walk is a U past tables laid out along the
+schedule is `src/scene/stage.js`. Inside each hall the walk goes past tables laid out along the
 back wall — the welcome tray and mangal ghot, the puja things, the bhog, the bride's shringar in
-the Radhakanta; the garland-maker's baskets, the musicians' corner, the lamps, the tattva trays and
-the paan in the nat-mandir — one per card, set out as the guest comes in (`src/scene/tables.js`).
+the Radhakanta (a U, back out of its other end door); the garland-maker's baskets, the musicians'
+corner, the lamps, the tattva trays and the paan in the nat-mandir (an L, out between the columns
+of its open north front onto the temple stair) — one per card, set out as the guest comes in
+(`src/scene/tables.js`).
 
 ## Run it
 
@@ -81,27 +83,92 @@ the cards inside the halls pin over their tables (`TABLES` there).
 
 ## Update the model
 
-The scene is `public/models/dakshineswar.glb`, regenerated from the Blender script in
-`recon/` — edit `recon/blender/build_dakshineswar.py`, then:
+The scene is **`recon/blender/scene.blend`** (committed, ~2 MB). It is edited in Blender — by
+hand, or by Claude Code through the Blender MCP tool (below) — and exported from there:
 
 ```bash
-BLENDER=~/opt/blender-4.0.2-linux-x64/blender bash recon/blender/render.sh web
+npm run model     # = BLENDER=… bash recon/blender/render.sh web --blend recon/blender/scene.blend
 ```
 
-That rebuilds the model, bakes every Cycles material to per-mesh albedo + normal +
-ambient-occlusion maps, exports a glTF, compresses it with `gltf-transform` (meshopt) into
-`public/models/` and rewrites `src/scene/landmarks.json` (the positions the camera path, the
-cards and the runtime props are pinned to — see `src/scene/walk.js` and `life.js`). It needs
-the official Blender 4.0 build: the Ubuntu `blender` package bakes black. ~17 min on a
-22-core laptop CPU; the result is ≈ 12 MB. Useful while iterating:
+That opens the file, bakes every Cycles material to per-mesh albedo + normal + ambient-occlusion
+maps, exports a glTF, compresses it with `gltf-transform` (meshopt) into `public/models/` and
+rewrites `src/scene/landmarks.json` (the positions the camera path, the cards and the runtime
+props are pinned to — see `src/scene/walk.js` and `life.js`). It needs the official Blender 4.0
+build (`BLENDER=~/opt/blender-4.0.2-linux-x64/blender`): the Ubuntu `blender` package bakes
+black. ~17 min on a 22-core laptop CPU; the result is ≈ 12 MB. Then `npm run shoot` to look, and
+commit the glb, `landmarks.json` and `scene.blend` together. Useful while iterating:
 
 ```bash
 # positions only (no bake), e.g. after moving a lamp post
-bash recon/blender/render.sh web --landmarks-only
+bash recon/blender/render.sh web --blend recon/blender/scene.blend --landmarks-only
 # bake a few meshes into a test glb (the rest ships untextured), then open ?model=/models/preview.glb
-BLENDER=… blender -b -P recon/blender/export_web.py -- --only '^(paving_web|nat)$' --out /tmp/t --bake-dir /tmp/t/bake
+BLENDER=… blender -b -P recon/blender/export_web.py -- --blend recon/blender/scene.blend --only '^(paving_web|nat)$' --out /tmp/t --bake-dir /tmp/t/bake --landmarks /tmp/t/landmarks.json
 npx gltf-transform meshopt /tmp/t/dakshineswar.glb public/models/preview.glb --level medium   # git-ignored
 ```
+(`--only` matches mesh names, not object names — the Outliner shows both.)
+
+`recon/blender/build_dakshineswar.py` is the script that generated `scene.blend` (Sep 2026). It
+is no longer how the scene is edited: running it (`render.sh blend`, or `render.sh web` without
+`--blend`) is a **reset** that rebuilds the complex from its constants and, for `web`, exports
+that over whatever the `.blend` holds. Keep it for regenerating textures and for the landmarks
+(below).
+
+### Set up a machine
+
+1. Blender 4.0.x — the official build, unpacked to `~/opt/blender-4.0.2-linux-x64` (from a
+   blender.org mirror). Use this one both to export and to open `scene.blend` for editing: 4.1+
+   rewrites the auto-smooth on load and the file will not round-trip. The distro package is fine
+   for looking, never for baking.
+2. Textures and the sky: `scene.blend` references `recon/data/blender/textures/` (git-ignored,
+   generated). Once per machine:
+   ```bash
+   BLENDER=~/opt/blender-4.0.2-linux-x64/blender bash recon/blender/render.sh blend
+   ```
+   generates the tiling maps and leaf atlases, fetches the CC0 sky HDRI, and leaves a disposable
+   snapshot in `recon/data/blender/dakshineswar.blend` (not the scene — ignore it or delete it).
+3. `uv` on the PATH **before launching Claude Code** — `curl -LsSf https://astral.sh/uv/install.sh | sh`
+   installs to `~/.local/bin`; add it to `PATH` in `~/.bashrc`. The `blender` MCP server in
+   `.mcp.json` runs `uvx blender-mcp==1.9.4` (a project server: Claude Code asks once to trust it).
+4. The Blender side of the bridge: `uvx blender-mcp==1.9.4 install-addon` copies the matching
+   add-on into Blender's add-ons folder (set `BLENDERMCP_ADDONS_DIR` if it cannot find one);
+   enable "MCP for Blender" in Edit ▸ Preferences ▸ Add-ons. Do not install `addon.py` from
+   anywhere else — the add-on and the server are versioned together (protocol 7).
+5. `npm install`; `git-lfs` is not set up (the `.blend` is small; the glb is the ~12 MB file).
+6. Not in git and only needed for the reference views: `recon/data/reference/` (the SketchUp
+   export from `skp_911.zip`, 130 MB) — copy it over if you want `ref_views.py`/`pair.py`.
+
+### Edit the scene with Claude Code
+
+1. Start Blender (`~/opt/blender-4.0.2-linux-x64/blender recon/blender/scene.blend`), open the
+   sidebar (N) ▸ **MCP for Blender** ▸ *Connect to MCP server* (it listens on `localhost:9876`).
+2. In Claude Code, `/mcp` should show `blender` connected; ask for a change. Claude works on the
+   open file through the tool (`get_scene_info`, `execute_blender_code` running `bpy` in the live
+   session, `get_viewport_screenshot` to look) — the rules it follows are in `CLAUDE.md`
+   ("Editing the scene through the Blender MCP tool").
+3. Save (Ctrl+S — the file on disk is what the export reads; Claude can also save it), then
+   `npm run model` and `npm run shoot` to see it on the site.
+
+What an edit in the scene can and cannot change:
+
+- **Fine anywhere**: moving, reshaping, deleting or adding objects, relief, materials (a new
+  material set up in the Material panel is fine; the export bakes whatever Cycles renders).
+  Deleting an object or hiding it from render (the camera icon) both drop it from the glb. A
+  new object needs no UVs — the export gives it some. Closed solids, no booleans, parts touch
+  and never bite into each other (`CLAUDE.md`).
+- **Lamp posts and bells move with the edit** (`lamp_*`, `bell_*`: their light and swing are
+  read back from the file), so those are safe to move.
+- **Not yet in the scene: anything the walk stands on.** `landmarks.json` is computed from the
+  constants at the top of `build_dakshineswar.py`, not from the file — stairs, plinths, doors,
+  arches, columns, the sanctum, the halls' sizes and positions. Move a staircase in Blender and
+  the camera still climbs where the old one was and the carpet lies in the air. Until
+  `export_web.landmarks()` reads those from the scene (the follow-up that finishes this move),
+  such a change is made twice: in the file, and to the constants, keeping the two in step.
+
+Old snapshots and the script era: `render.sh diff FILE` still prints what a `.blend` differs
+from the script by, by object name (`--keep-added` saves added objects to `recon/blender/assets/`),
+which is how hand edits used to be ported back into the script. With the file as the scene that
+is only for the record — the warning it prints about the script hash is expected once
+`scene.blend` has been edited.
 
 Everything that moves, glows or is hung for the wedding is not in the glb but layered over it
 at runtime: `src/scene/life.js` (the diyas, string lights, the light in the doorways and inside
@@ -121,7 +188,9 @@ VW=390 VH=844 npm run shoot -- http://localhost:5173/ shots 0 0.34         # pho
 
 `scripts/shoot.mjs` drives the site in a software-rendered headless Chromium (Playwright's
 cached Chromium, or `CHROME=/path/to/chrome`) and screenshots the walk at those scroll
-fractions. `npm run profile -- http://localhost:5173/` walks every PATH node the same way and
+fractions; `SNAP=1` jumps the walk there instead of easing (everything that appears with the
+walk lands at once) and `LOOK=x,y,z/tx,ty,tz` pins the camera anywhere in the scene for the
+shot. `npm run profile -- http://localhost:5173/` walks every PATH node the same way and
 prints what a frame costs there (draw calls, triangles, compiled shader programs — the last
 must not change mid-walk). It is slow, so give the camera time (`WAIT=8000`) when the CPU is busy. Add `#debug`
 to the URL to get `window.templeScene` in the console and a panel with the stage, its
@@ -162,7 +231,8 @@ src/
     landmarks.json   ← key positions written by recon/blender/export_web.py
     model.js         ← glTF loader (meshopt), shadow flags, per-material tweaks
   ornament.js        ← generated alpona (canvas) and vine (SVG) shared by the scene and the cards
-recon/               ← the model itself (Blender script, textures) and the 3DGS pipeline
+recon/blender/scene.blend ← the scene itself, edited in Blender (by hand or via the MCP tool); exported by recon/blender/export_web.py
+recon/               ← the model's tooling (export, textures, the script that generated the scene; named for a dropped photo-reconstruction plan)
 scripts/shoot.mjs    ← headless screenshots of the walk (see above)
 scripts/profile.mjs  ← draw calls / triangles / shader programs at every node of the walk
 CLAUDE.md            ← working notes: commands, how the pieces fit, decisions, gotchas
@@ -181,8 +251,9 @@ Notes:
 - The decoration follows the scroll with a little hysteresis: a small scroll back does not
   undo it; a long one does.
 - The red carpets are the walk itself: each is a stretch of the camera's path laid on the
-  walking surface (`walk.js`: courtyard, flights tread by tread, plinth ledges), so the guest is
-  always on the carpet. The camera's height comes from the same surface.
+  walking surface (`walk.js`: courtyard, flights tread by tread, plinth ledges), rounded at the
+  turns and folded down every riser, so the guest is always on the carpet. The camera's height
+  comes from the same surface.
 - A device tier (`quality`) sets the effects budget; the heavy things — the shadow map, the
   sky's environment maps — are rendered once or on demand rather than every frame, and the
   instanced decoration is in spatial chunks so what is behind the guest is not drawn.

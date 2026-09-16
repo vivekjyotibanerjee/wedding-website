@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "model": "bash recon/blender/render.sh web",
+    "model": "bash recon/blender/render.sh web --blend recon/blender/scene.blend",
     "shoot": "node scripts/shoot.mjs",
     "profile": "node scripts/profile.mjs"
   },

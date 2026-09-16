@@ -6,7 +6,14 @@ computed positions rather than guesses.
 
   blender -b -P recon/blender/export_web.py -- [--out recon/data/web] [--landmarks src/scene/landmarks.json]
           [--texel-hi 0.015] [--texel-lo 0.04] [--max-res 2048] [--samples 8] [--ao-samples 24] [--ao-distance 2]
-          [--quality 82] [--only REGEX] [--landmarks-only] [--dry]
+          [--quality 82] [--only REGEX] [--landmarks-only] [--dry] [--blend FILE]
+
+--blend FILE exports the scene file instead of rebuilding: recon/blender/scene.blend, edited in
+Blender (by hand or through the MCP tool) — `npm run model` passes it. Without it the script's
+model is rebuilt and exported (a reset). landmarks.json still comes from the script's constants
+— the walk, the cards and the runtime props never read the scene (only lamp_*/bell_* positions
+are read back, props_from_scene) — so anything they stand on (stairs, plinths, doors, arches,
+columns, the sanctum) moved in the file needs its constant moved too (README, "Update the model").
 
 The .glb written here is uncompressed; `bash recon/blender/render.sh web` runs this and then
 gltf-transform (meshopt) into public/models/dakshineswar.glb, which is what the site loads.
@@ -43,7 +50,7 @@ PLAIN = {"gold", "cloth", "red_cloth", "carpet", "marigold", "copper", "dark", "
          "bark", "palm_bark", "banana_stem", "terracotta", "soil", "iron", "lamp_glass"}
 # Big flat surfaces whose look is the tiling map itself (brick joints, paving): not baked — the
 # tinted source maps ship once and the mesh's metre-scaled cube UVs tile them at full resolution.
-TILE = {"laterite", "stone", "paving", "path"}
+TILE = {"laterite", "stone", "paving", "path", "marble"}
 # Painted stripes / beading that need ~2 cm texels to stay crisp; everything else is smooth stucco
 # whose relief is barely visible at walking distance (5 cm texels, half-res normal map).
 HI = {"spire", "dentil", "colonette", "striped", "dado", "column", "garland", "drape"}
@@ -62,20 +69,20 @@ def log(msg: str) -> None:
 
 
 # ------------------------------------------------------------------------------------------------
-def build_scene() -> None:
-    B.reset_scene()
-    B.make_materials()
-    B.load_trace()
-    L = B.LAYOUT
-    B.build_ground(L)
-    B.build_boundary(L)
-    B.build_shiva_row(L)
-    B.build_navaratna(L)
-    B.build_halls(L)
-    B.build_mandap(L)
-    B.build_trees(L)
-    B.build_furniture(L)
-    B.setup_world_and_light()
+def build_scene(blend: Path | None = None) -> None:
+    if blend is None:
+        B.build_all(B.LAYOUT)
+    else:
+        # a hand-edited snapshot: the geometry is whatever the file holds, the landmarks are
+        # still the script's constants
+        bpy.ops.wm.open_mainfile(filepath=str(blend.resolve()), load_ui=False)
+        B.props_from_scene()
+        B.adopt_hand_edits()
+        stamp = bpy.context.scene.get("script_sha1")
+        if stamp != B.script_sha1():
+            log(f"WARNING: {blend.name} was snapshotted from a different build_dakshineswar.py "
+                f"({'unstamped' if stamp is None else stamp[:8]} vs {B.script_sha1()[:8]}): landmarks may not match its geometry")
+        log(f"opened {blend} ({sum(1 for o in bpy.data.objects if o.type == 'MESH')} mesh objects)")
     sc = bpy.context.scene
     sc.render.engine = "CYCLES"
     sc.cycles.device = "CPU"
@@ -393,7 +400,9 @@ def web_material(name: str, base, rough: float, metal: float, albedo: Path | Non
 
 
 def principled_of(m: bpy.types.Material):
-    p = m.node_tree.nodes.get("Principled BSDF")
+    p = m.node_tree.nodes.get("Principled BSDF") if m.use_nodes and m.node_tree else None
+    if p is None:                                        # a hand-made material with some other shader
+        return tuple(m.diffuse_color[:3]), m.roughness, m.metallic
     base = p.inputs["Base Color"].default_value[:3]
     return base, p.inputs["Roughness"].default_value, p.inputs["Metallic"].default_value
 
@@ -413,7 +422,8 @@ def landmarks() -> dict:
     gap, half = L["shiva_gap"], L["shiva_ghat_gap"] / 2
     nat_arch, vis_arch = B.NAT_ARCH, B.VIS_ARCH
     ns, nt = B.NAV_STAIR["steps"], B.NAV_STAIR["tread"]
-    hs, ht, hb = B.HALL_STAIR["steps"], B.HALL_STAIR["tread"], B.HALL_STAIR["bays"]
+    hs, ht, hb, hg = B.HALL_STAIR["steps"], B.HALL_STAIR["tread"], B.HALL_STAIR["bays"], B.HALL_STAIR["gap"]
+    nc = B.NAT_COLONNADE["columns"]
     ph_top = ch + B.HALL_PLINTH["h"]
     sanc = B.SANCTUM
 
@@ -450,11 +460,14 @@ def landmarks() -> dict:
         "natmandir": {"center": T(nx, ny, ch), "size": [nw, nd], "height": nh, "west_face_x": round(nx - nw / 2, 3),
                       "plinth_top": round(ph_top, 3), "plinth_out": B.HALL_PLINTH["out"], "bays_west": 7, "bay_pitch": 3.0,
                       "arch": list(nat_arch), "arch_spring": spring(*nat_arch),
-                      "stair_width": round(hb * 3.0 - 0.4, 3), "stair_steps": hs, "stair_tread": ht},
+                      "stair_width": round(hb * 3.0 - 0.4, 3), "stair_steps": hs, "stair_tread": ht, "stair_gap": hg,
+                      # the open north front: its columns' x (site), on the axis of the wall's plane at z, radius r
+                      "north_columns": {"x": sorted(round(nx - (-(nw - 1.0) / 2 + (nw - 1.0) / (nc + 1) * (i + 1)), 3) for i in range(nc)),
+                                        "z": round(-(ny + nd / 2 - 0.25), 3), "r": B.NAT_COLONNADE["r"]}},
         "radhakanta": {"center": T(vx, vy, ch), "size": [vw, vd], "height": vh, "west_face_x": round(vx - vw / 2, 3),
                        "plinth_top": round(ph_top, 3), "plinth_out": B.HALL_PLINTH["out"], "bays_west": 8, "bay_pitch": 3.0,
                        "arch": list(vis_arch), "arch_spring": spring(*vis_arch), "storey_h": round(vh / 2, 3),
-                       "stair_width": round(hb * 3.0 - 0.4, 3), "stair_steps": hs, "stair_tread": ht,
+                       "stair_width": round(hb * 3.0 - 0.4, 3), "stair_steps": hs, "stair_tread": ht, "stair_gap": hg,
                        "door_stairs": [0, 7], "door_stair_width": round(3.0 - 0.4, 3)},   # single-bay flights up to the end doors
         # the shrine chamber in the navaratna's core, behind the central south arch (build_dakshineswar.SANCTUM)
         "sanctum": {"door": T(cx, cy - (S / 2 - 3.0), ch + ph), "arch": list(sanc["door"]),
@@ -484,13 +497,14 @@ def main() -> None:
     ap.add_argument("--only", default=None, help="regex: bake only the meshes whose name matches (a quick test glb)")
     ap.add_argument("--landmarks-only", action="store_true", help="build, write landmarks.json and stop")
     ap.add_argument("--dry", action="store_true", help="build and list the bake plan only")
+    ap.add_argument("--blend", default=None, help="export this hand-edited .blend instead of rebuilding (see above)")
     a = ap.parse_args(argv)
     out, bake_dir = Path(a.out), Path(a.bake_dir)
     out.mkdir(parents=True, exist_ok=True)
     bake_dir.mkdir(parents=True, exist_ok=True)
 
     t0 = time.time()
-    build_scene()
+    build_scene(Path(a.blend) if a.blend else None)
     drop_prototypes()
     apply_modifiers()
 
