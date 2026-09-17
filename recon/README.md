@@ -116,7 +116,8 @@ atlases (`textures.ensure_foliage`) alpha-clipped, swaps in plain Principled mat
 exporter carries verbatim, and writes an uncompressed `.glb` plus `src/scene/landmarks.json`
 (key positions converted to the site's Y-up frame: three (x, y, z) = Blender (x, z, −y) — the
 buildings, the stairs and arches, the lamp posts and bells). `render.sh web` runs that and then
-`gltf-transform meshopt` into `public/models/dakshineswar.glb`. The site's camera path, card
+`gltf-transform meshopt` into `public/models/dakshineswar.glb` (Node ≥ 20 and the repo's `npm install`;
+the script checks that before the bake and refuses with a message, not after it). The site's camera path, card
 anchors and runtime props (`src/scene/walk.js`, `life.js`) read the landmarks, so moving a
 building in `LAYOUT` moves the walk with it.
 

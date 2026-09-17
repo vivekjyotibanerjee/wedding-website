@@ -30,10 +30,19 @@ if [ ! -f "$OUT/textures/sky.hdr" ] || ! echo "$SKY_SHA1  $OUT/textures/sky.hdr"
 fi
 
 case "$MODE" in
-  web)       "$BLENDER" -b -P "$R/blender/export_web.py" -- "${@:2}"
-             case " ${*:2} " in *" --dry "*|*" --landmarks-only "*|*" --only "*|*" --out "*) exit 0 ;; esac   # no full glb written
+  web)       FULL=1; case " ${*:2} " in *" --dry "*|*" --landmarks-only "*|*" --only "*|*" --out "*) FULL=0 ;; esac   # partial runs write no full glb
+             # The meshopt step at the end runs gltf-transform, which needs Node ≥ 20 (its `sharp` dependency) and the
+             # repo's node_modules. Check that *before* the ~17-minute bake, and say so plainly instead of a stack trace.
+             if [ "$FULL" = 1 ] && ! (cd "$R/.." && npx --no-install gltf-transform --version >/dev/null 2>&1); then
+               echo "render.sh: 'npx gltf-transform' does not run here (Node $(node -v 2>/dev/null || echo 'not found'); it needs Node >= 20" >&2
+               echo "and 'npm ci' in the repo root — README, 'Update the model'). Nothing was baked." >&2
+               exit 1
+             fi
+             "$BLENDER" -b -P "$R/blender/export_web.py" -- "${@:2}"
+             [ "$FULL" = 1 ] || exit 0
              # geometry → EXT_meshopt_compression (three.js decodes it with its bundled decoder, no extra files to host)
-             (cd "$R/.." && npx gltf-transform meshopt recon/data/web/dakshineswar.glb public/models/dakshineswar.glb --level medium)
+             (cd "$R/.." && npx --no-install gltf-transform meshopt recon/data/web/dakshineswar.glb public/models/dakshineswar.glb --level medium) \
+               || { echo "render.sh: gltf-transform meshopt failed — public/models/dakshineswar.glb was NOT updated (the bake is in recon/data/web/)" >&2; exit 1; }
              ls -la "$R/../public/models/dakshineswar.glb"; exit 0 ;;
   blend)     "$BLENDER" -b -P "$R/blender/build_dakshineswar.py" -- --out "$OUT" --render none ;;
   diff)      "$BLENDER" -b -P "$R/blender/diff_blend.py" -- "${@:2}"; exit 0 ;;

@@ -47,6 +47,9 @@ const torus = (R, r, flat = true) => { const g = new THREE.TorusGeometry(R, r, 6
 const ball = (r) => { const g = new THREE.SphereGeometry(r, 8, 5); g.translate(0, r, 0); return g; };
 const merge = (list) => { const g = mergeGeometries(list); for (const l of list) l.dispose(); return g; };
 const moved = (g, x, y, z) => { g.translate(x, y, z); return g; };
+/** The kit and the composer, for couple.js (the bride and groom are props in the same idiom). */
+export const KIT = { lathe, cone, box, cyl, disc, torus, ball, merge, moved };
+export { composer };
 /** `n` of `make()` stacked `dy` apart, each nudged a little. */
 function stack(make, n, dy, jitter = 0.005) {
   const parts = [];

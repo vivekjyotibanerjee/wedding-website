@@ -32,7 +32,7 @@ of its open north front onto the temple stair) — one per card, set out as the 
 ## Run it
 
 ```bash
-npm install
+npm install        # Node ≥ 20 (the site itself runs on 18, but `npm run model`'s gltf-transform step does not)
 npm run dev        # http://localhost:5173
 npm run build      # static output in dist/
 npm run preview    # serve dist/ locally
@@ -95,7 +95,9 @@ maps, exports a glTF, compresses it with `gltf-transform` (meshopt) into `public
 rewrites `src/scene/landmarks.json` (the positions the camera path, the cards and the runtime
 props are pinned to — see `src/scene/walk.js` and `life.js`). It needs a Blender Foundation build
 (the `blender` snap, 5.2 — `render.sh` takes `blender` from the PATH or `BLENDER=…`): the Ubuntu
-`blender` package bakes black. ~17 min on a 22-core laptop CPU; the result is ≈ 12 MB. Then `npm run shoot` to look, and
+`blender` package bakes black. It also needs Node ≥ 20 with `npm install` done (`gltf-transform`'s
+`sharp` dependency does not load on 18); `render.sh` checks that first and refuses before the bake
+rather than failing after it. ~17 min on a 22-core laptop CPU; the result is ≈ 12 MB. Then `npm run shoot` to look, and
 commit the glb, `landmarks.json` and `scene.blend` together. Useful while iterating:
 
 ```bash
