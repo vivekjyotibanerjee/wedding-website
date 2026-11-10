@@ -12,6 +12,7 @@ working checklist.
 npm run dev                         # http://localhost:5173 (add --host for the LAN)
 npm run build && npm run preview    # production build on :4173
 npm run model                       # bake + export recon/blender/scene.blend (official Blender, ~17 min, see below)
+bash recon/blender/render.sh couple # the bride and groom: free_assets/*.blend → public/models/couple.glb (~2 min)
 npm run shoot -- http://localhost:5173/ shots 0 0,0.34,1     # headless screenshots (day; 1 = night)
 npm run profile -- http://localhost:5173/                    # draw calls / triangles / programs at every PATH node
 ```
@@ -123,6 +124,25 @@ for regenerating the textures on a new machine or starting the scene over.
   on `build_dakshineswar.py` / `preview_web.py`, and `pair.py` give side-by-sides from one camera
   string (recon/README, "The SketchUp reference"). Relief goes in as geometry or as bump/normal in
   the materials (baked to normal maps by the export), never as a painted flat texture.
+- The bride and groom (`src/scene/couple.js`) are the other runtime model: `public/models/couple.glb`,
+  made by `recon/blender/couple.py` from the two rigged Rigify characters in `free_assets/`
+  (untracked; the 8k atlases live in `free_assets/textures/`) — posed, given an in-place walk cycle,
+  decimated to ~62k triangles, maps shrunk to 2k/1k, exported skinned, then `gltf-transform` merge →
+  prune → webp → meshopt (`render.sh couple`). couple.js walks them round the agni on the mandap's
+  stage during the ceremony transition (the groom ahead, clockwise, r 1.25, the clip's speed matched
+  to the orbit: `CYCLE_M` = the two strides couple.py keys), scales them in from their feet, parks
+  them under the courtyard before that (frustum-culled), compiles their two programs when the glb
+  arrives and again as the ceremony starts, and never lets them cast a shadow. They are not in
+  `scene.blend` and never go through the bake.
+- The flowers: the 14 plants of `free_assets/flowers/Flowers.3ds` are scene objects (`flower_*`,
+  imported once with `recon/blender/import_3ds.py` — Blender 5.2 ships no 3DS importer — their jpg
+  textures packed and a `flower` UV layer their `flower_<name>` materials sample explicitly), in
+  terracotta pots (the `pot` mesh) at the toran, along the Radhakanta's west foot between its
+  flights and at the ends of the nat-mandir's row, and in four brick-edged beds (`flower_bed_edge`
+  / `flower_bed_soil`) at the mandap's corners, between the diya ring (r 5) and the walk. Their
+  petals are open sheets, so the audit lists their open edges (expected, like the leaf cards) and
+  `export_web.two_sided()` makes `flower_*` double-sided. Linked duplicates share a mesh, so the
+  bake is once per species.
 - The sanctum: `build_dakshineswar.SANCTUM` hollows a shrine chamber out of the navaratna's
   ground-storey core behind the central south arch (closed boxes + a pierced wall, no boolean);
   `landmarks.sanctum` locates it. The deity is a runtime picture plane in `life.js` reading
@@ -165,7 +185,9 @@ running — say so, don't fall back to editing the script.
   Then `npm run model` from a shell — never a bake through the tool — and `npm run shoot`.
 - Do not use the tool's asset downloaders (Poly Haven, Sketchfab, Hyper3D) for this scene: the
   model is closed hand-built solids at silhouette level, and a downloaded mesh breaks the bake
-  budget and the audit.
+  budget and the audit. Assets the owner puts in `free_assets/` are the exception, each weighed
+  against the budget (the flowers: the light species instanced, ~68k triangles in all); a rigged
+  character never goes in the scene — it is a runtime glb (the couple).
 
 ## Frame budget (what keeps a phone smooth)
 
@@ -215,8 +237,11 @@ Time-based transitions must use wall-clock dt (the headless frame loop runs at a
 
 ## Decisions already made (don't relitigate)
 
-- No human figures in the scene ("trying to add human meshes is going to look ugly"); Ma Kali
-  in the sanctum is a picture, not a mesh.
+- No modelled human figures in the scene — with one exception, decided 16 Sep 2026: the bride
+  and groom walking round the agni, and only as the owner's rigged characters from `free_assets/`
+  loaded at runtime (`couple.glb`, above). Prop-kit or primitive-built people were tried and
+  rejected ("roblox like characters"); don't offer them again. Ma Kali in the sanctum is a picture,
+  not a mesh.
 - The walk's order: ghat → left (north) into the Radhakanta at its northmost door, a U past
   the four tables along its east wall, out of its southmost door → mandap → nat-mandir by its
   west stair, across to its south-east corner and north past the five tables along its east
