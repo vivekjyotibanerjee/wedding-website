@@ -9,6 +9,7 @@
 #   bash recon/blender/render.sh blend           # just build + audit + save data/blender/dakshineswar.blend (to edit by hand)
 #   bash recon/blender/render.sh web --blend F   # export a hand-edited .blend instead of rebuilding (README, "Edit the model by hand")
 #   bash recon/blender/render.sh diff F          # what a hand-edited .blend changed against the script, to port back (--keep-added, --json)
+#   bash recon/blender/render.sh couple          # the bride and groom (free_assets/*.blend, couple.py) → public/models/couple.glb
 #
 # Output: recon/data/blender/  (git-ignored; everything is reproducible from build_dakshineswar.py)
 # Textures: data/blender/textures/ — the albedo/normal/height maps are generated on first run by
@@ -46,11 +47,21 @@ case "$MODE" in
              ls -la "$R/../public/models/dakshineswar.glb"; exit 0 ;;
   blend)     "$BLENDER" -b -P "$R/blender/build_dakshineswar.py" -- --out "$OUT" --render none ;;
   diff)      "$BLENDER" -b -P "$R/blender/diff_blend.py" -- "${@:2}"; exit 0 ;;
+  couple)    # two rigged characters, posed and walking, one skinned glb: merged, pruned, WebP maps, meshopt (Node >= 20, like web);
+             # one quantization volume for the scene, or quantize clones a skin per skinned node (8 skeletons for 2)
+             "$BLENDER" -b -P "$R/blender/couple.py" -- --out "$R/data/web/couple.glb" "${@:2}"
+             G="npx --no-install gltf-transform"
+             (cd "$R/.." && $G merge recon/data/web/groom.glb recon/data/web/bride.glb recon/data/web/couple_merged.glb --merge-scenes \
+               && $G prune recon/data/web/couple_merged.glb recon/data/web/couple_pruned.glb --keep-attributes false \
+               && $G webp recon/data/web/couple_pruned.glb recon/data/web/couple_webp.glb \
+               && $G meshopt recon/data/web/couple_webp.glb public/models/couple.glb --level medium --quantization-volume scene) \
+               || { echo "render.sh: gltf-transform failed — public/models/couple.glb was NOT updated" >&2; exit 1; }
+             ls -la "$R/../public/models/couple.glb"; exit 0 ;;
   quick)     "$BLENDER" -b -P "$R/blender/build_dakshineswar.py" -- --out "$OUT" --render stills --res 960x540 --samples 24 ;;
   stills)    "$BLENDER" -b -P "$R/blender/build_dakshineswar.py" -- --out "$OUT" --render stills --res 1280x720 --samples 128 ;;
   turntable) "$BLENDER" -b -P "$R/blender/build_dakshineswar.py" -- --out "$OUT" --render turntable --res 960x540 --samples 48 --frames 48
              ffmpeg -loglevel error -y -framerate 12 -i "$OUT/turntable/frame_%04d.png" -c:v libx264 -pix_fmt yuv420p -crf 20 "$OUT/turntable.mp4"
              echo "→ $OUT/turntable.mp4" ;;
-  *) echo "usage: $0 [quick|stills|turntable|blend|diff FILE|web]"; exit 1 ;;
+  *) echo "usage: $0 [quick|stills|turntable|blend|diff FILE|web|couple]"; exit 1 ;;
 esac
 ls -la "$OUT"/*.png "$OUT"/*.blend 2>/dev/null | sed 's|^.* data/|data/|'

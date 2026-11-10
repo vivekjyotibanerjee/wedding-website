@@ -7,12 +7,14 @@ const link = (url) => url && url !== '#';
 /** One card of content.json as a plain article (the same fields cards.js renders in the walk). */
 function article(c) {
   const body = c.body == null ? [] : [].concat(c.body);
+  const h = content.hotel;
   return `
     <article class="event">
       ${c.kicker ? `<p class="kicker">${text(c.kicker)}</p>` : ''}
       <h3>${text(c.title)}</h3>
       ${c.when || c.place ? `<div class="meta">${c.when ? `<span><b>${text(c.when)}</b></span>` : ''}${c.place ? `<span>${text(c.place)}</span>` : ''}</div>` : ''}
       ${c.dress ? `<span class="dress">${text(c.dress)}</span>` : ''}
+      ${c.hotel && h ? `<p><b>${esc(h.name)}</b><br>${esc(h.address)}${link(h.mapUrl) ? ` · <a href="${esc(h.mapUrl)}" target="_blank" rel="noopener">${esc(content.labels.openInMaps)}</a>` : ''}</p>` : ''}
       ${body.map((p) => `<p>${text(p)}</p>`).join('')}
       ${c.items ? `<ul class="items">${c.items.map((it) => `<li><b>${link(it.url) ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${text(it.name)}</a>` : text(it.name)}</b> ${text(it.text)}</li>`).join('')}</ul>` : ''}
       ${c.button && link(c.button.url) ? `<p><a href="${esc(c.button.url)}" target="_blank" rel="noopener">${text(c.button.label)}</a></p>` : ''}
@@ -81,6 +83,14 @@ export function renderSections(main) {
             <option value="${esc(F.declines)}">${esc(F.declines)}</option>
           </select>
         </label>
+        <label>${esc(F.shuttle)}
+          <select name="shuttle">
+            <option value="${esc(F.shuttleNo)}">${esc(F.shuttleNo)}</option>
+            <option value="${esc(F.shuttleSangeet)}">${esc(F.shuttleSangeet)}</option>
+            <option value="${esc(F.shuttleWedding)}">${esc(F.shuttleWedding)}</option>
+            <option value="${esc(F.shuttleBoth)}">${esc(F.shuttleBoth)}</option>
+          </select>
+        </label>
         ${c.rsvp.events && c.rsvp.events.length ? `
         <label>${esc(F.whichEvents)}
           <select name="events" multiple size="${Math.min(5, c.rsvp.events.length)}">
@@ -122,6 +132,7 @@ function wireRsvp(form, status) {
       `Email: ${data.get('email') || '-'}`,
       `Guests: ${data.get('guests') || 1}`,
       `Attending: ${data.get('attending')}`,
+      `Shuttle: ${data.get('shuttle') || '-'}`,
       `Events: ${events || '-'}`,
       `Notes: ${data.get('notes') || '-'}`,
     ];

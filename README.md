@@ -52,10 +52,11 @@ fields are explained here:
 | `couple.partner1/2`, `hashtag` | The two names, rendered as "*A* & *B*"; the hashtag heads the story card. |
 | `couple.bengaliTitle` | Short blessing above the names on the title screen (শুভ বিবাহ = "auspicious wedding"). |
 | `date.display`, `date.time`, `date.iso` | The main ceremony, as guests should read it. `iso` (`YYYY-MM-DD`) is not rendered anywhere yet — kept for a future add-to-calendar link. |
-| `venue.name/address/mapUrl` | `name` is on the title card; `name` and `address` on any card with `"venue": true` (the hotels card), where `mapUrl` is the "Open in maps" button. |
+| `venue.name/address/mapUrl` | `name` is on the title card; `name` and `address` on any card with `"venue": true`, where `mapUrl` is the "Open in maps" button. |
+| `hotel.name/address/mapUrl` | The same block for the hotel, on any card with `"hotel": true` (the hotels card). |
 | `walk.intro` | The scroll hint under the names. |
 | `walk.before`, `walk.day` | The two groups of cards the walk goes through — inside the Radhakanta hall and inside the nat-mandir: a `heading` (used by the fallback page) and the `cards` ids in order. |
-| `cards` | One entry per card, keyed by id (see below). Every field is optional: `kicker`, `title`, `when` and `place` (set big), `body` (a string or a list of paragraphs), `items` (`{ name, text, url }`, a list — hotels; leave `url` empty for no link), `dress`, `button` (`{ label, url }`) and `venue` (true to show the venue and its map button). `{names}`, `{hashtag}`, `{date}`, `{time}` and `{venue}` are filled in. |
+| `cards` | One entry per card, keyed by id (see below). Every field is optional: `kicker`, `title`, `when` and `place` (set big), `body` (a string or a list of paragraphs), `items` (`{ name, text, url }`, a list — hotels; leave `url` empty for no link), `dress`, `button` (`{ label, url }`) `venue` (true to show the venue and its map button) and `hotel` (the same for the hotel). `{names}`, `{hashtag}`, `{date}`, `{time}` and `{venue}` are filled in. |
 | `cards.gate` | The invitation at the ghat — its title is the couple's names. |
 | `cards.story` | Kicker and title over the story timeline, by the Shiva temples. |
 | `cards.train/air/hotels/haldi` | Inside the Radhakanta hall: how to get here and the day before. |
@@ -67,7 +68,7 @@ fields are explained here:
 | `rsvp.formEndpoint` | Set it to a form-service URL (Formspree, Basin, Getform…) and the form POSTs there instead. |
 | `rsvp.heading/intro/deadline/events` | Text over the form; `deadline` feeds the "Reply by …" kicker and `events` the "Which events?" choices on the fallback page. |
 | `footer.line` | The sign-off under the plain-page footer. |
-| `labels` | Every fixed bit of UI text — buttons, the RSVP form's labels, options and status messages. Optional: anything missing falls back to the English defaults in `src/content.js`. `{deadline}` and `{name}` tokens are filled in. |
+| `labels` | Every fixed bit of UI text — buttons, the RSVP form's labels, options (the shuttle question is `form.shuttle`, its answers `shuttleNo/Sangeet/Wedding/Both`) and status messages. Optional: anything missing falls back to the English defaults in `src/content.js`. `{deadline}` and `{name}` tokens are filled in. |
 
 `src/content.js` loads the JSON and fills in the `labels` defaults; nothing else needs touching.
 Where each card pins and when it shows is `ANCHORS` in `src/scene/walk.js`, keyed by the same ids;
@@ -76,6 +77,11 @@ the cards inside the halls pin over their tables (`TABLES` there).
 - **`public/images/bhavatarini.png`** (or `.jpg` / `.webp`) — the picture of Ma Kali in the sanctum, seen through the
   open door at the end of the walk (a photo or painting, portrait, any size; it is shown at its
   own proportions on a lit plane over the dais). Without it the chamber is simply lit, the dais bare.
+
+- **`public/models/couple.glb`** — the bride and groom who walk round the fire during the ceremony,
+  made from the two rigged characters in `free_assets/` (`bash recon/blender/render.sh couple`:
+  poses them, keys a walk, shrinks them to ~62k triangles and 2k maps). Without the file the mandap
+  simply has no couple.
 
 - **`music/`** — the soundtrack (`sajani-sajani.mp3`), played on a loop by the **Sound**
   button; more `.mp3` / `.m4a` / `.ogg` files here play in alphabetical order. The bells are the
@@ -211,6 +217,7 @@ Re-run the build after adding music.
 
 ```
 public/models/dakshineswar.glb   ← the complex, exported from recon/ (see above)
+public/models/couple.glb         ← the bride and groom, from free_assets/ via recon/blender/couple.py
 public/images/bhavatarini.png    ← Ma Kali, shown in the sanctum (see above)
 content.json         ← all guest-facing text (see "Put your details in")
 vite.config.js       ← also bakes the title/description from content.json into index.html
@@ -231,6 +238,7 @@ src/
     decor.js         ← the wedding decoration: garlands, torans, the gate, column wraps, carpets
     tables.js        ← the tables along the halls' back walls and everything on them
     fx.js            ← petals, the agni (flames, sparks, smoke, light), incense
+    couple.js        ← the bride and groom (couple.glb) walking round the agni during the ceremony
     util.js          ← shared: the swag curve, walk order, the scroll-reveal shader hook
     walk.js          ← the camera path (named nodes), the tables and the card anchors, in the model's frame
     landmarks.json   ← key positions written by recon/blender/export_web.py

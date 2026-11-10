@@ -56,8 +56,14 @@ TILE = {"laterite", "stone", "paving", "path", "marble"}
 HI = {"spire", "dentil", "colonette", "striped", "dado", "column", "garland", "drape"}
 # Leaf cards: the RGBA atlas ships as is (alpha-clipped), over the card's own UVs.
 FOLIAGE = {"leaves", "frond", "banana"}
-# Open sheets (drapes, leaf cards) and the garland: single-sided would vanish from behind.
+# Open sheets (drapes, leaf cards) and the garland: single-sided would vanish from behind. The
+# potted flowers (`flower_*`, imported plants whose petals and leaves are open sheets over their
+# own "flower" UVs) are baked like any hand-added mesh, but two-sided.
 DOUBLE_SIDED = {"drape", "garland", "green"} | FOLIAGE
+
+
+def two_sided(name: str) -> bool:
+    return name in DOUBLE_SIDED or name.startswith("flower_")
 # Ambient occlusion is baked for everything but the plain-colour props and shipped as the glTF
 # occlusionTexture: for baked meshes over the same UVs, for the tiling ground/plinth meshes over a
 # second, smart-projected layer. Metres per texel for the tiling class (the courtyard is 58 × 107 m).
@@ -589,7 +595,7 @@ def main() -> None:
                 if m.name not in mats:
                     b, r, mt = principled_of(m)
                     mats[m.name] = bpy.data.materials.get("web_" + m.name) or web_material(
-                        "web_" + m.name, b, r, mt, double_sided=m.name in DOUBLE_SIDED)
+                        "web_" + m.name, b, r, mt, double_sided=two_sided(m.name))
                 me.materials[i] = mats[m.name]
             continue
         t1 = time.time()
@@ -599,7 +605,7 @@ def main() -> None:
         n_baked += 1
         log(f"baked {me.name} @ {res} ({time.time() - t1:.0f} s, {n_baked} done)")
         wm = web_material("web_" + me.name, (1, 1, 1), rough, metal, maps["albedo"], maps["normal"],
-                          double_sided=bool(names & DOUBLE_SIDED), alpha=0.7 if "drape" in names else None, ao=(ao, "bake"))
+                          double_sided=any(map(two_sided, names)), alpha=0.7 if "drape" in names else None, ao=(ao, "bake"))
         me.materials.clear()
         me.materials.append(wm)
         me.uv_layers.remove(me.uv_layers["cube"])       # only the bake UVs ship

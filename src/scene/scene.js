@@ -227,7 +227,7 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     decor = buildDecor(scene, { reducedMotion, quality });
     fx = buildFx(scene, { reducedMotion, quality, sunDir });
     tables = buildTables(scene, { quality });
-    couple = buildCouple(scene, { reducedMotion });
+    couple = buildCouple(scene, { reducedMotion, renderer, camera });
     const h = canvas.clientHeight || window.innerHeight;
     life.resize(h);
     fx.resize(h);

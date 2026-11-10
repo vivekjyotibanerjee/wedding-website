@@ -14,12 +14,13 @@ function smooth(a, b, x) {
 
 /**
  * The body of one card from its content.json entry (README, "Put your details in"): kicker, title,
- * `when` and `place` big, `body` as one or more paragraphs, the venue block with its map button,
+ * `when` and `place` big, `body` as one or more paragraphs, the venue and hotel blocks with their map buttons,
  * `items` as a list, `dress`, and a `button`. Every field is optional. `{names}`, `{hashtag}`,
  * `{date}`, `{time}` and `{venue}` are filled in.
  */
 export function cardHTML(c, { h = 'h2', titleHTML = null } = {}) {
   const v = content.venue;
+  const hotel = content.hotel;
   const L = content.labels;
   const body = c.body == null ? [] : [].concat(c.body);
   return [
@@ -27,6 +28,7 @@ export function cardHTML(c, { h = 'h2', titleHTML = null } = {}) {
     (titleHTML || c.title) && `<${h}>${titleHTML || text(c.title)}</${h}>`,
     (c.when || c.place) && `<p class="big">${c.when ? text(c.when) : ''}${c.when && c.place ? '<br>' : ''}${c.place ? `<span class="muted">${text(c.place)}</span>` : ''}</p>`,
     c.venue && `<p class="big">${esc(v.name)}<br><span class="muted">${esc(v.address)}</span></p><a class="btn ghost" href="${esc(v.mapUrl)}" target="_blank" rel="noopener">${esc(L.openInMaps)}</a>`,
+    c.hotel && hotel && `<p class="big">${esc(hotel.name)}<br><span class="muted">${esc(hotel.address)}</span></p>${link(hotel.mapUrl) ? `<a class="btn ghost" href="${esc(hotel.mapUrl)}" target="_blank" rel="noopener">${esc(L.openInMaps)}</a>` : ''}`,
     ...body.map((p) => `<p>${text(p)}</p>`),
     c.items && `<ul class="items">${c.items.map((it) => `<li><b>${link(it.url) ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${text(it.name)}</a>` : text(it.name)}</b> ${text(it.text)}</li>`).join('')}</ul>`,
     c.dress && `<p class="dress">${text(c.dress)}</p>`,
@@ -66,6 +68,14 @@ function buildCards() {
             <select name="attending">
               <option value="${esc(F.accepts)}">${esc(F.accepts)}</option>
               <option value="${esc(F.declines)}">${esc(F.declines)}</option>
+            </select>
+          </label>
+          <label>${esc(F.shuttle)}
+            <select name="shuttle">
+              <option value="${esc(F.shuttleNo)}">${esc(F.shuttleNo)}</option>
+              <option value="${esc(F.shuttleSangeet)}">${esc(F.shuttleSangeet)}</option>
+              <option value="${esc(F.shuttleWedding)}">${esc(F.shuttleWedding)}</option>
+              <option value="${esc(F.shuttleBoth)}">${esc(F.shuttleBoth)}</option>
             </select>
           </label>
           <label>${esc(F.notes)} <textarea name="notes" rows="2" placeholder="${esc(F.notesHint)}"></textarea></label>
@@ -187,6 +197,7 @@ function wireRsvp(form, status) {
       `Email: ${data.get('email') || '-'}`,
       `Guests: ${data.get('guests') || 1}`,
       `Attending: ${data.get('attending')}`,
+      `Shuttle: ${data.get('shuttle') || '-'}`,
       `Notes: ${data.get('notes') || '-'}`,
     ];
     const endpoint = content.rsvp.formEndpoint;
