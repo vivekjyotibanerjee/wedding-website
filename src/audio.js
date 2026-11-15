@@ -1,6 +1,7 @@
 // The soundtrack and the bells.
 // Vite resolves every audio file in ../music at build time and gives us its URL; the Sound
-// button plays them in alphabetical order (one file loops). The only synthesized sound is the
+// site starts them as soon as the browser allows (main.js) and the Sound button toggles them; they
+// play in alphabetical order (one file loops). The only synthesized sound is the
 // temple bell, struck as the walk crosses a hall's threshold under it (life.js → onBell).
 const TRACKS = Object.entries(import.meta.glob('../music/*.{mp3,m4a,ogg,wav,MP3,M4A}', { eager: true, query: '?url', import: 'default' }))
   .sort(([a], [b]) => a.localeCompare(b))
@@ -9,7 +10,6 @@ const TRACKS = Object.entries(import.meta.glob('../music/*.{mp3,m4a,ogg,wav,MP3,
 export function createSound() {
   let audio = null;
   let index = 0;
-  let enabled = false;
   let ctx = null;
   let verb = null;   // the bells' feedback-delay "reverb", feeding the destination
 
@@ -66,25 +66,32 @@ export function createSound() {
     out.connect(verb);
   }
 
+  // `playing`: the soundtrack is actually sounding. Browsers refuse audio.play() until the guest has
+  // interacted with the page (a tap, a click, a key — scrolling and the wheel don't count), so
+  // play() reports whether it got through and main.js retries it on the first gesture.
+  let playing = false;
+  async function play() {
+    ensure();
+    if (ctx) ctx.resume().catch(() => {});   // not awaited: without a gesture it stays pending
+    if (!TRACKS.length) { playing = !!ctx && ctx.state === 'running'; return playing; }
+    try { await audio.play(); playing = true; } catch (e) { playing = false; }
+    return playing;
+  }
+  function pause() {
+    if (audio) audio.pause();
+    if (ctx) ctx.suspend().catch(() => {});
+    playing = false;
+  }
+  let wasPlaying = false;
   return {
-    get enabled() { return enabled; },
-    async toggle() {
-      ensure();
-      if (!enabled) {
-        if (ctx) await ctx.resume();
-        if (TRACKS.length) { try { await audio.play(); } catch (e) { /* blocked: the bells still ring */ } }
-        enabled = true;
-      } else {
-        audio.pause();
-        if (ctx) await ctx.suspend();
-        enabled = false;
-      }
-      return enabled;
-    },
+    get enabled() { return playing; },
+    play,
+    pause,
+    async toggle() { if (playing) { pause(); return false; } return play(); },
     setDepth() { /* the soundtrack doesn't react to depth */ },
     /** One strike of the temple bell — the scene calls this as the guest crosses a hall's threshold. */
-    ring() { if (enabled) bell(1.0); },
-    async suspend() { if (!enabled) return; audio.pause(); if (ctx) await ctx.suspend(); },
-    async resume() { if (!enabled) return; audio.play().catch(() => {}); if (ctx) await ctx.resume(); },
+    ring() { if (playing && ctx && ctx.state === 'running') bell(1.0); },
+    suspend() { wasPlaying = playing; if (playing) pause(); },
+    resume() { if (wasPlaying) play(); wasPlaying = false; },
   };
 }

@@ -7,6 +7,9 @@ const names = (a, b) => `${esc(a)} <span class="amp">&amp;</span> ${esc(b)}`;
 const text = (s) => esc(fill(s, TOKENS));
 const link = (url) => url && url !== '#';
 
+/** Where a jump to a card lands: the middle of its fully-shown stretch (walk.js ANCHORS `range`). */
+export const cardStop = (id) => { const r = ANCHORS[id].range; return (r[1] + Math.min(r[2], 1)) / 2; };
+
 function smooth(a, b, x) {
   const t = Math.min(1, Math.max(0, (x - a) / Math.max(1e-6, b - a)));
   return t * t * (3 - 2 * t);
@@ -112,17 +115,29 @@ function installOrnament() {
   root.setProperty('--alpona-rosette', `url(${rosette})`);
 }
 
+/** The two buttons under every card: walk on by itself, or jump to the next card (main.js wires them). */
+function actionsHTML(next) {
+  const L = content.labels;
+  return `<div class="card-actions">
+      <button class="btn ghost" type="button" data-act="continue">${esc(L.continueWalking)}</button>
+      ${next ? `<button class="btn" type="button" data-act="next" data-card="${esc(next)}">${esc(L.nextSection)}</button>` : ''}
+    </div>`;
+}
+
 export function mountCards(container, sceneApi) {
   installOrnament();
   const cards = buildCards();
+  // walk order: each card's next is the one that comes up after it on the walk
+  const order = Object.keys(ANCHORS).sort((a, b) => ANCHORS[a].range[0] - ANCHORS[b].range[0]);
+  const nextOf = (id) => (id === 'title' ? order[0] : order[order.indexOf(id) + 1]);
   const els = cards.map((c, i) => {
     const el = document.createElement('section');
     el.className = `card ${c.centered ? 'card-centered' : 'card-pinned'} card-${c.id}`;
     // pinned cards: the pin, then a box that carries the greenery draped over the top edge and the
     // scrolling text panel; only the box moves, so the vine can overflow it
     el.innerHTML = c.centered
-      ? `<div class="card-inner">${c.html}</div>`
-      : `<span class="pin" aria-hidden="true"></span><div class="card-box"><div class="card-vine card-vine-${c.side}" aria-hidden="true">${vineSVG(420, 110, 11 + i * 7)}</div><div class="card-inner">${c.html}</div><i class="card-corner tl"></i><i class="card-corner tr"></i><i class="card-corner br"></i><i class="card-corner bl"></i></div>`;
+      ? `<div class="card-inner">${c.html}${actionsHTML(nextOf(c.id))}</div>`
+      : `<span class="pin" aria-hidden="true"></span><div class="card-box"><div class="card-vine card-vine-${c.side}" aria-hidden="true">${vineSVG(420, 110, 11 + i * 7)}</div><div class="card-panel"><div class="card-inner">${c.html}</div><i class="card-corner tl"></i><i class="card-corner tr"></i><i class="card-corner br"></i><i class="card-corner bl"></i></div>${actionsHTML(nextOf(c.id))}</div>`;
     el.style.opacity = '0';
     el.style.visibility = 'hidden';
     container.appendChild(el);
@@ -131,6 +146,7 @@ export function mountCards(container, sceneApi) {
   const boxes = els.map((el) => el.querySelector('.card-box'));
   const inners = els.map((el) => el.querySelector('.card-inner'));
   const pins = els.map((el) => el.querySelector('.pin'));
+  const acts = els.map((el) => (el.querySelector('.card-box') ? el.querySelector('.card-actions') : null));
 
   const jump = container.querySelector('[data-jump="end"]');
   if (jump) jump.addEventListener('click', (e) => {
@@ -141,12 +157,14 @@ export function mountCards(container, sceneApi) {
   const form = container.querySelector('#rsvp-form');
   if (form) wireRsvp(form, container.querySelector('#rsvp-status'));
 
+  const navEl = document.getElementById('nav');
   let lastActive = -1;
   return {
     update(progress, over) {
       const exit = 1 - smooth(0, 0.3, over);
       const W = window.innerWidth, H = window.innerHeight;
       const docked = W < 720;
+      const navH = navEl && !navEl.hidden ? navEl.offsetHeight : 0;   // the nav bar across the bottom
       cards.forEach((c, i) => {
         const [a, b, cc, d] = c.range;
         let o = i === 0 && progress <= 0 ? 1 : smooth(a, b, progress) * (1 - smooth(cc, d, progress));
@@ -168,16 +186,16 @@ export function mountCards(container, sceneApi) {
         const px = p.x * W, py = p.y * H;
         pins[i].style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px)`;
         const inner = inners[i];
-        const cw = inner.offsetWidth, ch = inner.offsetHeight;
+        const cw = inner.offsetWidth, ch = inner.offsetHeight + (acts[i] ? acts[i].offsetHeight + 12 : 0);   // the buttons hang under the card
         let x, y;
         if (docked) {
           x = (W - cw) / 2;
-          y = H - ch - 20;
+          y = H - ch - navH - 12;
         } else {
           // dock to the screen edge on the card's side so the subject stays visible; the pin marks the spot
           x = c.side === 'left' ? 24 : W - cw - 24;
           y = py - ch * 0.35;
-          y = Math.min(Math.max(116, y), H - ch - 24);   // below the HUD buttons, vine included
+          y = Math.min(Math.max(116, y), H - ch - navH - 16);   // below the HUD buttons, vine included
         }
         boxes[i].style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
       });

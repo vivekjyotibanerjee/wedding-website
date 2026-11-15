@@ -14,7 +14,12 @@ The complex is the Blender model from `recon/` (built parametrically from refere
 photographs of the real temple — cream stucco with rose bands, ribbed spires, the 9-foil
 arcades, the red-plastered aat-chala Shiva temples, the mandap), baked and exported to
 `public/models/dakshineswar.glb` (≈ 95 k faces, meshopt-compressed, WebP textures, ≈ 12 MB).
-Daytime by default; a **Night** toggle floodlights the temple.
+Night by default (the guest's choice is remembered); the toggle brings the afternoon back. Once
+the veil lifts the walk goes on by itself (about three minutes end to end; not under
+prefers-reduced-motion) until the guest scrolls, drags, uses a scroll key or the nav. The nav bar
+across the bottom (`content.json` `nav`: a label and the card it goes to) jumps to a section
+through a second of dark, and every card has **Continue walking** (the autoscroll again) and
+**Jump to next section** (the same jump to the next card on the walk) under it.
 
 The temple is dressed for the wedding as the guest walks: bare at the river, then a toran gate
 at the top of the ghat, a red carpet rolling out up the strip, torans over the doors and diya
@@ -83,8 +88,9 @@ the cards inside the halls pin over their tables (`TABLES` there).
   poses them, keys a walk, shrinks them to ~62k triangles and 2k maps). Without the file the mandap
   simply has no couple.
 
-- **`music/`** — the soundtrack (`sajani-sajani.mp3`), played on a loop by the **Sound**
-  button; more `.mp3` / `.m4a` / `.ogg` files here play in alphabetical order. The bells are the
+- **`music/`** — the soundtrack (`sajani-sajani.mp3`), played on a loop from the start — tried
+  at load and again on the guest's first click, tap or key, since browsers hold sound back until
+  a gesture — and muted by the **Sound** button; more `.mp3` / `.m4a` / `.ogg` files here play in alphabetical order. The bells are the
   one synthesized sound, struck as the walk passes under them at the halls' doors.
 
 ## Update the model

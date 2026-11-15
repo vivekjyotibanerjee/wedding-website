@@ -32,7 +32,12 @@
         </button>
       </div>
       <div id="scroll-hint" aria-hidden="true"><span></span></div>
+      <!-- A jump to each section of the walk (filled by main.js from content.json "nav") -->
+      <nav id="nav" aria-label="Sections"></nav>
     </div>
+
+    <!-- The dark a nav jump passes through -->
+    <div id="fade" aria-hidden="true"></div>
 
     <!-- Cards pinned to places in the scene (filled by JS) -->
     <div id="cards" aria-live="polite"></div>

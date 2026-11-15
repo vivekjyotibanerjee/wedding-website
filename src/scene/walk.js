@@ -231,7 +231,7 @@ export function eyeAt(t, out) {
 
 // Where the cards pin (world points) and when they show: [fadeInStart, fadeInEnd, fadeOutStart,
 // fadeOutEnd] in walk progress, node i of PATH being at at(i). Ranges never overlap, so at most
-// one card is up; `side` alternates so consecutive cards come from opposite edges.
+// one card is up; `side` is the screen edge the card docks to — all left (the owner's choice, Nov 2026).
 // A card's anchor must stay in front of the camera for the whole of its range (a point behind the
 // camera cannot be projected and the card vanishes), so cards pin to what the walk is heading for:
 // inside the halls, the table the guest is walking up to (its range ends just past the abreast
@@ -242,16 +242,16 @@ const over = (k) => [TABLES[k].p[0], TABLES[k].p[1] + 1.35, TABLES[k].p[2]];
 const N_ = NODE;
 export const ANCHORS = {
   gate: { anchor: [L.ghat.top[0] + 0.5, g + 2.2, gz - 7], range: span(3, 4.3), side: 'left' },           // the ghat's top edge
-  story: { anchor: [L.shiva.x + L.shiva.size / 2 + 0.2, L.shiva.plinth_top + 4.3, L.shiva.first_north[2] - 2 * L.shiva.pitch], range: span(5, 6.3), side: 'right' }, // the third north Shiva temple
+  story: { anchor: [L.shiva.x + L.shiva.size / 2 + 0.2, L.shiva.plinth_top + 4.3, L.shiva.first_north[2] - 2 * L.shiva.pitch], range: span(5, 6.3), side: 'left' }, // the third north Shiva temple
   train: { anchor: over('welcome'), range: span(N_.rNE + 0.3, N_.rWelcomeb + 0.15), side: 'left' },
-  air: { anchor: over('puja'), range: span(N_.rWelcomeb + 0.6, N_.rPujab + 0.15), side: 'right' },
+  air: { anchor: over('puja'), range: span(N_.rWelcomeb + 0.6, N_.rPujab + 0.15), side: 'left' },
   hotels: { anchor: over('bhog'), range: span(N_.rPujab + 0.6, N_.rBhogb + 0.15), side: 'left' },
-  haldi: { anchor: over('shringar'), range: span(N_.rBhogb + 0.6, N_.rShringarb + 0.15), side: 'right' },
-  ceremony: { anchor: [mx, L.mandap.canopy + 0.3, mz], range: span(N_.rFlightS + 0.2, N_.mandapW + 0.2), side: 'right' }, // the mandap
+  haldi: { anchor: over('shringar'), range: span(N_.rBhogb + 0.6, N_.rShringarb + 0.15), side: 'left' },
+  ceremony: { anchor: [mx, L.mandap.canopy + 0.3, mz], range: span(N_.rFlightS + 0.2, N_.mandapW + 0.2), side: 'left' }, // the mandap
   breakfast: { anchor: over('malakar'), range: span(N_.nIn + 0.5, N_.nMalakarb + 0.15), side: 'left' },
-  baraat: { anchor: over('music'), range: span(N_.nMalakarb + 0.6, N_.nMusicb + 0.15), side: 'right' },
+  baraat: { anchor: over('music'), range: span(N_.nMalakarb + 0.6, N_.nMusicb + 0.15), side: 'left' },
   vows: { anchor: over('lamps'), range: span(N_.nMusicb + 0.6, N_.nLampsb + 0.15), side: 'left' },
-  cocktails: { anchor: over('tattva'), range: span(N_.nLampsb + 0.6, N_.nTattvab + 0.15), side: 'right' },
+  cocktails: { anchor: over('tattva'), range: span(N_.nLampsb + 0.6, N_.nTattvab + 0.15), side: 'left' },
   reception: { anchor: over('paan'), range: span(N_.nTattvab + 0.6, N_.nPaanb + 0.15), side: 'left' },
-  rsvp: { anchor: [L.navaratna.bay_pitch * 0.9, doorMid + 1.2, doorZ], range: [at(N_.stair + 0.6), at(N_.stair + 1.3), 2, 2], side: 'right' }, // beside the shrine door
+  rsvp: { anchor: [L.navaratna.bay_pitch * 0.9, doorMid + 1.2, doorZ], range: [at(N_.stair + 0.6), at(N_.stair + 1.3), 2, 2], side: 'left' }, // beside the shrine door
 };

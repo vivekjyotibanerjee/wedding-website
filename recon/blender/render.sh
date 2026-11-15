@@ -49,7 +49,8 @@ case "$MODE" in
   diff)      "$BLENDER" -b -P "$R/blender/diff_blend.py" -- "${@:2}"; exit 0 ;;
   couple)    # two rigged characters, posed and walking, one skinned glb: merged, pruned, WebP maps, meshopt (Node >= 20, like web);
              # one quantization volume for the scene, or quantize clones a skin per skinned node (8 skeletons for 2)
-             "$BLENDER" -b -P "$R/blender/couple.py" -- --out "$R/data/web/couple.glb" "${@:2}"
+             "$BLENDER" -b --python-exit-code 1 -P "$R/blender/couple.py" -- --out "$R/data/web/couple.glb" "${@:2}" \
+               || { echo "render.sh: couple.py failed — public/models/couple.glb was NOT updated" >&2; exit 1; }
              G="npx --no-install gltf-transform"
              (cd "$R/.." && $G merge recon/data/web/groom.glb recon/data/web/bride.glb recon/data/web/couple_merged.glb --merge-scenes \
                && $G prune recon/data/web/couple_merged.glb recon/data/web/couple_pruned.glb --keep-attributes false \

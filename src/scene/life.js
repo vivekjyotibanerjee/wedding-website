@@ -200,15 +200,20 @@ export function buildLife(scene, model, { reducedMotion = false, onBell = null, 
   const diyaSpots = [];   // [x, y, z, always?] — or, from the tables, { p, group, order, lit, bowl, s }
   {
     // the temple stair: two either side of every tread, then along the rail tops round the platform
-    const { stair_foot, stair_top, stair_width: sw, stair_steps: ns, stair_tread: tr } = L.navaratna;
+    const { stair_foot, stair_width: sw, stair_steps: ns, stair_tread: tr } = L.navaratna;
     const rise = (pt - g) / ns;
     for (let k = 0; k < ns; k++) {
       const z = stair_foot[2] - tr * (k + 0.5);
       for (const s of [-1, 1]) diyaSpots.push([s * (sw / 2 - 0.35), g + rise * (k + 1), z], [s * (sw / 2 - 1.05), g + rise * (k + 1), z]);
     }
-    const zs = stair_top[2];                                   // platform south edge
-    for (let x = sw / 2 + 0.6; x < P / 2 - 0.3; x += 0.7) for (const s of [-1, 1]) diyaSpots.push([s * x, pt + 1.0, zs]);
-    for (let u = -P / 2 + 0.6; u < P / 2 - 0.3; u += 0.7) diyaSpots.push([-P / 2 + 0.2, pt + 1.0, u], [P / 2 - 0.2, pt + 1.0, u], [u, pt + 1.0, -P / 2 + 0.2]);   // west, east and north rails
+    // the balustrade (1 m, centred on the platform's edge) is broken by a flight on every face:
+    // only where there is rail, never over a flight's top (those floated in mid-air)
+    const F = L.navaratna.flights;
+    const rail = { S: (u) => [u, pt + 1.0, P / 2], N: (u) => [u, pt + 1.0, -P / 2], W: (u) => [-P / 2, pt + 1.0, u], E: (u) => [P / 2, pt + 1.0, u] };
+    for (const [face, spot] of Object.entries(rail)) {
+      const clear = (F[face] ? F[face].width : sw) / 2 + 0.6;
+      for (let x = clear; x < P / 2 - 0.3; x += 0.7) for (const s of [-1, 1]) diyaSpots.push(spot(s * x));
+    }
     // along the verandah, both sides of the central arch
     for (let x = -wall + 0.6; x <= wall - 0.5; x += 0.75) if (Math.abs(x) > 1.4) diyaSpots.push([x, pt, wall + 0.35]);
     // the halls' west stairs and plinth ledges, leaving the doorways the walk uses clear (the

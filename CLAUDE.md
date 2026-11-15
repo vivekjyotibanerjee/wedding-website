@@ -98,6 +98,11 @@ for regenerating the textures on a new machine or starting the scene over.
   path, a device-tier `quality` for the effects budget. Day/night is still the guest's toggle;
   the walk only drifts the day toward golden hour (`stage.dusk`, the sun sinking from 38° to
   11°). The toggle lights everything at once (`lit = max(stage.lights, night)`).
+- `src/main.js` also runs the autoscroll (`startAuto`/`stopAuto`, `AUTO_SECONDS`), the nav bar
+  and the cards' **Continue walking** / **Jump to next section** buttons; every jump is `jumpTo(t)`:
+  `#fade` to dark, scroll + `sceneApi.jump(t)` (the stage lands at once), back, one second in all;
+  a card's stop is `cardStop(id)` (cards.js: the middle of its shown range). `AUTO_SECONDS` 180 (the
+  owner doubled the pace, Nov 2026); every card docks to the left edge (`side: 'left'` in ANCHORS).
 - `src/cards.js` + `src/ornament.js`: the cards (vine + alpona frame generated at runtime)
   pinned to anchors and projected every frame. One generic template (`cardHTML`) renders every
   card from its `content.json` entry; `ANCHORS` in `walk.js` says where and when, keyed by the
@@ -129,8 +134,19 @@ for regenerating the textures on a new machine or starting the scene over.
   (untracked; the 8k atlases live in `free_assets/textures/`) — posed, given an in-place walk cycle,
   decimated to ~62k triangles, maps shrunk to 2k/1k, exported skinned, then `gltf-transform` merge →
   prune → webp → meshopt (`render.sh couple`). couple.js walks them round the agni on the mandap's
-  stage during the ceremony transition (the groom ahead, clockwise, r 1.25, the clip's speed matched
-  to the orbit: `CYCLE_M` = the two strides couple.py keys), scales them in from their feet, parks
+  stage during the ceremony transition (who leads is a coin toss per load, `LEAD`; clockwise, r 1.25,
+  the clip's speed matched to the orbit: `CYCLE_M` = the two strides couple.py keys), tied by their
+  own cloth (the gathbandhan; never a separate ribbon or knot mesh: the owner wants the models' own
+  dupattas tied) — couple.py's `TIE`/`add_tie` puts a chain of `DEF-tie.N` bones on each rig's
+  DEF-spine along a free end, each at the middle of a band of the cloth and pointing along it: the
+  groom's left stole end (subdivided, 6 bones) and a strip of the bride's veil along its front left
+  edge, slit from the rest of the veil from the hem up (`veil_strip`, `VEIL_STRIP` wide; 15 bones,
+  dense where it wraps); the `tie_keep` group keeps both out of the Decimate. `buildTie` lays both
+  chains out every frame — the stole into the knot as its core, the veil strip across, once round it
+  and hanging — turning each bone to the cloth's run and gathering across it only (`scale.set(w,1,w)`).
+  With the groom leading the run is ~1.1 m for ~0.9 m of cloth and stretches (owner's call, Nov 2026,
+  over a longer stole or walking closer); `?lead=groom|bride` pins the coin toss for checking.
+  `tie.stretch` (debug) is goal ÷ rest length per chain. scales them in from their feet, parks
   them under the courtyard before that (frustum-culled), compiles their two programs when the glb
   arrives and again as the ceremony starts, and never lets them cast a shadow. They are not in
   `scene.blend` and never go through the bake.
@@ -295,6 +311,18 @@ Time-based transitions must use wall-clock dt (the headless frame loop runs at a
   (use the winding number, as `mesh_audit` does).
 - `ring_prism` on an outline that starts and ends on its base line must leave the base open
   (foot caps): the closed version laid a face across every threshold, z-fighting the floor.
+- couple.py: key a Rigify control that has a parent (`hips` under `torso`, `head`) by its local
+  rotation, never by an armature-space `pb.matrix`: that pins it at its rest place while the torso
+  bobs, the spine and neck stretch between them, and the glb squashes the head, turban and hair.
+  Clear the rig's action with `animation_data.action = None`, never `animation_data_clear()`: that
+  also deletes the rig's drivers, so the IK/FK switches stop working and IK wins regardless.
+  The arms walk on FK (`arm_swing`; the wrist is straightened off the rest pose's ~16° bend, `WRIST`) and the
+  fingers are curled a little (`relax_hands`, `CURL`): the asset's flat spread T-pose hand reads as crooked.
+- GLTFLoader renames bones: the '.' is dropped (`DEF-tie.1` → `DEF-tie1`) and the second rig's
+  duplicates get `_1` — look bones up through `PropertyBinding.sanitizeNodeName` (couple.js `bone`).
+  `render.sh couple` runs Blender with `--python-exit-code 1`, so a failing couple.py stops before the
+  stale glbs are repackaged; edit-mode `bpy.ops.mesh.subdivide` in background segfaulted Blender
+  5.3 here — use `bmesh.ops.subdivide_edges` (it carries the vertex groups).
 - GLSL `smoothstep(a, b, x)` with `a > b` is undefined by the spec (it happens to work on most
   GPUs); write `1.0 - smoothstep(b, a, x)`. The glb's positions are quantised (int16 + node
   scale), so vertex displacement of model meshes must be done in world space after

@@ -24,6 +24,16 @@
     "address": "1301 Route 130 South, Cinnaminson, NJ 08077",
     "mapUrl": "https://maps.app.goo.gl/XJ1oBBCreG5eUBdu7"
   },
+  "nav": [
+    { "label": "Welcome", "card": "gate" },
+    { "label": "Our story", "card": "story" },
+    { "label": "Travel", "card": "train" },
+    { "label": "Stay", "card": "hotels" },
+    { "label": "Haldi & Sangeet", "card": "haldi" },
+    { "label": "Ceremony", "card": "ceremony" },
+    { "label": "Wedding day", "card": "breakfast" },
+    { "label": "RSVP", "card": "rsvp" }
+  ],
   "walk": {
     "intro": "Scroll to walk in",
     "before": {
@@ -190,6 +200,8 @@
   },
   "labels": {
     "jumpToRsvp": "Jump to RSVP",
+    "continueWalking": "Continue walking",
+    "nextSection": "Jump to next section",
     "openInMaps": "Open in maps",
     "replyBy": "Reply by {deadline}",
     "form": {

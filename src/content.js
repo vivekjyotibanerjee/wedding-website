@@ -8,6 +8,8 @@ import raw from '../content.json';
 
 const DEFAULT_LABELS = {
   jumpToRsvp: 'Jump to RSVP',
+  continueWalking: 'Continue walking',
+  nextSection: 'Jump to next section',
   openInMaps: 'Open in maps',
   replyBy: 'Reply by {deadline}',
   form: {
@@ -43,8 +45,13 @@ for (const id of ['gate', 'story', 'rsvp', ...raw.walk.before.cards, ...raw.walk
   if (!raw.cards[id]) throw new Error(`content.json is missing the "${id}" card`);
 }
 
+for (const n of raw.nav || []) {
+  if (!raw.cards[n.card]) throw new Error(`content.json: nav item "${n.label}" points at a missing card "${n.card}"`);
+}
+
 export const content = {
   ...raw,
+  nav: raw.nav || [],
   site: {
     title: `${raw.couple.partner1} & ${raw.couple.partner2} — Wedding`,
     description: '',

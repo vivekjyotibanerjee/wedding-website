@@ -1,7 +1,7 @@
 import { content } from './content.js';
 import { createScene } from './scene/scene.js';
 import { createSound } from './audio.js';
-import { mountCards } from './cards.js';
+import { mountCards, cardStop } from './cards.js';
 import { at, NODE } from './scene/walk.js';
 import { renderSections } from './sections.js';
 import { mountDebug } from './debug.js';
@@ -17,6 +17,8 @@ const hint = document.getElementById('scroll-hint');
 const audioBtn = document.getElementById('audio-toggle');
 const nightBtn = document.getElementById('night-toggle');
 const details = document.getElementById('details');
+const nav = document.getElementById('nav');
+const fade = document.getElementById('fade');
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -68,6 +70,7 @@ if (!sceneApi) {
 
   function onScroll() {
     const y = window.scrollY || window.pageYOffset;
+    if (auto.on && Math.abs(y - auto.y) > 4) stopAuto();   // the scrollbar dragged, or anything else not ours
     const len = walkLength();
     progressTarget = Math.min(1, Math.max(0, y / len));
     over = Math.max(0, (y - len) / window.innerHeight);
@@ -99,12 +102,14 @@ if (!sceneApi) {
   // ── Card sync ────────────────────────────────────────────
   function syncCards() {
     cards.update(sceneApi.progress, over);
+    syncNav();
     requestAnimationFrame(syncCards);
   }
 
   // ── Day / night ──────────────────────────────────────────
-  let night = false;
-  try { night = localStorage.getItem('temple-night') === '1'; } catch (_) { /* ignore */ }
+  let night;
+  night = true;   // night by default; a guest who switched to day is remembered
+  try { night = localStorage.getItem('temple-night') !== '0'; } catch (_) { /* ignore */ }
   function applyNight(on, persist = true) {
     night = on;
     sceneApi.setNight(on);
@@ -117,16 +122,122 @@ if (!sceneApi) {
   applyNight(night, false);
   nightBtn.addEventListener('click', () => applyNight(!night));
 
-  // ── Sound ────────────────────────────────────────────────
-  audioBtn.addEventListener('click', async () => {
-    const on = await sound.toggle();
+  // ── Sound: on by default ─────────────────────────────────
+  // Browsers only let a page start audio after the guest has interacted with it, so the
+  // soundtrack is tried at once and, if refused, again on the first tap, click or key (scrolling
+  // doesn't count). Turning it off with the button is final.
+  let muted = false;
+  function showSound(on) {
     audioBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
     audioBtn.setAttribute('aria-label', on ? 'Turn sound off' : 'Turn sound on');
+  }
+  const GESTURES = ['pointerdown', 'keydown', 'touchend'];
+  function onGesture(e) {
+    if (audioBtn.contains(e.target)) return;   // the button's own click decides
+    tryAutoplay();
+  }
+  function unlisten() { for (const ev of GESTURES) window.removeEventListener(ev, onGesture, true); }
+  async function tryAutoplay() {
+    if (muted || sound.enabled) { unlisten(); return; }
+    const on = await sound.play();
+    showSound(on);
+    if (on) unlisten();
+  }
+  for (const ev of GESTURES) window.addEventListener(ev, onGesture, true);
+  tryAutoplay();
+  audioBtn.addEventListener('click', async () => {
+    const on = await sound.toggle();
+    muted = !on;
+    if (on) unlisten();
+    showSound(on);
   });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { sound.suspend(); sceneApi.stop(); }
     else { sound.resume(); if (!pastWalk) sceneApi.start(); }
   });
+
+  // ── Autoscroll: the walk goes on by itself until the guest scrolls ──
+  // Starts once the veil is up, at a pace that walks the whole complex in AUTO_SECONDS; any
+  // wheel, touch-drag, scroll key, scrollbar drag or nav jump hands the walk back to the guest.
+  const AUTO_SECONDS = 180;
+  const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Spacebar']);
+  const auto = { on: false, y: 0, last: 0 };
+  function stopAuto() {
+    if (!auto.on) return;
+    auto.on = false;
+    window.removeEventListener('wheel', stopAuto);
+    window.removeEventListener('touchmove', stopAuto);
+    window.removeEventListener('keydown', onAutoKey);
+  }
+  function onAutoKey(e) { if (SCROLL_KEYS.has(e.key)) stopAuto(); }
+  function autoTick(now) {
+    if (!auto.on) return;
+    const dt = Math.min(0.1, (now - auto.last) / 1000);
+    auto.last = now;
+    const len = walkLength();
+    auto.y = Math.min(len, auto.y + (len / AUTO_SECONDS) * dt);
+    window.scrollTo(0, auto.y);
+    if (auto.y >= len) { stopAuto(); return; }
+    requestAnimationFrame(autoTick);
+  }
+  function startAuto() {
+    if (auto.on || pastWalk) return;   // reduced motion: the boot doesn't start it, but the guest's own "Continue walking" does
+    auto.on = true;
+    auto.y = window.scrollY || 0;
+    auto.last = performance.now();
+    window.addEventListener('wheel', stopAuto, { passive: true });
+    window.addEventListener('touchmove', stopAuto, { passive: true });
+    window.addEventListener('keydown', onAutoKey);
+    requestAnimationFrame(autoTick);
+  }
+
+  // ── Nav bar: a jump to each section, through a second of dark ──
+  // Each item goes to the middle of its card's range (walk.js ANCHORS). The screen dims for 0.4 s,
+  // the scroll and the camera jump there at once (the stage and every reveal land with it), a
+  // 0.2 s hold lets the new view render, and it brightens over 0.4 s: one second in all.
+  const navItems = content.nav.map((n) => ({ ...n, t: cardStop(n.card) }));
+  nav.innerHTML = `<ul>${navItems.map((n, i) => `<li><button type="button" data-i="${i}">${n.label}</button></li>`).join('')}</ul>`;
+  const navButtons = [...nav.querySelectorAll('button')];
+  nav.hidden = !navItems.length;
+  let jumping = false;
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function jumpTo(t) {
+    if (jumping) return;
+    stopAuto();
+    jumping = true;
+    fade.classList.add('is-dark');
+    await wait(400);
+    window.scrollTo({ top: t * walkLength(), behavior: 'instant' });
+    sceneApi.jump(t);
+    onScroll();
+    await wait(200);
+    fade.classList.remove('is-dark');
+    await wait(400);
+    jumping = false;
+  }
+  nav.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-i]');
+    if (b) jumpTo(navItems[+b.dataset.i].t);
+  });
+  // the buttons under every card: walk on by itself from here, or the same jump to the next card
+  cardsEl.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    if (b.dataset.act === 'continue') startAuto();
+    else jumpTo(cardStop(b.dataset.card));
+  });
+  let navActive = -1;
+  function syncNav() {
+    let i = -1;
+    navItems.forEach((n, k) => { if (sceneApi.progress >= n.t - 0.012) i = k; });
+    if (i === navActive) return;
+    navActive = i;
+    navButtons.forEach((b, k) => { if (k === i) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+    if (i >= 0) {   // keep the current item in view on a narrow bar (not scrollIntoView: that can move the page)
+      const ul = nav.firstElementChild, btn = navButtons[i].parentElement;
+      ul.scrollTo({ left: btn.offsetLeft - (ul.clientWidth - btn.offsetWidth) / 2, behavior: reducedMotion ? 'auto' : 'smooth' });
+    }
+  }
 
   // ── Boot: the veil lifts once the model is in ────────────
   sceneApi.resize();
@@ -139,6 +250,7 @@ if (!sceneApi) {
       if (!pastWalk) sceneApi.start();
       syncCards();
       veil.classList.add('is-done');
+      if (!reducedMotion) setTimeout(startAuto, 1500);   // once the veil has lifted
     });
   }).catch((e) => {
     console.error('Model failed to load; showing details only', e);

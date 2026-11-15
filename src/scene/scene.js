@@ -362,6 +362,8 @@ export function createScene(canvas, { reducedMotion = false, onProgress = null, 
     ready,
     resize,
     setProgress(v) { state.target = THREE.MathUtils.clamp(v, 0, 1); },
+    /** Put the walk at progress t at once, no easing (the nav's jump, behind its fade). */
+    jump(t) { state.target = state.progress = THREE.MathUtils.clamp(t, 0, 1); state.velocity = 0; },
     get progress() { return state.progress; },
     get night() { return state.night; },
     get stage() { return stageCtl.value; },
