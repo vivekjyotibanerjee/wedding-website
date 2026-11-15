@@ -1,4 +1,5 @@
 import { content, fill, TOKENS } from './content.js';
+import { wireRsvp } from './rsvp.js';
 import { ANCHORS } from './scene/walk.js';
 import { alponaCanvas, alponaCornerCanvas, vineSVG } from './ornament.js';
 
@@ -61,7 +62,9 @@ function buildCards() {
       form: true,
       extra: `
         <p class="sub">${esc(c.rsvp.intro)}</p>
-        <form class="rsvp-form" id="rsvp-form" novalidate>
+        <form class="rsvp-form" id="rsvp-form" name="rsvp" method="POST" action="/__forms.html" data-netlify="true" netlify-honeypot="bot-field">
+          <input type="hidden" name="form-name" value="rsvp" />
+          <p hidden><label>Leave this empty <input name="bot-field" autocomplete="off" tabindex="-1" /></label></p>
           <label>${esc(F.name)} <input name="name" type="text" autocomplete="name" required /></label>
           <div class="row">
             <label>${esc(F.email)} <input name="email" type="email" autocomplete="email" /></label>
@@ -84,7 +87,7 @@ function buildCards() {
           <label>${esc(F.notes)} <textarea name="notes" rows="2" placeholder="${esc(F.notesHint)}"></textarea></label>
           <div class="actions">
             <button class="btn" type="submit">${esc(F.submit)}</button>
-            <span class="status" id="rsvp-status"></span>
+            <span class="status" id="rsvp-status" role="status" aria-live="polite"></span>
           </div>
         </form>`,
     },
@@ -201,39 +204,4 @@ export function mountCards(container, sceneApi) {
       });
     },
   };
-}
-
-function wireRsvp(form, status) {
-  const F = content.labels.form;
-  form.addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const data = new FormData(form);
-    const name = (data.get('name') || '').toString().trim();
-    if (!name) { status.textContent = F.needName; form.name.focus(); return; }
-    const lines = [
-      `Name: ${name}`,
-      `Email: ${data.get('email') || '-'}`,
-      `Guests: ${data.get('guests') || 1}`,
-      `Attending: ${data.get('attending')}`,
-      `Shuttle: ${data.get('shuttle') || '-'}`,
-      `Notes: ${data.get('notes') || '-'}`,
-    ];
-    const endpoint = content.rsvp.formEndpoint;
-    if (endpoint) {
-      status.textContent = F.sending;
-      try {
-        const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: data });
-        if (!res.ok) throw new Error(String(res.status));
-        status.textContent = F.sent;
-        form.reset();
-      } catch (e) {
-        status.textContent = F.failed;
-      }
-      return;
-    }
-    const subject = encodeURIComponent(fill(F.subject, { name }));
-    const body = encodeURIComponent(lines.join('\n'));
-    window.location.href = `mailto:${content.rsvp.email}?subject=${subject}&body=${body}`;
-    status.textContent = F.openingMail;
-  });
 }

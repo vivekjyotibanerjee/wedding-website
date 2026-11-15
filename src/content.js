@@ -33,7 +33,7 @@ const DEFAULT_LABELS = {
     needName: 'Please tell us your name.',
     sending: 'Sending…',
     sent: 'Thank you — we have your reply!',
-    failed: 'Something went wrong. Please email us instead.',
+    failed: 'Your reply could not be saved. Please try again.',
     openingMail: 'Opening your email app…',
   },
 };

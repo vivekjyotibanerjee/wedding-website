@@ -69,8 +69,8 @@ fields are explained here:
 | `cards.breakfast/baraat/vows/cocktails/reception` | Inside the nat-mandir: the wedding day, in order. |
 | `cards.rsvp` | Kicker (Bengali font) and title over the RSVP form, before the sanctum door. |
 | `story` | `heading`, `intro` (fallback page only) and a `timeline` of `{ when, title, text }`. |
-| `rsvp.email` | Where the RSVP goes when `formEndpoint` is empty: the form opens the guest's email app with a pre-filled message. |
-| `rsvp.formEndpoint` | Set it to a form-service URL (Formspree, Basin, Getform…) and the form POSTs there instead. |
+| `rsvp.email` | Contact email for the couple. RSVP replies are saved through Netlify Forms. |
+| `rsvp.formEndpoint` | Legacy setting; RSVP submissions now use Netlify Forms regardless of this value. |
 | `rsvp.heading/intro/deadline/events` | Text over the form; `deadline` feeds the "Reply by …" kicker and `events` the "Which events?" choices on the fallback page. |
 | `footer.line` | The sign-off under the plain-page footer. |
 | `labels` | Every fixed bit of UI text — buttons, the RSVP form's labels, options (the shuttle question is `form.shuttle`, its answers `shuttleNo/Sangeet/Wedding/Both`) and status messages. Optional: anything missing falls back to the English defaults in `src/content.js`. `{deadline}` and `{name}` tokens are filled in. |
@@ -278,3 +278,5 @@ Notes:
   instanced decoration is in spatial chunks so what is behind the guest is not drawn.
 - If WebGL is unavailable, or the model download stalls, the walk is skipped and the
   details render as a normal page.
+
+RSVP submissions are saved in the Netlify project dashboard under Forms → rsvp after deployment. Both layouts submit the same fields through a shared handler. The static definition in `public/__forms.html` registers those fields at deploy time; keep it in sync when changing the form. Guests receive confirmation only after a successful response; failed submissions retain their entries for retry.
