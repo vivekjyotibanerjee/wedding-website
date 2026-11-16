@@ -220,6 +220,9 @@
       "needName": "Please tell us your name.",
       "sending": "Sending…",
       "sent": "Thank you — we have your reply!",
+      "thanksTitle": "Thank you!",
+      "thanks": "Thank you for RSVP-ing — we are so excited to celebrate with you!",
+      "another": "Send another reply",
       "failed": "Your reply could not be saved. Please try again.",
       "openingMail": "Opening your email app…"
     }

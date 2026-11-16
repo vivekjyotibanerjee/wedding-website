@@ -104,7 +104,8 @@ for regenerating the textures on a new machine or starting the scene over.
   the nav bar (`jumpTo(t)`: `#fade` to dark, `setProgress` + `sceneApi.jump(t)`, back, one second
   in all). A card's stop is `cardStop(id)` (cards.js: the middle of its shown range); the last
   card (RSVP) has no buttons. The veil ends on an **Enter** button — the tap that lets the browser
-  start the music (owner, Nov 2026: music from the start, no scroll-to-walk). Scripts move the
+  start the music, and it walks on to the first card (owner, Nov 2026: music from the start, no
+  scroll-to-walk). A saved RSVP swaps the form for a thank-you (`rsvp.js`, `.rsvp-thanks`). Scripts move the
   walk with `window.templeWalk.set(t)` and click `#enter` (shoot/profile do). Every card docks to
   the left edge (`side: 'left'` in ANCHORS); on a phone they dock above the nav with the two
   buttons side by side. `shoot`: `NODEBUG=1` hides the debug panel, `nav` as the positions shoots

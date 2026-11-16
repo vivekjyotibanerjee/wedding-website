@@ -356,6 +356,17 @@ body.no-webgl #fade { display: none; }
 
 
 .card .rsvp-form { display: grid; gap: 12px; margin-top: 8px; }
+.rsvp-form[hidden], .rsvp-thanks[hidden] { display: none; }
+/* the acknowledgement that replaces the form once a reply is saved */
+.rsvp-thanks { text-align: center; padding: 22px 8px 6px; outline: none; animation: thanks-in 0.6s ease-out both; }
+.rsvp-thanks-mark { display: block; font-size: 1.8rem; color: var(--gold); margin-bottom: 8px; }
+.rsvp-thanks h3 { font: 500 2rem/1.1 var(--serif); margin: 0 0 10px; }
+.rsvp-thanks p { margin: 0 auto 18px; max-width: 32ch; font: 400 1.25rem/1.4 var(--serif); }
+.rsvp-again { background: none; border: 0; padding: 4px 0; font: 500 11px/1 var(--sans); letter-spacing: 0.18em; text-transform: uppercase; color: inherit; opacity: 0.75; border-bottom: 1px solid currentColor; cursor: pointer; }
+.rsvp-again:hover { opacity: 1; }
+.card .rsvp-thanks h3 { color: var(--cream); }
+.card .rsvp-thanks p { color: rgba(244, 232, 214, 0.92); }
+@keyframes thanks-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .card .rsvp-form label { display: grid; gap: 5px; font: 500 10px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244, 232, 214, 0.75); }
 .card .rsvp-form input, .card .rsvp-form select, .card .rsvp-form textarea {
   width: 100%;
@@ -555,6 +566,7 @@ footer.site-footer p { margin: 0; font-size: 0.9rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .rsvp-thanks { animation: none; }
   .veil-mark, #audio-toggle .audio-icon i { animation: none !important; }
 }
 

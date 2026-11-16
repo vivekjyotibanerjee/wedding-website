@@ -234,6 +234,7 @@ if (!sceneApi) {
   enterBtn.addEventListener('click', () => {
     if (!muted) tryAutoplay();   // inside the tap, so the browser lets it play
     veil.classList.add('is-done');
+    if (!reducedMotion) setTimeout(() => walkTo(nextStop(progress)), 900);   // walk in as the veil lifts, on to the first card
   });
 } catch (e) {
   console.error('Temple walk failed to start; showing details only', e);

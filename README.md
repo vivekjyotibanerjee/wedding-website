@@ -16,11 +16,12 @@ arcades, the red-plastered aat-chala Shiva temples, the mandap), baked and expor
 `public/models/dakshineswar.glb` (≈ 95 k faces, meshopt-compressed, WebP textures, ≈ 12 MB).
 Night by default (the guest's choice is remembered); the toggle brings the afternoon back. When
 the model is in, an **Enter** button lifts the veil (that tap is what lets the browser start the
-music). The page never scrolls: the walk moves only by the buttons under every card —
+music), and the walk sets off to the first card (not under prefers-reduced-motion). The page never scrolls: the walk moves only by the buttons under every card —
 **Continue walking** (walks on to the next card and waits there, at a pace of about three minutes
 end to end) and **Jump to next section** (a jump to the next card through a second of dark) —
 and by the nav bar across the bottom (`content.json` `nav`: a label and the card it goes to). The
-RSVP, the last card, has no buttons.
+RSVP, the last card, has no buttons; a saved reply replaces its form with a thank-you
+(`labels.form.thanksTitle` / `thanks` / `another`).
 
 The temple is dressed for the wedding as the guest walks: bare at the river, then a toran gate
 at the top of the ghat, a red carpet rolling out up the strip, torans over the doors and diya
