@@ -1,6 +1,6 @@
 # Wedding website — a walk through Dakshineswar
 
-Scroll-driven wedding site. As guests scroll they walk through the Dakshineswar Kali
+Wedding site as a walk. Guests walk, a section at a time, through the Dakshineswar Kali
 Temple complex — from the Hooghly up the ghat, left along the Shiva temples and through the
 Radhakanta hall, back to the wedding mandap, through the nat-mandir, up the stairs of the
 navaratna temple and into its central arch, where the sanctum door stands open. Every piece
@@ -14,12 +14,13 @@ The complex is the Blender model from `recon/` (built parametrically from refere
 photographs of the real temple — cream stucco with rose bands, ribbed spires, the 9-foil
 arcades, the red-plastered aat-chala Shiva temples, the mandap), baked and exported to
 `public/models/dakshineswar.glb` (≈ 95 k faces, meshopt-compressed, WebP textures, ≈ 12 MB).
-Night by default (the guest's choice is remembered); the toggle brings the afternoon back. Once
-the veil lifts the walk goes on by itself (about three minutes end to end; not under
-prefers-reduced-motion) until the guest scrolls, drags, uses a scroll key or the nav. The nav bar
-across the bottom (`content.json` `nav`: a label and the card it goes to) jumps to a section
-through a second of dark, and every card has **Continue walking** (the autoscroll again) and
-**Jump to next section** (the same jump to the next card on the walk) under it.
+Night by default (the guest's choice is remembered); the toggle brings the afternoon back. When
+the model is in, an **Enter** button lifts the veil (that tap is what lets the browser start the
+music). The page never scrolls: the walk moves only by the buttons under every card —
+**Continue walking** (walks on to the next card and waits there, at a pace of about three minutes
+end to end) and **Jump to next section** (a jump to the next card through a second of dark) —
+and by the nav bar across the bottom (`content.json` `nav`: a label and the card it goes to). The
+RSVP, the last card, has no buttons.
 
 The temple is dressed for the wedding as the guest walks: bare at the river, then a toran gate
 at the top of the ghat, a red carpet rolling out up the strip, torans over the doors and diya
@@ -59,7 +60,7 @@ fields are explained here:
 | `date.display`, `date.time`, `date.iso` | The main ceremony, as guests should read it. `iso` (`YYYY-MM-DD`) is not rendered anywhere yet — kept for a future add-to-calendar link. |
 | `venue.name/address/mapUrl` | `name` is on the title card; `name` and `address` on any card with `"venue": true`, where `mapUrl` is the "Open in maps" button. |
 | `hotel.name/address/mapUrl` | The same block for the hotel, on any card with `"hotel": true` (the hotels card). |
-| `walk.intro` | The scroll hint under the names. |
+| `walk.intro` | The line under the names on the title. |
 | `walk.before`, `walk.day` | The two groups of cards the walk goes through — inside the Radhakanta hall and inside the nat-mandir: a `heading` (used by the fallback page) and the `cards` ids in order. |
 | `cards` | One entry per card, keyed by id (see below). Every field is optional: `kicker`, `title`, `when` and `place` (set big), `body` (a string or a list of paragraphs), `items` (`{ name, text, url }`, a list — hotels; leave `url` empty for no link), `dress`, `button` (`{ label, url }`) `venue` (true to show the venue and its map button) and `hotel` (the same for the hotel). `{names}`, `{hashtag}`, `{date}`, `{time}` and `{venue}` are filled in. |
 | `cards.gate` | The invitation at the ghat — its title is the couple's names. |
@@ -261,7 +262,8 @@ Notes:
 
 - Frame: metres, x east, y up, z south (Blender's +Y north becomes −z), origin at the
   navaratna's centre — the same frame as `recon/configs/layout.geojson`.
-- Native scrolling only; the camera lerps toward the scroll position and the cards are
+- No page scrolling: main.js keeps the walk's position (`progress`, moved by the buttons and the
+  nav; `window.templeWalk.set(t)` for scripts); the camera lerps toward it and the cards are
   projected from world anchors on the same frame, so they never drift.
 - `Night` is remembered in `localStorage`; day is the default.
 - The render loop pauses when the tab is hidden; `prefers-reduced-motion` disables the

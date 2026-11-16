@@ -8,6 +8,7 @@ import raw from '../content.json';
 
 const DEFAULT_LABELS = {
   jumpToRsvp: 'Jump to RSVP',
+  enter: 'Enter',
   continueWalking: 'Continue walking',
   nextSection: 'Jump to next section',
   openInMaps: 'Open in maps',

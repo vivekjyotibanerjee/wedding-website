@@ -100,7 +100,7 @@ function buildCards() {
         <h1>${names(c.couple.partner1, c.couple.partner2)}</h1>
         <p class="lead">${esc(c.date.display)} · ${esc(c.venue.name)}</p>
         <p class="hint">${esc(c.walk.intro)}</p>
-        <a class="skip" href="#rsvp" data-jump="end">${esc(L.jumpToRsvp)}</a>`,
+        <a class="skip" href="#" data-jump="end">${esc(L.jumpToRsvp)}</a>`,
     },
     ...Object.entries(ANCHORS).map(([id, where]) => {
       const sp = special[id] || {};
@@ -120,10 +120,11 @@ function installOrnament() {
 
 /** The two buttons under every card: walk on by itself, or jump to the next card (main.js wires them). */
 function actionsHTML(next) {
+  if (!next) return '';   // the last card (the RSVP) has nowhere to walk on to
   const L = content.labels;
   return `<div class="card-actions">
       <button class="btn ghost" type="button" data-act="continue">${esc(L.continueWalking)}</button>
-      ${next ? `<button class="btn" type="button" data-act="next" data-card="${esc(next)}">${esc(L.nextSection)}</button>` : ''}
+      <button class="btn" type="button" data-act="next" data-card="${esc(next)}">${esc(L.nextSection)}</button>
     </div>`;
 }
 
@@ -151,12 +152,6 @@ export function mountCards(container, sceneApi) {
   const pins = els.map((el) => el.querySelector('.pin'));
   const acts = els.map((el) => (el.querySelector('.card-box') ? el.querySelector('.card-actions') : null));
 
-  const jump = container.querySelector('[data-jump="end"]');
-  if (jump) jump.addEventListener('click', (e) => {
-    e.preventDefault();
-    const walk = document.getElementById('walk');
-    window.scrollTo({ top: Math.max(0, walk.offsetHeight - window.innerHeight) }); // the camera eases there on its own
-  });
   const form = container.querySelector('#rsvp-form');
   if (form) wireRsvp(form, container.querySelector('#rsvp-status'));
 

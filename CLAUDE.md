@@ -98,11 +98,17 @@ for regenerating the textures on a new machine or starting the scene over.
   path, a device-tier `quality` for the effects budget. Day/night is still the guest's toggle;
   the walk only drifts the day toward golden hour (`stage.dusk`, the sun sinking from 38° to
   11°). The toggle lights everything at once (`lit = max(stage.lights, night)`).
-- `src/main.js` also runs the autoscroll (`startAuto`/`stopAuto`, `AUTO_SECONDS`), the nav bar
-  and the cards' **Continue walking** / **Jump to next section** buttons; every jump is `jumpTo(t)`:
-  `#fade` to dark, scroll + `sceneApi.jump(t)` (the stage lands at once), back, one second in all;
-  a card's stop is `cardStop(id)` (cards.js: the middle of its shown range). `AUTO_SECONDS` 180 (the
-  owner doubled the pace, Nov 2026); every card docks to the left edge (`side: 'left'` in ANCHORS).
+- `src/main.js` owns the walk's position (`progress`; the page never scrolls, `html.fixed-walk`):
+  it moves only by the cards' **Continue walking** (`walkTo(nextStop())`: on to the next card's
+  stop at `AUTO_SECONDS` 180 for the whole walk, then it waits) and **Jump to next section** and
+  the nav bar (`jumpTo(t)`: `#fade` to dark, `setProgress` + `sceneApi.jump(t)`, back, one second
+  in all). A card's stop is `cardStop(id)` (cards.js: the middle of its shown range); the last
+  card (RSVP) has no buttons. The veil ends on an **Enter** button — the tap that lets the browser
+  start the music (owner, Nov 2026: music from the start, no scroll-to-walk). Scripts move the
+  walk with `window.templeWalk.set(t)` and click `#enter` (shoot/profile do). Every card docks to
+  the left edge (`side: 'left'` in ANCHORS); on a phone they dock above the nav with the two
+  buttons side by side. `shoot`: `NODEBUG=1` hides the debug panel, `nav` as the positions shoots
+  every nav item.
 - `src/cards.js` + `src/ornament.js`: the cards (vine + alpona frame generated at runtime)
   pinned to anchors and projected every frame. One generic template (`cardHTML`) renders every
   card from its `content.json` entry; `ANCHORS` in `walk.js` says where and when, keyed by the

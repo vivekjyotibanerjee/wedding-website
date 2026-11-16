@@ -16,8 +16,7 @@ export function mountDebug(sceneApi) {
   el.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-t]');
     if (!b) return;
-    const walk = document.getElementById('walk');
-    window.scrollTo({ top: (+b.dataset.t) * Math.max(1, walk.offsetHeight - window.innerHeight) + 2 });
+    if (window.templeWalk) window.templeWalk.set(+b.dataset.t + 0.001);
   });
   const $ = (id) => el.querySelector(`#dbg-${id}`);
   let frames = 0, t0 = performance.now(), fps = 0;

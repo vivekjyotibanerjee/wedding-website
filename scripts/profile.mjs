@@ -29,7 +29,8 @@ await page.setViewport({ width: +(process.env.VW || 1280), height: +(process.env
 page.on('pageerror', (e) => console.log('pageerror:', e.message));
 await page.evaluateOnNewDocument((n) => { try { localStorage.setItem('temple-night', n); } catch (_) { /* ignore */ } }, night === '1' ? '1' : '0');
 await page.goto(url.includes('#debug') ? url : `${url}#debug`, { waitUntil: 'load', timeout: 120000 });
-await page.waitForFunction(() => document.getElementById('veil').classList.contains('is-done'), { timeout: 180000 });
+await page.waitForFunction(() => document.getElementById('veil').classList.contains('is-ready'), { timeout: 180000 });
+await page.evaluate(() => { const b = document.getElementById('enter'); if (b && !b.hidden) b.click(); });   // the Enter tap lifts the veil
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 await wait(1000);
 const nodes = await page.evaluate(() => window.templeScene.debug.nodes), step = +stepArg;   // the last PATH node's index
@@ -38,8 +39,7 @@ let lastPrograms = -1;
 for (let i = 0; i <= nodes; i += step) {
   const t = i / nodes;
   const r = await page.evaluate(async (t) => {
-    const walk = document.getElementById('walk');
-    window.scrollTo(0, t * Math.max(1, walk.offsetHeight - window.innerHeight));
+    window.templeWalk.set(t);
     const api = window.templeScene;
     // let the camera converge (no easing in the count that matters, but the stage does)
     for (let k = 0; k < 400 && Math.abs(api.progress - t) > 0.002; k++) await new Promise((r) => requestAnimationFrame(r));

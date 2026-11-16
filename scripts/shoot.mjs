@@ -8,7 +8,8 @@
 // Playwright cache). WAIT (ms) is the settle time per shot; raise it if anything else hogs the CPU.
 // SNAP=1 jumps the walk to each position instead of easing there (the stage and the reveals land
 // at once; needs #debug, added to the url); LOOK=x,y,z/tx,ty,tz pins the camera there (world
-// metres) for every shot, so a detail can be checked from any angle at any stage.
+// metres) for every shot, so a detail can be checked from any angle at any stage. NODEBUG=1 hides
+// the #debug panel in the shots; `nav` for the positions shoots at every nav-bar item (clicks it).
 import puppeteer from 'puppeteer-core';
 import { mkdirSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -40,14 +41,23 @@ await page.evaluateOnNewDocument((n) => { try { localStorage.setItem('temple-nig
 const snap = process.env.SNAP === '1', look = process.env.LOOK ? process.env.LOOK.split('/').map((v) => v.split(',').map(Number)) : null;
 await page.goto(snap || look ? url.replace(/#.*$/, '') + '#debug' : url, { waitUntil: 'load', timeout: 120000 });
 // wait for the veil to lift (model loaded) or the no-WebGL fallback
-await page.waitForFunction(() => document.getElementById('veil').classList.contains('is-done') || document.body.classList.contains('no-webgl'), { timeout: 180000 });
+await page.waitForFunction(() => document.getElementById('veil').classList.contains('is-ready') || document.body.classList.contains('no-webgl'), { timeout: 180000 });
+await page.evaluate(() => { const b = document.getElementById('enter'); if (b && !b.hidden) b.click(); });   // the Enter tap lifts the veil
 console.log('fallback:', await page.evaluate(() => document.body.classList.contains('no-webgl')));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 await wait(1500);
-for (const t of ts.split(',').map(Number)) {
+if (process.env.NODEBUG === '1') await page.addStyleTag({ content: '#debug { display: none !important; }' });
+const navStops = ts === 'nav' ? await page.$$eval('#nav button', (bs) => bs.map((b) => b.textContent.trim())) : null;
+for (const [k, label] of (navStops || []).entries()) {
+  await page.click(`#nav button[data-i="${k}"]`);
+  await wait(+(process.env.WAIT || 5000));
+  const file = `${outdir}/nav${k}_${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}${night === '1' ? '_night' : ''}${vw < vh ? '_portrait' : ''}.png`;
+  await page.screenshot({ path: file });
+  console.log('shot', file);
+}
+for (const t of navStops ? [] : ts.split(',').map(Number)) {
   await page.evaluate((t, snap, look) => {
-    const walk = document.getElementById('walk');
-    window.scrollTo(0, t * Math.max(1, walk.offsetHeight - window.innerHeight));
+    window.templeWalk.set(t);
     if (snap) window.templeScene.debug.snap(t);
     if (look) window.templeScene.debug.look(look[0], look[1]);
   }, t, snap, look);
