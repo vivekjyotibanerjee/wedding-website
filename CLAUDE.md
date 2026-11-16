@@ -100,7 +100,7 @@ for regenerating the textures on a new machine or starting the scene over.
   11°). The toggle lights everything at once (`lit = max(stage.lights, night)`).
 - `src/main.js` owns the walk's position (`progress`; the page never scrolls, `html.fixed-walk`):
   it moves only by the cards' **Continue walking** (`walkTo(nextStop())`: on to the next card's
-  stop at `AUTO_SECONDS` 180 for the whole walk, then it waits) and **Jump to next section** and
+  stop at `AUTO_SECONDS` 90 for the whole walk (owner doubled it twice, Nov 2026), then it waits) and **Jump to next section** and
   the nav bar (`jumpTo(t)`: `#fade` to dark, `setProgress` + `sceneApi.jump(t)`, back, one second
   in all). A card's stop is `cardStop(id)` (cards.js: the middle of its shown range); the last
   card (RSVP) has no buttons. The veil ends on an **Enter** button — the tap that lets the browser

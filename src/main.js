@@ -145,7 +145,7 @@ if (!sceneApi) {
   // ── Continue walking: on to the next card's stop, then wait there ──
   // At a pace that would walk the whole complex in AUTO_SECONDS; a jump or the next card's stop
   // ends it. (The guest's own tap, so it runs under reduced motion too.)
-  const AUTO_SECONDS = 180;
+  const AUTO_SECONDS = 90;
   const auto = { on: false, to: 0, last: 0 };
   function stopAuto() { auto.on = false; }
   function autoTick(now) {

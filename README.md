@@ -17,7 +17,7 @@ arcades, the red-plastered aat-chala Shiva temples, the mandap), baked and expor
 Night by default (the guest's choice is remembered); the toggle brings the afternoon back. When
 the model is in, an **Enter** button lifts the veil (that tap is what lets the browser start the
 music), and the walk sets off to the first card (not under prefers-reduced-motion). The page never scrolls: the walk moves only by the buttons under every card —
-**Continue walking** (walks on to the next card and waits there, at a pace of about three minutes
+**Continue walking** (walks on to the next card and waits there, at a pace of about a minute and a half
 end to end) and **Jump to next section** (a jump to the next card through a second of dark) —
 and by the nav bar across the bottom (`content.json` `nav`: a label and the card it goes to). The
 RSVP, the last card, has no buttons; a saved reply replaces its form with a thank-you
