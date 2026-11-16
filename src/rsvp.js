@@ -61,10 +61,9 @@ export function wireRsvp(form, status) {
     }
     if (!form.reportValidity()) return;
     data.set('name', name);
-    // Two summary fields for the submissions list: the events they're coming to, and accepts/declines overall.
+    // A summary field for the submissions list: the events they're coming to.
     const coming = content.rsvp.events.filter((e) => data.get(e.field) === F.willAttend).map((e) => e.label);
     data.set('events', coming.join(', ') || '—');
-    data.set('attending', coming.length ? F.accepts : F.declines);
     pending = true;
     button.disabled = true;
     form.setAttribute('aria-busy', 'true');
