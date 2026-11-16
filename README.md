@@ -73,7 +73,7 @@ fields are explained here:
 | `story` | `heading`, `intro` (fallback page only) and a `timeline` of `{ when, title, text }`. |
 | `rsvp.email` | Contact email for the couple. RSVP replies are saved through Netlify Forms. |
 | `rsvp.formEndpoint` | Legacy setting; RSVP submissions now use Netlify Forms regardless of this value. |
-| `rsvp.heading/intro/deadline/events` | Text over the form; `deadline` feeds the "Reply by …" kicker and `events` the "Which events?" choices on the fallback page. |
+| `rsvp.heading/intro/deadline/events` | Text over the form; `deadline` feeds the "Reply by …" kicker. `events` are the per-event questions (both forms): `{ "field", "label", "when" }` each, answered *Will attend* / *Can't make it*, saved under `field` (which must also be an input in `public/__forms.html` for Netlify). Each submission also carries `events` (what they're coming to) and `attending` (accepts if any). |
 | `footer.line` | The sign-off under the plain-page footer. |
 | `labels` | Every fixed bit of UI text — buttons, the RSVP form's labels, options (the shuttle question is `form.shuttle`, its answers `shuttleNo/Sangeet/Wedding/Both`) and status messages. Optional: anything missing falls back to the English defaults in `src/content.js`. `{deadline}` and `{name}` tokens are filled in. |
 

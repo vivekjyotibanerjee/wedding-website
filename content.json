@@ -189,8 +189,8 @@
     "intro": "Please let us know by 15 September 2027.",
     "deadline": "15 September 2027",
     "events": [
-      "Haldi & Sangeet — Fri 13 Nov",
-      "The wedding — Sat 14 Nov"
+      { "field": "sangeet", "label": "Haldi & Sangeet", "when": "Saturday 13 Nov" },
+      { "field": "wedding", "label": "The wedding", "when": "Sunday 14 Nov" }
     ],
     "email": "hello@example.com",
     "formEndpoint": ""
@@ -210,6 +210,9 @@
       "guests": "Guests",
       "guestsLong": "Guests (including you)",
       "attending": "Will you join us?",
+      "willAttend": "Will attend",
+      "cantAttend": "Can't make it",
+      "pickEach": "Please tell us yes or no for each event.",
       "accepts": "Joyfully accepts",
       "declines": "Regretfully declines",
       "whichEvents": "Which events?",

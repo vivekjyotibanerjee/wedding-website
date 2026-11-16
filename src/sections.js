@@ -1,5 +1,5 @@
 import { content, fill, TOKENS } from './content.js';
-import { wireRsvp } from './rsvp.js';
+import { wireRsvp, eventsFieldsHTML } from './rsvp.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const text = (s) => esc(fill(s, TOKENS));
@@ -80,12 +80,7 @@ export function renderSections(main) {
           <label>${esc(F.email)} <input name="email" type="email" autocomplete="email" /></label>
           <label>${esc(F.guestsLong)} <input name="guests" type="number" min="1" max="10" value="1" /></label>
         </div>
-        <label>${esc(F.attending)}
-          <select name="attending">
-            <option value="${esc(F.accepts)}">${esc(F.accepts)}</option>
-            <option value="${esc(F.declines)}">${esc(F.declines)}</option>
-          </select>
-        </label>
+        ${eventsFieldsHTML()}
         <label>${esc(F.shuttle)}
           <select name="shuttle">
             <option value="${esc(F.shuttleNo)}">${esc(F.shuttleNo)}</option>
@@ -94,12 +89,6 @@ export function renderSections(main) {
             <option value="${esc(F.shuttleBoth)}">${esc(F.shuttleBoth)}</option>
           </select>
         </label>
-        ${c.rsvp.events && c.rsvp.events.length ? `
-        <label>${esc(F.whichEvents)}
-          <select name="events" multiple size="${Math.min(5, c.rsvp.events.length)}">
-            ${c.rsvp.events.map((e) => `<option value="${esc(e)}" selected>${esc(e)}</option>`).join('')}
-          </select>
-        </label>` : ''}
         <label>${esc(F.notes)} <textarea name="notes" rows="3" placeholder="${esc(F.notesHint)}"></textarea></label>
         <div class="actions">
           <button class="btn" type="submit">${esc(F.submit)}</button>

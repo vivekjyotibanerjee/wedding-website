@@ -1,5 +1,5 @@
 import { content, fill, TOKENS } from './content.js';
-import { wireRsvp } from './rsvp.js';
+import { wireRsvp, eventsFieldsHTML } from './rsvp.js';
 import { ANCHORS } from './scene/walk.js';
 import { alponaCanvas, alponaCornerCanvas, vineSVG } from './ornament.js';
 
@@ -70,12 +70,7 @@ function buildCards() {
             <label>${esc(F.email)} <input name="email" type="email" autocomplete="email" /></label>
             <label>${esc(F.guests)} <input name="guests" type="number" min="1" max="10" value="1" /></label>
           </div>
-          <label>${esc(F.attending)}
-            <select name="attending">
-              <option value="${esc(F.accepts)}">${esc(F.accepts)}</option>
-              <option value="${esc(F.declines)}">${esc(F.declines)}</option>
-            </select>
-          </label>
+          ${eventsFieldsHTML()}
           <label>${esc(F.shuttle)}
             <select name="shuttle">
               <option value="${esc(F.shuttleNo)}">${esc(F.shuttleNo)}</option>
